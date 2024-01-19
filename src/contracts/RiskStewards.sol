@@ -18,9 +18,6 @@ import {IDefaultInterestRateStrategy} from 'aave-v3-core/contracts/interfaces/ID
 contract RiskSteward is IRiskSteward {
   using Address for address;
 
-  /// @inheritdoc IRiskSteward
-  uint256 public constant MINIMUM_DELAY = 5 days;
-
   uint256 internal constant BPS_MAX = 100_00;
 
   /// @inheritdoc IRiskSteward
@@ -37,7 +34,7 @@ contract RiskSteward is IRiskSteward {
   mapping(address => Debounce) internal _timelocks;
 
   /**
-   * @dev Modifier preventing anyone, but the council to update caps.
+   * @dev Modifier preventing anyone, but the council to update risk params.
    */
   modifier onlyRiskCouncil() {
     require(RISK_COUNCIL == msg.sender, RiskStewardErrors.INVALID_CALLER);
@@ -70,7 +67,7 @@ contract RiskSteward is IRiskSteward {
         capUpdates[i].asset
       );
 
-      _validateCapsAndUpdateDebounce(currentSupplyCap, currentBorrowCap, capUpdates[i]);
+      _validateCapsUpdate(currentSupplyCap, currentBorrowCap, capUpdates[i]);
     }
     address(CONFIG_ENGINE).functionDelegateCall(
       abi.encodeWithSelector(CONFIG_ENGINE.updateCaps.selector, capUpdates)
@@ -88,7 +85,7 @@ contract RiskSteward is IRiskSteward {
         uint256 variableRateSlope2
       ) = _getInterestRatesForAsset(ratesUpdate[i].asset);
 
-      _validateRatesAndUpdateDebounce(
+      _validateRatesUpdate(
         optimalUsageRatio,
         baseVariableBorrowRate,
         variableRateSlope1,
@@ -124,7 +121,7 @@ contract RiskSteward is IRiskSteward {
       ) = POOL_DATA_PROVIDER.getReserveConfigurationData(asset);
       uint256 debtCeiling = POOL_DATA_PROVIDER.getDebtCeiling(asset);
 
-      _validateCollateralsAndUpdateDebounce(
+      _validateCollateralsUpdate(
         ltv,
         liquidationThreshold,
         liquidationBonus,
@@ -143,7 +140,7 @@ contract RiskSteward is IRiskSteward {
     return _timelocks[asset];
   }
 
-  function _validateCapsAndUpdateDebounce(
+  function _validateCapsUpdate(
     uint256 supplyCap,
     uint256 borrowCap,
     IEngine.CapsUpdate calldata capUpdate
@@ -174,7 +171,7 @@ contract RiskSteward is IRiskSteward {
     }
   }
 
-  function _validateRatesAndUpdateDebounce(
+  function _validateRatesUpdate(
     uint256 optimalUsageRatio,
     uint256 baseVariableBorrowRate,
     uint256 variableRateSlope1,
@@ -236,7 +233,7 @@ contract RiskSteward is IRiskSteward {
     }
   }
 
-  function _validateCollateralsAndUpdateDebounce(
+  function _validateCollateralsUpdate(
     uint256 ltv,
     uint256 liquidationThreshold,
     uint256 liquidationBonus,
@@ -329,10 +326,10 @@ contract RiskSteward is IRiskSteward {
   }
 
   /**
-   * @notice Ensures the cap increase is within the allowed range.
-   * @param from current cap
-   * @param to new cap
-   * @return bool true, if difference is within the max 100% increase window
+   * @notice Ensures the risk param change is within the allowed range.
+   * @param from current risk param value
+   * @param to new updated risk param value
+   * @return bool true, if difference is within the maxPercentChange
    */
   function _updateWithinAllowedRange(
     uint256 from,

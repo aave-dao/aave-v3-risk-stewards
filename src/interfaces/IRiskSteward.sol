@@ -47,11 +47,6 @@ interface IRiskSteward {
   }
 
   /**
-   * @notice The minimum delay that must be respected between updating a specific cap twice
-   */
-  function MINIMUM_DELAY() external pure returns (uint256);
-
-  /**
    * @notice The config engine used to perform the cap update via delegatecall
    */
   function CONFIG_ENGINE() external view returns (IAaveV3ConfigEngine);
