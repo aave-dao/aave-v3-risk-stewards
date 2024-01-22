@@ -190,8 +190,6 @@ contract RiskSteward is Ownable, IRiskSteward {
     require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
 
     if (capUpdate.supplyCap != EngineFlags.KEEP_CURRENT) {
-      require(currentSupplyCap != 0, RiskStewardErrors.NO_CAP_INITIALIZE);
-
       _validateParamUpdate(
         currentSupplyCap,
         capUpdate.supplyCap,
@@ -203,7 +201,6 @@ contract RiskSteward is Ownable, IRiskSteward {
     }
 
     if (capUpdate.borrowCap != EngineFlags.KEEP_CURRENT) {
-      require(currentBorrowCap != 0, RiskStewardErrors.NO_CAP_INITIALIZE);
       _validateParamUpdate(
         currentBorrowCap,
         capUpdate.borrowCap,
