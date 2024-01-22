@@ -1,26 +1,55 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IACLManager, IPoolConfigurator, IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
-import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
+import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
-import {IAaveV3ConfigEngine} from 'aave-helpers/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-helpers/v3-config-engine/IAaveV3ConfigEngine.sol';
 
 /**
  * @title IRiskSteward
  * @author BGD labs
- * @notice Contract managing caps increasing on an aave v3 pool
+ * @notice Defines the interface for the contract to manage the risk params updates on aave v3 pool
  */
 interface IRiskSteward {
   /**
-   * @notice Stuct storing the last update of a specific cap
+   * @notice Emitted when the owner configures an asset as restricted to be used by steward
+   * @param asset address of the underlying asset
+   * @param isRestricted true if asset is set as restricted, false otherwise
+   */
+  event AssetRestricted(address indexed asset, bool indexed isRestricted);
+
+  /**
+   * @notice Emitted when the risk configuration for the risk params have been set
+   */
+  event RiskConfigSet();
+
+  /**
+   * @notice Emitted when the caps have been updated using the steward
+   * @param asset address of the underlying asset for which caps have been updated
+   */
+  event CapsUpdate(address indexed asset);
+
+  /**
+   * @notice Emitted when the rate have been updated using the steward
+   * @param asset address of the underlying asset for which interest rates have been updated
+   */
+  event RateUpdate(address indexed asset);
+
+  /**
+   * @notice Emitted when the collateral params have been updated using the steward
+   * @param asset address of the underlying asset for which collateral params have been updated
+   */
+  event CollateralUpdate(address indexed asset);
+
+  /**
+   * @notice Stuct storing the last update by the steward of each risk param
    */
   struct Debounce {
     uint40 supplyCapLastUpdated;
     uint40 borrowCapLastUpdated;
     uint40 ltvLastUpdated;
-    uint40 liqBonusLastUpdated;
-    uint40 liqThresholdLastUpdated;
+    uint40 liquidationBonusLastUpdated;
+    uint40 liquidationThresholdLastUpdated;
     uint40 debtCeilingLastUpdated;
     uint40 baseVariableRateLastUpdated;
     uint40 variableRateSlope1LastUpdated;
@@ -28,11 +57,17 @@ interface IRiskSteward {
     uint40 optimalUsageRatioLastUpdated;
   }
 
+  /**
+   * @notice Stuct storing the minimum delay and maximum percent change for a risk param
+   */
   struct RiskParamConfig {
     uint40 minDelay;
     uint256 maxPercentChange;
   }
 
+  /**
+   * @notice Stuct storing the risk configuration for all the risk param
+   */
   struct Config {
     RiskParamConfig ltv;
     RiskParamConfig liquidationThreshold;
@@ -49,7 +84,7 @@ interface IRiskSteward {
   /**
    * @notice The config engine used to perform the cap update via delegatecall
    */
-  function CONFIG_ENGINE() external view returns (IAaveV3ConfigEngine);
+  function CONFIG_ENGINE() external view returns (IEngine);
 
   /**
    * @notice The pool data provider of the POOL the steward controls
@@ -62,20 +97,59 @@ interface IRiskSteward {
   function RISK_COUNCIL() external view returns (address);
 
   /**
-   * @notice Allows increasing borrow and supply caps accross multiple assets
-   * @dev A cap increase is only possible ever 5 days per asset
-   * @dev A cap increase is only allowed to increase the cap by 50%
-   * @param capUpdates caps to be updated
+   * @notice Allows increasing borrow and supply caps across multiple assets
+   * @dev A cap update is only possible after minDelay has passed after last update
+   * @dev A cap increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param capUpdates struct containing new caps to be updated
    */
-  function updateCaps(IAaveV3ConfigEngine.CapsUpdate[] calldata capUpdates) external;
-
-  function updateRates(IAaveV3ConfigEngine.RateStrategyUpdate[] calldata rateUpdates) external;
-
-  function updateCollateralSide(IAaveV3ConfigEngine.CollateralUpdate[] calldata collateralUpdates) external;
+  function updateCaps(IEngine.CapsUpdate[] calldata capUpdates) external;
 
   /**
-   * @notice Returns the timelock for a specific asset
+   * @notice Allows updating interest rates params across multiple assets
+   * @dev A rate update is only possible after minDelay has passed after last update
+   * @dev A rate increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param rateUpdates struct containing new interest rate params to be updated
+   */
+  function updateRates(IEngine.RateStrategyUpdate[] calldata rateUpdates) external;
+
+  /**
+   * @notice Allows updating collateral params across multiple assets
+   * @dev A collateral update is only possible after minDelay has passed after last update
+   * @dev A collateral increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param collateralUpdates struct containing new collateral rate params to be updated
+   */
+  function updateCollateralSide(IEngine.CollateralUpdate[] calldata collateralUpdates) external;
+
+  /**
+   * @notice method to check if an asset is restricted to be used by the risk stewards
+   * @param asset address of the underlying asset
+   * @return bool if asset is restricted or not
+   */
+  function isAssetRestricted(address asset) external view returns (bool);
+
+  /**
+   * @notice method called by the owner to set an asset as restricted
+   * @param asset address of the underlying asset
+   * @param isRestricted true if asset needs to be restricted, false otherwise
+   */
+  function setAssetRestricted(address asset, bool isRestricted) external;
+
+  /**
+   * @notice Returns the timelock for a specific asset i.e the last updated timestamp
    * @param asset for which to fetch the timelock
+   * @return struct containing the latest updated timestamps of all the risk params by the steward
    */
   function getTimelock(address asset) external view returns (Debounce memory);
+
+  /**
+   * @notice method to get the risk configuration set for all the risk params
+   * @return struct containing the risk configurations
+   */
+  function getRiskConfig() external view returns (Config memory);
+
+  /**
+   * @notice method called by the owner to set the risk configuration for the risk params
+   * @param riskConfig struct containing the risk configurations
+   */
+  function setRiskConfig(Config memory riskConfig) external;
 }
