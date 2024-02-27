@@ -136,8 +136,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       _validateCollateralsUpdate(
         ltv,
         liquidationThreshold,
-        liquidationBonus,
-        debtCeiling,
+        liquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
+        debtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
         collateralUpdates[i]
       );
       emit CollateralUpdate(asset);
@@ -188,13 +188,15 @@ contract RiskSteward is Ownable, IRiskSteward {
   ) internal {
     address asset = capUpdate.asset;
     require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+    require(capUpdate.supplyCap != 0 && capUpdate.borrowCap != 0, RiskStewardErrors.INVALID_UPDATE_TO_ZERO);
 
     if (capUpdate.supplyCap != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentSupplyCap,
         capUpdate.supplyCap,
         _timelocks[asset].supplyCapLastUpdated,
-        _riskConfig.supplyCap
+        _riskConfig.supplyCap,
+        true
       );
 
       _timelocks[asset].supplyCapLastUpdated = uint40(block.timestamp);
@@ -205,7 +207,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentBorrowCap,
         capUpdate.borrowCap,
         _timelocks[asset].borrowCapLastUpdated,
-        _riskConfig.borrowCap
+        _riskConfig.borrowCap,
+        true
       );
 
       _timelocks[asset].borrowCapLastUpdated = uint40(block.timestamp);
@@ -243,7 +246,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentOptimalUsageRatio,
         rateUpdate.params.optimalUsageRatio,
         _timelocks[asset].optimalUsageRatioLastUpdated,
-        _riskConfig.optimalUsageRatio
+        _riskConfig.optimalUsageRatio,
+        false
       );
 
       _timelocks[asset].optimalUsageRatioLastUpdated = uint40(block.timestamp);
@@ -254,7 +258,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentBaseVariableBorrowRate,
         rateUpdate.params.baseVariableBorrowRate,
         _timelocks[asset].baseVariableRateLastUpdated,
-        _riskConfig.baseVariableBorrowRate
+        _riskConfig.baseVariableBorrowRate,
+        false
       );
 
       _timelocks[asset].baseVariableRateLastUpdated = uint40(block.timestamp);
@@ -265,7 +270,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentVariableRateSlope1,
         rateUpdate.params.variableRateSlope1,
         _timelocks[asset].variableRateSlope1LastUpdated,
-        _riskConfig.variableRateSlope1
+        _riskConfig.variableRateSlope1,
+        false
       );
 
       _timelocks[asset].variableRateSlope1LastUpdated = uint40(block.timestamp);
@@ -276,7 +282,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentVariableRateSlope2,
         rateUpdate.params.variableRateSlope2,
         _timelocks[asset].variableRateSlope2LastUpdated,
-        _riskConfig.variableRateSlope2
+        _riskConfig.variableRateSlope2,
+        false
       );
 
       _timelocks[asset].variableRateSlope2LastUpdated = uint40(block.timestamp);
@@ -304,13 +311,21 @@ contract RiskSteward is Ownable, IRiskSteward {
       RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED
     );
     require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+    require(
+      collateralUpdate.ltv != 0 &&
+      collateralUpdate.liqThreshold != 0 &&
+      collateralUpdate.liqThreshold != 0 &&
+      collateralUpdate.debtCeiling != 0,
+      RiskStewardErrors.INVALID_UPDATE_TO_ZERO
+    );
 
     if (collateralUpdate.ltv != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentLtv,
         collateralUpdate.ltv,
         _timelocks[asset].ltvLastUpdated,
-        _riskConfig.ltv
+        _riskConfig.ltv,
+        false
       );
 
       _timelocks[asset].ltvLastUpdated = uint40(block.timestamp);
@@ -320,7 +335,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentLiquidationThreshold,
         collateralUpdate.liqThreshold,
         _timelocks[asset].liquidationThresholdLastUpdated,
-        _riskConfig.liquidationThreshold
+        _riskConfig.liquidationThreshold,
+        false
       );
 
       _timelocks[asset].liquidationThresholdLastUpdated = uint40(block.timestamp);
@@ -330,7 +346,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentLiquidationBonus,
         collateralUpdate.liqBonus,
         _timelocks[asset].liquidationBonusLastUpdated,
-        _riskConfig.liquidationBonus
+        _riskConfig.liquidationBonus,
+        false
       );
 
       _timelocks[asset].liquidationBonusLastUpdated = uint40(block.timestamp);
@@ -340,7 +357,8 @@ contract RiskSteward is Ownable, IRiskSteward {
         currentDebtCeiling,
         collateralUpdate.debtCeiling,
         _timelocks[asset].debtCeilingLastUpdated,
-        _riskConfig.debtCeiling
+        _riskConfig.debtCeiling,
+        true
       );
 
       _timelocks[asset].debtCeilingLastUpdated = uint40(block.timestamp);
@@ -358,14 +376,15 @@ contract RiskSteward is Ownable, IRiskSteward {
     uint256 currentParamValue,
     uint256 newParamValue,
     uint40 lastUpdated,
-    RiskParamConfig memory riskConfig
+    RiskParamConfig memory riskConfig,
+    bool isChangeRelative
   ) internal view {
     require(
       block.timestamp - lastUpdated > riskConfig.minDelay,
       RiskStewardErrors.DEBOUNCE_NOT_RESPECTED
     );
     require(
-      _updateWithinAllowedRange(currentParamValue, newParamValue, riskConfig.maxPercentChange),
+      _updateWithinAllowedRange(currentParamValue, newParamValue, riskConfig.maxPercentChange, isChangeRelative),
       RiskStewardErrors.UPDATE_NOT_IN_RANGE
     );
   }
@@ -403,17 +422,21 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice Ensures the risk param update is within the allowed range
    * @param from current risk param value
    * @param to new updated risk param value
+   * @param maxPercentChange the max percent change allowed
+   * @param isChangeRelative true, if maxPercentChange is relative in value, false if maxPercentChange
+   *        is absolute in value.
    * @return bool true, if difference is within the maxPercentChange
    */
   function _updateWithinAllowedRange(
     uint256 from,
     uint256 to,
-    uint256 maxPercentChange
+    uint256 maxPercentChange,
+    bool isChangeRelative
   ) internal pure returns (bool) {
     int256 diff = int256(from) - int256(to);
     if (diff < 0) diff = -diff;
 
-    uint256 maxDiff = (maxPercentChange * from) / BPS_MAX;
+    uint256 maxDiff = isChangeRelative ? (maxPercentChange * from) / BPS_MAX : maxPercentChange;
     if (uint256(diff) > maxDiff) return false;
     return true;
   }

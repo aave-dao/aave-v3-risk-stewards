@@ -31,4 +31,8 @@ library RiskStewardErrors {
    * @notice The steward does not allow updates of risk param of a restricted asset
    */
   string public constant ASSET_RESTRICTED = 'ASSET_RESTRICTED';
+  /**
+   * @notice Setting the risk parameter value to zero is not allowed
+   */
+  string public constant INVALID_UPDATE_TO_ZERO = 'INVALID_UPDATE_TO_ZERO';
 }
