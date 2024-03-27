@@ -3,11 +3,14 @@ pragma solidity ^0.8.0;
 
 import 'forge-std/Test.sol';
 import {IACLManager, IPoolConfigurator, IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
-import {IDefaultInterestRateStrategy} from 'aave-v3-core/contracts/interfaces/IDefaultInterestRateStrategy.sol';
+import {IDefaultInterestRateStrategyV2} from 'aave-v3-core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {AaveV3Ethereum, AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
 import {RiskSteward, IRiskSteward, RiskStewardErrors, IEngine, EngineFlags} from 'src/contracts/RiskSteward.sol';
-import {Rates} from 'aave-helpers/v3-config-engine/AaveV3Payload.sol';
+import {DeploymentLibrary, UpgradePayload} from 'protocol-v3.1-upgrade/scripts/Deploy.s.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {GovV3Helpers} from 'aave-helpers/GovV3Helpers.sol';
+import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 
 contract RiskSteward_Test is Test {
   address public constant riskCouncil = address(42);
@@ -16,6 +19,13 @@ contract RiskSteward_Test is Test {
 
   function setUp() public {
     vm.createSelectFork(vm.rpcUrl('mainnet'), 19055256);
+
+    // update protocol to v3.1
+    address v3_1_updatePayload = DeploymentLibrary._deployEthereum();
+    GovV3Helpers.executePayload(vm, v3_1_updatePayload);
+
+    // deploy new config engine
+    address configEngine = ConfigEngineDeployer.deployEngine(address(UpgradePayload(v3_1_updatePayload).DEFAULT_IR()));
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
       minDelay: 5 days,
@@ -27,7 +37,7 @@ contract RiskSteward_Test is Test {
     });
     IRiskSteward.RiskParamConfig memory rateParamConfig = IRiskSteward.RiskParamConfig({
       minDelay: 5 days,
-      maxPercentChange: _bpsToRay(10_00) // 10% in bps
+      maxPercentChange: 10_00 // 10%
     });
 
     riskConfig = IRiskSteward.Config({
@@ -46,7 +56,7 @@ contract RiskSteward_Test is Test {
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward = new RiskSteward(
       AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
-      IEngine(AaveV3Ethereum.CONFIG_ENGINE),
+      IEngine(configEngine),
       riskCouncil,
       riskConfig
     );
@@ -240,21 +250,16 @@ contract RiskSteward_Test is Test {
       uint256 beforeBaseVariableBorrowRate,
       uint256 beforeVariableRateSlope1,
       uint256 beforeVariableRateSlope2
-    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.DAI_UNDERLYING);
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
 
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
-      asset: AaveV3EthereumAssets.DAI_UNDERLYING,
-      params: Rates.RateStrategyParams({
-        optimalUsageRatio: beforeOptimalUsageRatio + _bpsToRay(10_00), // 10% absolute increase
-        baseVariableBorrowRate: beforeBaseVariableBorrowRate + _bpsToRay(10_00), // 10% absolute increase
-        variableRateSlope1: beforeVariableRateSlope1 + _bpsToRay(10_00), // 10% absolute increase
-        variableRateSlope2: beforeVariableRateSlope2 + _bpsToRay(10_00), // 10% absolute increase
-        stableRateSlope1: EngineFlags.KEEP_CURRENT,
-        stableRateSlope2: EngineFlags.KEEP_CURRENT,
-        baseStableRateOffset: EngineFlags.KEEP_CURRENT,
-        stableRateExcessOffset: EngineFlags.KEEP_CURRENT,
-        optimalStableToTotalDebtRatio: EngineFlags.KEEP_CURRENT
+      asset: AaveV3EthereumAssets.WETH_UNDERLYING,
+      params: IEngine.InterestRateInputData({
+        optimalUsageRatio: beforeOptimalUsageRatio + 10_00, // 10% absolute increase
+        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 10_00, // 10% absolute increase
+        variableRateSlope1: beforeVariableRateSlope1 + 10_00, // 10% absolute increase
+        variableRateSlope2: beforeVariableRateSlope2 + 10_00 // 10% absolute increase
       })
     });
 
@@ -266,10 +271,10 @@ contract RiskSteward_Test is Test {
       uint256 afterBaseVariableBorrowRate,
       uint256 afterVariableRateSlope1,
       uint256 afterVariableRateSlope2
-    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.DAI_UNDERLYING);
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
 
     RiskSteward.Debounce memory lastUpdated = steward.getTimelock(
-      AaveV3EthereumAssets.DAI_UNDERLYING
+      AaveV3EthereumAssets.WETH_UNDERLYING
     );
     assertEq(afterOptimalUsageRatio, rateUpdates[0].params.optimalUsageRatio);
     assertEq(afterBaseVariableBorrowRate, rateUpdates[0].params.baseVariableBorrowRate);
@@ -289,20 +294,15 @@ contract RiskSteward_Test is Test {
       beforeBaseVariableBorrowRate,
       beforeVariableRateSlope1,
       beforeVariableRateSlope2
-    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.DAI_UNDERLYING);
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
 
     rateUpdates[0] = IEngine.RateStrategyUpdate({
-      asset: AaveV3EthereumAssets.DAI_UNDERLYING,
-      params: Rates.RateStrategyParams({
-        optimalUsageRatio: beforeOptimalUsageRatio * 90 / 100, // 10% absolute decrease
-        baseVariableBorrowRate: beforeBaseVariableBorrowRate * 90 / 100, // 10% absolute decrease
-        variableRateSlope1: beforeVariableRateSlope1 * 90 / 100, // 10% absolute decrease,
-        variableRateSlope2: beforeVariableRateSlope2 * 90 / 100, // 10% absolute decrease,
-        stableRateSlope1: EngineFlags.KEEP_CURRENT,
-        stableRateSlope2: EngineFlags.KEEP_CURRENT,
-        baseStableRateOffset: EngineFlags.KEEP_CURRENT,
-        stableRateExcessOffset: EngineFlags.KEEP_CURRENT,
-        optimalStableToTotalDebtRatio: EngineFlags.KEEP_CURRENT
+      asset: AaveV3EthereumAssets.WETH_UNDERLYING,
+      params: IEngine.InterestRateInputData({
+        optimalUsageRatio: beforeOptimalUsageRatio - 10_00, // 10% decrease
+        baseVariableBorrowRate: beforeBaseVariableBorrowRate - 1_00, // 1% decrease
+        variableRateSlope1: beforeVariableRateSlope1 - 1_00, // 1% decrease
+        variableRateSlope2: beforeVariableRateSlope2 - 10_00 // 10% absolute decrease
       })
     });
     steward.updateRates(rateUpdates);
@@ -313,8 +313,8 @@ contract RiskSteward_Test is Test {
       afterBaseVariableBorrowRate,
       afterVariableRateSlope1,
       afterVariableRateSlope2
-    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.DAI_UNDERLYING);
-    lastUpdated = steward.getTimelock(AaveV3EthereumAssets.DAI_UNDERLYING);
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
+    lastUpdated = steward.getTimelock(AaveV3EthereumAssets.WETH_UNDERLYING);
 
     assertEq(afterOptimalUsageRatio, rateUpdates[0].params.optimalUsageRatio);
     assertEq(afterBaseVariableBorrowRate, rateUpdates[0].params.baseVariableBorrowRate);
@@ -333,56 +333,21 @@ contract RiskSteward_Test is Test {
       uint256 beforeBaseVariableBorrowRate,
       uint256 beforeVariableRateSlope1,
       uint256 beforeVariableRateSlope2
-    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.DAI_UNDERLYING);
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
 
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
-      asset: AaveV3EthereumAssets.DAI_UNDERLYING,
-      params: Rates.RateStrategyParams({
-        optimalUsageRatio: beforeOptimalUsageRatio + _bpsToRay(12_00), // 12% absolute increase
-        baseVariableBorrowRate: beforeBaseVariableBorrowRate + _bpsToRay(12_00), // 12% absolute increase
-        variableRateSlope1: beforeVariableRateSlope1 + _bpsToRay(12_00), // 12% absolute increase
-        variableRateSlope2: beforeVariableRateSlope2 + _bpsToRay(12_00), // 12% absolute increase
-        stableRateSlope1: EngineFlags.KEEP_CURRENT,
-        stableRateSlope2: EngineFlags.KEEP_CURRENT,
-        baseStableRateOffset: EngineFlags.KEEP_CURRENT,
-        stableRateExcessOffset: EngineFlags.KEEP_CURRENT,
-        optimalStableToTotalDebtRatio: EngineFlags.KEEP_CURRENT
+      asset: AaveV3EthereumAssets.WETH_UNDERLYING,
+      params: IEngine.InterestRateInputData({
+        optimalUsageRatio: beforeOptimalUsageRatio + 12_00, // 12% absolute increase
+        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 12_00, // 12% absolute increase
+        variableRateSlope1: beforeVariableRateSlope1 + 12_00, // 12% absolute increase
+        variableRateSlope2: beforeVariableRateSlope2 + 12_00 // 12% absolute increase
       })
     });
 
     vm.startPrank(riskCouncil);
     vm.expectRevert(bytes(RiskStewardErrors.UPDATE_NOT_IN_RANGE));
-    steward.updateRates(rateUpdates);
-    vm.stopPrank();
-  }
-
-  function test_updateRates_stableNotAllowed() public {
-    (
-      uint256 beforeOptimalUsageRatio,
-      uint256 beforeBaseVariableBorrowRate,
-      uint256 beforeVariableRateSlope1,
-      uint256 beforeVariableRateSlope2
-    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.DAI_UNDERLYING);
-
-    IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
-    rateUpdates[0] = IEngine.RateStrategyUpdate({
-      asset: AaveV3EthereumAssets.DAI_UNDERLYING,
-      params: Rates.RateStrategyParams({
-        optimalUsageRatio: beforeOptimalUsageRatio * 110 / 100, // 10% absolute increase
-        baseVariableBorrowRate: beforeBaseVariableBorrowRate * 110 / 100, // 10% absolute increase
-        variableRateSlope1: beforeVariableRateSlope1 * 110 / 100, // 10% absolute increase,
-        variableRateSlope2: beforeVariableRateSlope2 * 110 / 100, // 10% absolute increase,
-        stableRateSlope1: 0,
-        stableRateSlope2: _bpsToRay(10_00),
-        baseStableRateOffset: _bpsToRay(2_00),
-        stableRateExcessOffset: _bpsToRay(8_00),
-        optimalStableToTotalDebtRatio: _bpsToRay(20_00)
-      })
-    });
-
-    vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED));
     steward.updateRates(rateUpdates);
     vm.stopPrank();
   }
@@ -393,21 +358,16 @@ contract RiskSteward_Test is Test {
       uint256 beforeBaseVariableBorrowRate,
       uint256 beforeVariableRateSlope1,
       uint256 beforeVariableRateSlope2
-    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.DAI_UNDERLYING);
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
 
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
-      asset: AaveV3EthereumAssets.DAI_UNDERLYING,
-      params: Rates.RateStrategyParams({
-        optimalUsageRatio: beforeOptimalUsageRatio * 110 / 100, // 10% absolute increase
-        baseVariableBorrowRate: beforeBaseVariableBorrowRate * 110 / 100, // 10% absolute increase
-        variableRateSlope1: beforeVariableRateSlope1 * 110 / 100, // 10% absolute increase,
-        variableRateSlope2: beforeVariableRateSlope2 * 110 / 100, // 10% absolute increase,
-        stableRateSlope1: EngineFlags.KEEP_CURRENT,
-        stableRateSlope2: EngineFlags.KEEP_CURRENT,
-        baseStableRateOffset: EngineFlags.KEEP_CURRENT,
-        stableRateExcessOffset: EngineFlags.KEEP_CURRENT,
-        optimalStableToTotalDebtRatio: EngineFlags.KEEP_CURRENT
+      asset: AaveV3EthereumAssets.WETH_UNDERLYING,
+      params: IEngine.InterestRateInputData({
+        optimalUsageRatio: beforeOptimalUsageRatio + 10_00, // 10% absolute increase
+        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 10_00, // 10% absolute increase
+        variableRateSlope1: beforeVariableRateSlope1 + 10_00, // 10% absolute increase
+        variableRateSlope2: beforeVariableRateSlope2 + 10_00 // 10% absolute increase
       })
     });
 
@@ -424,16 +384,11 @@ contract RiskSteward_Test is Test {
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84, // stETH
-      params: Rates.RateStrategyParams({
-        optimalUsageRatio: _bpsToRay(40_00),
+      params: IEngine.InterestRateInputData({
+        optimalUsageRatio: 40_00,
         baseVariableBorrowRate: 0,
-        variableRateSlope1: _bpsToRay(2_00),
-        variableRateSlope2: _bpsToRay(50_00),
-        stableRateSlope1: EngineFlags.KEEP_CURRENT,
-        stableRateSlope2: EngineFlags.KEEP_CURRENT,
-        baseStableRateOffset: EngineFlags.KEEP_CURRENT,
-        stableRateExcessOffset: EngineFlags.KEEP_CURRENT,
-        optimalStableToTotalDebtRatio: EngineFlags.KEEP_CURRENT
+        variableRateSlope1: 2_00,
+        variableRateSlope2: 50_00
       })
     });
 
@@ -450,16 +405,11 @@ contract RiskSteward_Test is Test {
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.GHO_UNDERLYING,
-      params: Rates.RateStrategyParams({
-        optimalUsageRatio: _bpsToRay(40_00),
+      params: IEngine.InterestRateInputData({
+        optimalUsageRatio: 40_00,
         baseVariableBorrowRate: 0,
-        variableRateSlope1: _bpsToRay(2_00),
-        variableRateSlope2: _bpsToRay(50_00),
-        stableRateSlope1: EngineFlags.KEEP_CURRENT,
-        stableRateSlope2: EngineFlags.KEEP_CURRENT,
-        baseStableRateOffset: EngineFlags.KEEP_CURRENT,
-        stableRateExcessOffset: EngineFlags.KEEP_CURRENT,
-        optimalStableToTotalDebtRatio: EngineFlags.KEEP_CURRENT
+        variableRateSlope1: 2_00,
+        variableRateSlope2: 50_00
       })
     });
 
@@ -719,16 +669,11 @@ contract RiskSteward_Test is Test {
     IEngine.RateStrategyUpdate[] memory rateStrategyUpdate = new IEngine.RateStrategyUpdate[](1);
     rateStrategyUpdate[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.DAI_UNDERLYING,
-      params: Rates.RateStrategyParams({
+      params: IEngine.InterestRateInputData({
         optimalUsageRatio: _bpsToRay(90_00),
         baseVariableBorrowRate: EngineFlags.KEEP_CURRENT,
         variableRateSlope1: EngineFlags.KEEP_CURRENT,
-        variableRateSlope2: EngineFlags.KEEP_CURRENT,
-        stableRateSlope1: EngineFlags.KEEP_CURRENT,
-        stableRateSlope2: EngineFlags.KEEP_CURRENT,
-        baseStableRateOffset: EngineFlags.KEEP_CURRENT,
-        stableRateExcessOffset: EngineFlags.KEEP_CURRENT,
-        optimalStableToTotalDebtRatio: EngineFlags.KEEP_CURRENT
+        variableRateSlope2: EngineFlags.KEEP_CURRENT
       })
     });
 
@@ -763,11 +708,14 @@ contract RiskSteward_Test is Test {
     )
   {
     address rateStrategyAddress = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getInterestRateStrategyAddress(asset);
-    optimalUsageRatio = IDefaultInterestRateStrategy(rateStrategyAddress).OPTIMAL_USAGE_RATIO();
-    baseVariableBorrowRate = IDefaultInterestRateStrategy(rateStrategyAddress)
-      .getBaseVariableBorrowRate();
-    variableRateSlope1 = IDefaultInterestRateStrategy(rateStrategyAddress).getVariableRateSlope1();
-    variableRateSlope2 = IDefaultInterestRateStrategy(rateStrategyAddress).getVariableRateSlope2();
+    optimalUsageRatio = _rayToBps(IDefaultInterestRateStrategyV2(rateStrategyAddress).getOptimalUsageRatio(asset));
+    baseVariableBorrowRate = _rayToBps(IDefaultInterestRateStrategyV2(rateStrategyAddress).getBaseVariableBorrowRate(asset));
+    variableRateSlope1 = _rayToBps(IDefaultInterestRateStrategyV2(rateStrategyAddress).getVariableRateSlope1(asset));
+    variableRateSlope2 = _rayToBps(IDefaultInterestRateStrategyV2(rateStrategyAddress).getVariableRateSlope2(asset));
     return (optimalUsageRatio, baseVariableBorrowRate, variableRateSlope1, variableRateSlope2);
+  }
+
+  function _rayToBps(uint256 amount) internal pure returns (uint256) {
+    return amount / 1e23;
   }
 }

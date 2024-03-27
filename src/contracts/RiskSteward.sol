@@ -6,9 +6,9 @@ import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
 import {RiskStewardErrors} from './libraries/RiskStewardErrors.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-helpers/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
-import {IDefaultInterestRateStrategy} from 'aave-v3-core/contracts/interfaces/IDefaultInterestRateStrategy.sol';
+import {IDefaultInterestRateStrategyV2} from 'aave-v3-core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 
 /**
  * @title RiskSteward
@@ -96,10 +96,10 @@ contract RiskSteward is Ownable, IRiskSteward {
       ) = _getInterestRatesForAsset(asset);
 
       _validateRatesUpdate(
-        optimalUsageRatio,
-        baseVariableBorrowRate,
-        variableRateSlope1,
-        variableRateSlope2,
+        _rayToBps(optimalUsageRatio),
+        _rayToBps(baseVariableBorrowRate),
+        _rayToBps(variableRateSlope1),
+        _rayToBps(variableRateSlope2),
         ratesUpdate[i]
       );
       emit RateUpdate(asset);
@@ -231,14 +231,6 @@ contract RiskSteward is Ownable, IRiskSteward {
     IEngine.RateStrategyUpdate calldata rateUpdate
   ) internal {
     address asset = rateUpdate.asset;
-    require(
-      rateUpdate.params.stableRateSlope1 == EngineFlags.KEEP_CURRENT &&
-        rateUpdate.params.stableRateSlope2 == EngineFlags.KEEP_CURRENT &&
-        rateUpdate.params.baseStableRateOffset == EngineFlags.KEEP_CURRENT &&
-        rateUpdate.params.stableRateExcessOffset == EngineFlags.KEEP_CURRENT &&
-        rateUpdate.params.optimalStableToTotalDebtRatio == EngineFlags.KEEP_CURRENT,
-      RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED
-    );
     require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
 
     if (rateUpdate.params.optimalUsageRatio != EngineFlags.KEEP_CURRENT) {
@@ -410,11 +402,11 @@ contract RiskSteward is Ownable, IRiskSteward {
     )
   {
     address rateStrategyAddress = POOL_DATA_PROVIDER.getInterestRateStrategyAddress(asset);
-    optimalUsageRatio = IDefaultInterestRateStrategy(rateStrategyAddress).OPTIMAL_USAGE_RATIO();
-    baseVariableBorrowRate = IDefaultInterestRateStrategy(rateStrategyAddress)
-      .getBaseVariableBorrowRate();
-    variableRateSlope1 = IDefaultInterestRateStrategy(rateStrategyAddress).getVariableRateSlope1();
-    variableRateSlope2 = IDefaultInterestRateStrategy(rateStrategyAddress).getVariableRateSlope2();
+    optimalUsageRatio = IDefaultInterestRateStrategyV2(rateStrategyAddress).getOptimalUsageRatio(asset);
+    baseVariableBorrowRate = IDefaultInterestRateStrategyV2(rateStrategyAddress)
+      .getBaseVariableBorrowRate(asset);
+    variableRateSlope1 = IDefaultInterestRateStrategyV2(rateStrategyAddress).getVariableRateSlope1(asset);
+    variableRateSlope2 = IDefaultInterestRateStrategyV2(rateStrategyAddress).getVariableRateSlope2(asset);
     return (optimalUsageRatio, baseVariableBorrowRate, variableRateSlope1, variableRateSlope2);
   }
 
@@ -439,5 +431,9 @@ contract RiskSteward is Ownable, IRiskSteward {
     uint256 maxDiff = isChangeRelative ? (maxPercentChange * from) / BPS_MAX : maxPercentChange;
     if (uint256(diff) > maxDiff) return false;
     return true;
+  }
+
+  function _rayToBps(uint256 value) internal pure returns (uint256) {
+    return value / 1e23;
   }
 }
