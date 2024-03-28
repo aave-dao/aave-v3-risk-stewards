@@ -6,7 +6,7 @@ Expanding from the scope of from CapsPlusRiskSteward, we now introduce the new R
 
 The new RiskSteward we propose follows the same design as the CapsPlusRiskSteward: an smart contract to which the Aave Governance gives `POOL_ADMIN` role over all v3 instances, controlled by a 2-of-2 multi-sig of the risk providers, and heavily constrained on what can do and how by its own logic.
 
-*Note: The Risk Stewards 2 will only be available for Aave V3 instances and not Aave V2 due to missing admin roles on Aave V2 instances.*
+_Note: The Risk Stewards 2 will only be available for Aave V3 instances and not Aave V2 due to missing admin roles on Aave V2 instances._
 
 The following risk params could be changed by the RiskStewards:
 
@@ -35,10 +35,9 @@ For each risk param, `maxPercentChange` which is the maximum percent change allo
 - LTV, LT, LB: The `maxPercentChange` is in absolute values and is also denominated in BPS. (Ex. `5_00` for +-5% change in LTV)
 - Interest rates params: For Base Variable Borrow Rate, Slope 1, Slope 2, Optimal Point the `maxPercentChange` is in absolute values and is denominated in ray. (Ex. `_bpsToRay(10_00)` for +- 10% change in uOptimal)
 
-
 After the activation proposal, these params could only be changed by the governance by calling the `setRiskConfig()` method.
 
-*Note: The Risk Stewards will not allow setting the values to 0 for supply cap, borrow cap, debt ceiling, LTV, Liquidation Threshold, Liquidation Bonus no matter if the maxPercentChange has been configured to 100%. The Risk Stewards will however allow setting the value to 0 for interest rate param updates.*
+_Note: The Risk Stewards will not allow setting the values to 0 for supply cap, borrow cap, debt ceiling, LTV, Liquidation Threshold, Liquidation Bonus no matter if the maxPercentChange has been configured to 100%. The Risk Stewards will however allow setting the value to 0 for interest rate param updates._
 
 #### Restricted Assets:
 

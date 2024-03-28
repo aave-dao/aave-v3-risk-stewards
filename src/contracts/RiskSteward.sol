@@ -113,17 +113,17 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to validate the caps update
    * @param capsUpdate list containing the new supply, borrow caps of the assets
    */
-  function _validateCapsUpdate(
-    IEngine.CapsUpdate[] calldata capsUpdate
-  ) internal view
-  {
+  function _validateCapsUpdate(IEngine.CapsUpdate[] calldata capsUpdate) internal view {
     require(capsUpdate.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
 
     for (uint256 i = 0; i < capsUpdate.length; i++) {
       address asset = capsUpdate[i].asset;
 
       require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
-      require(capsUpdate[i].supplyCap != 0 && capsUpdate[i].borrowCap != 0, RiskStewardErrors.INVALID_UPDATE_TO_ZERO);
+      require(
+        capsUpdate[i].supplyCap != 0 && capsUpdate[i].borrowCap != 0,
+        RiskStewardErrors.INVALID_UPDATE_TO_ZERO
+      );
 
       (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL_DATA_PROVIDER.getReserveCaps(
         capsUpdate[i].asset
@@ -150,9 +150,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to validate the interest rates update
    * @param ratesUpdate list containing the new interest rates params of the assets
    */
-  function _validateRatesUpdate(
-    IEngine.RateStrategyUpdate[] calldata ratesUpdate
-  ) internal view {
+  function _validateRatesUpdate(IEngine.RateStrategyUpdate[] calldata ratesUpdate) internal view {
     require(ratesUpdate.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
 
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
@@ -218,9 +216,9 @@ contract RiskSteward is Ownable, IRiskSteward {
       );
       require(
         collateralUpdates[i].ltv != 0 &&
-        collateralUpdates[i].liqThreshold != 0 &&
-        collateralUpdates[i].liqThreshold != 0 &&
-        collateralUpdates[i].debtCeiling != 0,
+          collateralUpdates[i].liqThreshold != 0 &&
+          collateralUpdates[i].liqThreshold != 0 &&
+          collateralUpdates[i].debtCeiling != 0,
         RiskStewardErrors.INVALID_UPDATE_TO_ZERO
       );
 
@@ -290,7 +288,12 @@ contract RiskSteward is Ownable, IRiskSteward {
       RiskStewardErrors.DEBOUNCE_NOT_RESPECTED
     );
     require(
-      _updateWithinAllowedRange(currentParamValue, newParamValue, riskConfig.maxPercentChange, isChangeRelative),
+      _updateWithinAllowedRange(
+        currentParamValue,
+        newParamValue,
+        riskConfig.maxPercentChange,
+        isChangeRelative
+      ),
       RiskStewardErrors.UPDATE_NOT_IN_RANGE
     );
   }
@@ -395,7 +398,9 @@ contract RiskSteward is Ownable, IRiskSteward {
     )
   {
     address rateStrategyAddress = POOL_DATA_PROVIDER.getInterestRateStrategyAddress(asset);
-    IDefaultInterestRateStrategyV2.InterestRateData memory interestRateData = IDefaultInterestRateStrategyV2(rateStrategyAddress).getInterestRateDataBps(asset);
+    IDefaultInterestRateStrategyV2.InterestRateData
+      memory interestRateData = IDefaultInterestRateStrategyV2(rateStrategyAddress)
+        .getInterestRateDataBps(asset);
     return (
       interestRateData.optimalUsageRatio,
       interestRateData.baseVariableBorrowRate,
