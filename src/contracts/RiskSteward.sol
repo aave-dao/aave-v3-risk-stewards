@@ -63,89 +63,23 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateCaps(IEngine.CapsUpdate[] calldata capUpdates) external onlyRiskCouncil {
-    require(capUpdates.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
-
-    for (uint256 i = 0; i < capUpdates.length; i++) {
-      address asset = capUpdates[i].asset;
-
-      (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL_DATA_PROVIDER.getReserveCaps(
-        capUpdates[i].asset
-      );
-
-      _validateCapsUpdate(currentSupplyCap, currentBorrowCap, capUpdates[i]);
-      emit CapsUpdate(asset);
-    }
-    address(CONFIG_ENGINE).functionDelegateCall(
-      abi.encodeWithSelector(CONFIG_ENGINE.updateCaps.selector, capUpdates)
-    );
+  function updateCaps(IEngine.CapsUpdate[] calldata capsUpdate) external onlyRiskCouncil {
+    _validateCapsUpdate(capsUpdate);
+    _updateCaps(capsUpdate);
   }
 
   /// @inheritdoc IRiskSteward
   function updateRates(IEngine.RateStrategyUpdate[] calldata ratesUpdate) external onlyRiskCouncil {
-    require(ratesUpdate.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
-
-    for (uint256 i = 0; i < ratesUpdate.length; i++) {
-      address asset = ratesUpdate[i].asset;
-
-      (
-        uint256 optimalUsageRatio,
-        uint256 baseVariableBorrowRate,
-        uint256 variableRateSlope1,
-        uint256 variableRateSlope2
-      ) = _getInterestRatesForAsset(asset);
-
-      _validateRatesUpdate(
-        _rayToBps(optimalUsageRatio),
-        _rayToBps(baseVariableBorrowRate),
-        _rayToBps(variableRateSlope1),
-        _rayToBps(variableRateSlope2),
-        ratesUpdate[i]
-      );
-      emit RateUpdate(asset);
-    }
-
-    address(CONFIG_ENGINE).functionDelegateCall(
-      abi.encodeWithSelector(CONFIG_ENGINE.updateRateStrategies.selector, ratesUpdate)
-    );
+    _validateRatesUpdate(ratesUpdate);
+    _updateRates(ratesUpdate);
   }
 
   /// @inheritdoc IRiskSteward
   function updateCollateralSide(
     IEngine.CollateralUpdate[] calldata collateralUpdates
   ) external onlyRiskCouncil {
-    require(collateralUpdates.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
-
-    for (uint256 i = 0; i < collateralUpdates.length; i++) {
-      address asset = collateralUpdates[i].asset;
-
-      (
-        ,
-        uint256 ltv,
-        uint256 liquidationThreshold,
-        uint256 liquidationBonus,
-        ,
-        ,
-        ,
-        ,
-        ,
-
-      ) = POOL_DATA_PROVIDER.getReserveConfigurationData(asset);
-      uint256 debtCeiling = POOL_DATA_PROVIDER.getDebtCeiling(asset);
-
-      _validateCollateralsUpdate(
-        ltv,
-        liquidationThreshold,
-        liquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
-        debtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
-        collateralUpdates[i]
-      );
-      emit CollateralUpdate(asset);
-    }
-
-    address(CONFIG_ENGINE).functionDelegateCall(
-      abi.encodeWithSelector(CONFIG_ENGINE.updateCollateralSide.selector, collateralUpdates)
-    );
+    _validateCollateralsUpdate(collateralUpdates);
+    _updateCollateralSide(collateralUpdates);
   }
 
   /// @inheritdoc IRiskSteward
@@ -176,184 +110,163 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @notice method to validate the cap update and to update the debouce
-   * @param currentSupplyCap the current supply cap of the asset
-   * @param currentBorrowCap the current borrow cap of the asset
-   * @param capUpdate struct containing the new supply, borrow cap of the asset
+   * @notice method to validate the caps update
+   * @param capsUpdate list containing the new supply, borrow caps of the assets
    */
   function _validateCapsUpdate(
-    uint256 currentSupplyCap,
-    uint256 currentBorrowCap,
-    IEngine.CapsUpdate calldata capUpdate
-  ) internal {
-    address asset = capUpdate.asset;
-    require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
-    require(capUpdate.supplyCap != 0 && capUpdate.borrowCap != 0, RiskStewardErrors.INVALID_UPDATE_TO_ZERO);
+    IEngine.CapsUpdate[] calldata capsUpdate
+  ) internal view
+  {
+    require(capsUpdate.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
 
-    if (capUpdate.supplyCap != EngineFlags.KEEP_CURRENT) {
+    for (uint256 i = 0; i < capsUpdate.length; i++) {
+      address asset = capsUpdate[i].asset;
+
+      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+      require(capsUpdate[i].supplyCap != 0 && capsUpdate[i].borrowCap != 0, RiskStewardErrors.INVALID_UPDATE_TO_ZERO);
+
+      (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL_DATA_PROVIDER.getReserveCaps(
+        capsUpdate[i].asset
+      );
+
       _validateParamUpdate(
         currentSupplyCap,
-        capUpdate.supplyCap,
+        capsUpdate[i].supplyCap,
         _timelocks[asset].supplyCapLastUpdated,
         _riskConfig.supplyCap,
         true
       );
-
-      _timelocks[asset].supplyCapLastUpdated = uint40(block.timestamp);
-    }
-
-    if (capUpdate.borrowCap != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentBorrowCap,
-        capUpdate.borrowCap,
+        capsUpdate[i].borrowCap,
         _timelocks[asset].borrowCapLastUpdated,
         _riskConfig.borrowCap,
         true
       );
-
-      _timelocks[asset].borrowCapLastUpdated = uint40(block.timestamp);
     }
   }
 
   /**
-   * @notice method to validate the interest rate update and to update the debouce
-   * @param currentOptimalUsageRatio the current optimal usage ratio of the asset
-   * @param currentBaseVariableBorrowRate the current base variable borrow rate of the asset
-   * @param currentVariableRateSlope1 the current variable rate slope 1 of the asset
-   * @param currentVariableRateSlope2 the current variable rate slope 2 of the asset
-   * @param rateUpdate struct containing the new interest rates params of the asset
+   * @notice method to validate the interest rates update
+   * @param ratesUpdate list containing the new interest rates params of the assets
    */
   function _validateRatesUpdate(
-    uint256 currentOptimalUsageRatio,
-    uint256 currentBaseVariableBorrowRate,
-    uint256 currentVariableRateSlope1,
-    uint256 currentVariableRateSlope2,
-    IEngine.RateStrategyUpdate calldata rateUpdate
-  ) internal {
-    address asset = rateUpdate.asset;
-    require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+    IEngine.RateStrategyUpdate[] calldata ratesUpdate
+  ) internal view {
+    require(ratesUpdate.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
 
-    if (rateUpdate.params.optimalUsageRatio != EngineFlags.KEEP_CURRENT) {
+    for (uint256 i = 0; i < ratesUpdate.length; i++) {
+      address asset = ratesUpdate[i].asset;
+      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+
+      (
+        uint256 currentOptimalUsageRatio,
+        uint256 currentBaseVariableBorrowRate,
+        uint256 currentVariableRateSlope1,
+        uint256 currentVariableRateSlope2
+      ) = _getInterestRatesForAsset(asset);
+
       _validateParamUpdate(
         currentOptimalUsageRatio,
-        rateUpdate.params.optimalUsageRatio,
+        ratesUpdate[i].params.optimalUsageRatio,
         _timelocks[asset].optimalUsageRatioLastUpdated,
         _riskConfig.optimalUsageRatio,
         false
       );
 
-      _timelocks[asset].optimalUsageRatioLastUpdated = uint40(block.timestamp);
-    }
-
-    if (rateUpdate.params.baseVariableBorrowRate != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentBaseVariableBorrowRate,
-        rateUpdate.params.baseVariableBorrowRate,
+        ratesUpdate[i].params.baseVariableBorrowRate,
         _timelocks[asset].baseVariableRateLastUpdated,
         _riskConfig.baseVariableBorrowRate,
         false
       );
 
-      _timelocks[asset].baseVariableRateLastUpdated = uint40(block.timestamp);
-    }
-
-    if (rateUpdate.params.variableRateSlope1 != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentVariableRateSlope1,
-        rateUpdate.params.variableRateSlope1,
+        ratesUpdate[i].params.variableRateSlope1,
         _timelocks[asset].variableRateSlope1LastUpdated,
         _riskConfig.variableRateSlope1,
         false
       );
 
-      _timelocks[asset].variableRateSlope1LastUpdated = uint40(block.timestamp);
-    }
-
-    if (rateUpdate.params.variableRateSlope2 != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentVariableRateSlope2,
-        rateUpdate.params.variableRateSlope2,
+        ratesUpdate[i].params.variableRateSlope2,
         _timelocks[asset].variableRateSlope2LastUpdated,
         _riskConfig.variableRateSlope2,
         false
       );
-
-      _timelocks[asset].variableRateSlope2LastUpdated = uint40(block.timestamp);
     }
   }
 
   /**
-   * @notice method to validate the collateral update and to update the debouce
-   * @param currentLtv the current ltv of the asset
-   * @param currentLiquidationThreshold the current liquidation threshold of the asset
-   * @param currentLiquidationBonus the current liquidation bonus of the asset
-   * @param currentDebtCeiling the current debt ceiling of the asset
-   * @param collateralUpdate struct containing the new collateral update of the asset
+   * @notice method to validate the collaterals update
+   * @param collateralUpdates list containing the new collateral updates of the assets
    */
   function _validateCollateralsUpdate(
-    uint256 currentLtv,
-    uint256 currentLiquidationThreshold,
-    uint256 currentLiquidationBonus,
-    uint256 currentDebtCeiling,
-    IEngine.CollateralUpdate calldata collateralUpdate
-  ) internal {
-    address asset = collateralUpdate.asset;
-    require(
-      collateralUpdate.liqProtocolFee == EngineFlags.KEEP_CURRENT,
-      RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED
-    );
-    require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
-    require(
-      collateralUpdate.ltv != 0 &&
-      collateralUpdate.liqThreshold != 0 &&
-      collateralUpdate.liqThreshold != 0 &&
-      collateralUpdate.debtCeiling != 0,
-      RiskStewardErrors.INVALID_UPDATE_TO_ZERO
-    );
+    IEngine.CollateralUpdate[] calldata collateralUpdates
+  ) internal view {
+    require(collateralUpdates.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
 
-    if (collateralUpdate.ltv != EngineFlags.KEEP_CURRENT) {
+    for (uint256 i = 0; i < collateralUpdates.length; i++) {
+      address asset = collateralUpdates[i].asset;
+
+      (
+        ,
+        uint256 currentLtv,
+        uint256 currentLiquidationThreshold,
+        uint256 currentLiquidationBonus,
+        ,
+        ,
+        ,
+        ,
+        ,
+
+      ) = POOL_DATA_PROVIDER.getReserveConfigurationData(asset);
+      uint256 currentDebtCeiling = POOL_DATA_PROVIDER.getDebtCeiling(asset);
+
+      require(
+      collateralUpdates[i].liqProtocolFee == EngineFlags.KEEP_CURRENT,
+      RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED
+      );
+      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+      require(
+        collateralUpdates[i].ltv != 0 &&
+        collateralUpdates[i].liqThreshold != 0 &&
+        collateralUpdates[i].liqThreshold != 0 &&
+        collateralUpdates[i].debtCeiling != 0,
+        RiskStewardErrors.INVALID_UPDATE_TO_ZERO
+      );
+
       _validateParamUpdate(
         currentLtv,
-        collateralUpdate.ltv,
+        collateralUpdates[i].ltv,
         _timelocks[asset].ltvLastUpdated,
         _riskConfig.ltv,
         false
       );
-
-      _timelocks[asset].ltvLastUpdated = uint40(block.timestamp);
-    }
-    if (collateralUpdate.liqThreshold != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentLiquidationThreshold,
-        collateralUpdate.liqThreshold,
+        collateralUpdates[i].liqThreshold,
         _timelocks[asset].liquidationThresholdLastUpdated,
         _riskConfig.liquidationThreshold,
         false
       );
-
-      _timelocks[asset].liquidationThresholdLastUpdated = uint40(block.timestamp);
-    }
-    if (collateralUpdate.liqBonus != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentLiquidationBonus,
-        collateralUpdate.liqBonus,
+        collateralUpdates[i].liqBonus,
         _timelocks[asset].liquidationBonusLastUpdated,
         _riskConfig.liquidationBonus,
         false
       );
-
-      _timelocks[asset].liquidationBonusLastUpdated = uint40(block.timestamp);
-    }
-    if (collateralUpdate.debtCeiling != EngineFlags.KEEP_CURRENT) {
       _validateParamUpdate(
         currentDebtCeiling,
-        collateralUpdate.debtCeiling,
+        collateralUpdates[i].debtCeiling,
         _timelocks[asset].debtCeilingLastUpdated,
         _riskConfig.debtCeiling,
         true
       );
-
-      _timelocks[asset].debtCeilingLastUpdated = uint40(block.timestamp);
     }
   }
 
@@ -371,6 +284,8 @@ contract RiskSteward is Ownable, IRiskSteward {
     RiskParamConfig memory riskConfig,
     bool isChangeRelative
   ) internal view {
+    if (newParamValue == EngineFlags.KEEP_CURRENT) return;
+
     require(
       block.timestamp - lastUpdated > riskConfig.minDelay,
       RiskStewardErrors.DEBOUNCE_NOT_RESPECTED
@@ -378,6 +293,85 @@ contract RiskSteward is Ownable, IRiskSteward {
     require(
       _updateWithinAllowedRange(currentParamValue, newParamValue, riskConfig.maxPercentChange, isChangeRelative),
       RiskStewardErrors.UPDATE_NOT_IN_RANGE
+    );
+  }
+
+  /**
+   * @notice method to update the borrow / supply caps using the config engine and updates the debounce
+   * @param capsUpdate list containing the new supply, borrow caps of the assets
+   */
+  function _updateCaps(IEngine.CapsUpdate[] calldata capsUpdate) internal {
+    for (uint256 i = 0; i < capsUpdate.length; i++) {
+      address asset = capsUpdate[i].asset;
+
+      if (capsUpdate[i].supplyCap != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].supplyCapLastUpdated = uint40(block.timestamp);
+      }
+
+      if (capsUpdate[i].borrowCap != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].borrowCapLastUpdated = uint40(block.timestamp);
+      }
+    }
+
+    address(CONFIG_ENGINE).functionDelegateCall(
+      abi.encodeWithSelector(CONFIG_ENGINE.updateCaps.selector, capsUpdate)
+    );
+  }
+
+  /**
+   * @notice method to update the interest rates params using the config engine and updates the debounce
+   * @param ratesUpdate list containing the new interest rates params of the assets
+   */
+  function _updateRates(IEngine.RateStrategyUpdate[] calldata ratesUpdate) internal {
+    for (uint256 i = 0; i < ratesUpdate.length; i++) {
+      address asset = ratesUpdate[i].asset;
+
+      if (ratesUpdate[i].params.optimalUsageRatio != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].optimalUsageRatioLastUpdated = uint40(block.timestamp);
+      }
+
+      if (ratesUpdate[i].params.baseVariableBorrowRate != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].baseVariableRateLastUpdated = uint40(block.timestamp);
+      }
+
+      if (ratesUpdate[i].params.variableRateSlope1 != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].variableRateSlope1LastUpdated = uint40(block.timestamp);
+      }
+
+      if (ratesUpdate[i].params.variableRateSlope2 != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].variableRateSlope2LastUpdated = uint40(block.timestamp);
+      }
+    }
+
+    address(CONFIG_ENGINE).functionDelegateCall(
+      abi.encodeWithSelector(CONFIG_ENGINE.updateRateStrategies.selector, ratesUpdate)
+    );
+  }
+
+  /**
+   * @notice method to update the collateral side params using the config engine and updates the debounce
+   * @param collateralUpdates list containing the new collateral updates of the assets
+   */
+  function _updateCollateralSide(IEngine.CollateralUpdate[] calldata collateralUpdates) internal {
+    for (uint256 i = 0; i < collateralUpdates.length; i++) {
+      address asset = collateralUpdates[i].asset;
+
+      if (collateralUpdates[i].ltv != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].ltvLastUpdated = uint40(block.timestamp);
+      }
+      if (collateralUpdates[i].liqThreshold != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].liquidationThresholdLastUpdated = uint40(block.timestamp);
+      }
+      if (collateralUpdates[i].liqBonus != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].liquidationBonusLastUpdated = uint40(block.timestamp);
+      }
+      if (collateralUpdates[i].debtCeiling != EngineFlags.KEEP_CURRENT) {
+        _timelocks[asset].debtCeilingLastUpdated = uint40(block.timestamp);
+      }
+    }
+
+    address(CONFIG_ENGINE).functionDelegateCall(
+      abi.encodeWithSelector(CONFIG_ENGINE.updateCollateralSide.selector, collateralUpdates)
     );
   }
 
@@ -402,12 +396,13 @@ contract RiskSteward is Ownable, IRiskSteward {
     )
   {
     address rateStrategyAddress = POOL_DATA_PROVIDER.getInterestRateStrategyAddress(asset);
-    optimalUsageRatio = IDefaultInterestRateStrategyV2(rateStrategyAddress).getOptimalUsageRatio(asset);
-    baseVariableBorrowRate = IDefaultInterestRateStrategyV2(rateStrategyAddress)
-      .getBaseVariableBorrowRate(asset);
-    variableRateSlope1 = IDefaultInterestRateStrategyV2(rateStrategyAddress).getVariableRateSlope1(asset);
-    variableRateSlope2 = IDefaultInterestRateStrategyV2(rateStrategyAddress).getVariableRateSlope2(asset);
-    return (optimalUsageRatio, baseVariableBorrowRate, variableRateSlope1, variableRateSlope2);
+    IDefaultInterestRateStrategyV2.InterestRateData memory interestRateData = IDefaultInterestRateStrategyV2(rateStrategyAddress).getInterestRateDataBps(asset);
+    return (
+      interestRateData.optimalUsageRatio,
+      interestRateData.baseVariableBorrowRate,
+      interestRateData.variableRateSlope1,
+      interestRateData.variableRateSlope2
+    );
   }
 
   /**
@@ -431,9 +426,5 @@ contract RiskSteward is Ownable, IRiskSteward {
     uint256 maxDiff = isChangeRelative ? (maxPercentChange * from) / BPS_MAX : maxPercentChange;
     if (uint256(diff) > maxDiff) return false;
     return true;
-  }
-
-  function _rayToBps(uint256 value) internal pure returns (uint256) {
-    return value / 1e23;
   }
 }
