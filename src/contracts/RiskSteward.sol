@@ -211,6 +211,18 @@ contract RiskSteward is Ownable, IRiskSteward {
 
     for (uint256 i = 0; i < collateralUpdates.length; i++) {
       address asset = collateralUpdates[i].asset;
+      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+      require(
+        collateralUpdates[i].liqProtocolFee == EngineFlags.KEEP_CURRENT,
+        RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED
+      );
+      require(
+        collateralUpdates[i].ltv != 0 &&
+        collateralUpdates[i].liqThreshold != 0 &&
+        collateralUpdates[i].liqThreshold != 0 &&
+        collateralUpdates[i].debtCeiling != 0,
+        RiskStewardErrors.INVALID_UPDATE_TO_ZERO
+      );
 
       (
         ,
@@ -225,19 +237,6 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       ) = POOL_DATA_PROVIDER.getReserveConfigurationData(asset);
       uint256 currentDebtCeiling = POOL_DATA_PROVIDER.getDebtCeiling(asset);
-
-      require(
-      collateralUpdates[i].liqProtocolFee == EngineFlags.KEEP_CURRENT,
-      RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED
-      );
-      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
-      require(
-        collateralUpdates[i].ltv != 0 &&
-        collateralUpdates[i].liqThreshold != 0 &&
-        collateralUpdates[i].liqThreshold != 0 &&
-        collateralUpdates[i].debtCeiling != 0,
-        RiskStewardErrors.INVALID_UPDATE_TO_ZERO
-      );
 
       _validateParamUpdate(
         currentLtv,
@@ -254,14 +253,14 @@ contract RiskSteward is Ownable, IRiskSteward {
         false
       );
       _validateParamUpdate(
-        currentLiquidationBonus,
+        currentLiquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
         collateralUpdates[i].liqBonus,
         _timelocks[asset].liquidationBonusLastUpdated,
         _riskConfig.liquidationBonus,
         false
       );
       _validateParamUpdate(
-        currentDebtCeiling,
+        currentDebtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
         collateralUpdates[i].debtCeiling,
         _timelocks[asset].debtCeilingLastUpdated,
         _riskConfig.debtCeiling,

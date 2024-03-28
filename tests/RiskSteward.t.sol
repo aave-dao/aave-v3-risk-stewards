@@ -35,10 +35,6 @@ contract RiskSteward_Test is Test {
       minDelay: 5 days,
       maxPercentChange: 2_00 // 2%
     });
-    IRiskSteward.RiskParamConfig memory rateParamConfig = IRiskSteward.RiskParamConfig({
-      minDelay: 5 days,
-      maxPercentChange: 10_00 // 10%
-    });
 
     riskConfig = IRiskSteward.Config({
       ltv: defaultRiskParamConfig,
@@ -47,10 +43,10 @@ contract RiskSteward_Test is Test {
       supplyCap: defaultRiskParamConfig,
       borrowCap: defaultRiskParamConfig,
       debtCeiling: defaultRiskParamConfig,
-      baseVariableBorrowRate: rateParamConfig,
-      variableRateSlope1: rateParamConfig,
-      variableRateSlope2: rateParamConfig,
-      optimalUsageRatio: rateParamConfig
+      baseVariableBorrowRate: defaultRiskParamConfig,
+      variableRateSlope1: defaultRiskParamConfig,
+      variableRateSlope2: defaultRiskParamConfig,
+      optimalUsageRatio: defaultRiskParamConfig
     });
 
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
