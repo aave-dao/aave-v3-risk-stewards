@@ -19,27 +19,80 @@ interface IRiskSteward {
   event AssetRestricted(address indexed asset, bool indexed isRestricted);
 
   /**
-   * @notice Emitted when the risk configuration for the risk params have been set
+   * @notice Emitted when the risk configuration for the risk params has been set
+   * @param riskConfig struct containing the risk configurations
    */
-  event RiskConfigSet();
+  event RiskConfigSet(Config indexed riskConfig);
 
   /**
-   * @notice Emitted when the caps have been updated using the steward
-   * @param asset address of the underlying asset for which caps have been updated
+   * @notice Emitted when the supply cap has been updated using the steward
+   * @param asset address of the underlying asset for which supply cap has been updated
+   * @param newSupplyCap new supply cap which has been set for the asset
    */
-  event CapsUpdate(address indexed asset);
+  event SupplyCapUpdated(address indexed asset, uint256 indexed newSupplyCap);
 
   /**
-   * @notice Emitted when the rate have been updated using the steward
-   * @param asset address of the underlying asset for which interest rates have been updated
+   * @notice Emitted when the borrow cap has been updated using the steward
+   * @param asset address of the underlying asset for which borrow cap has been updated
+   * @param newBorrowCap new borrow cap which has been set for the asset
    */
-  event RateUpdate(address indexed asset);
+  event BorrowCapUpdated(address indexed asset, uint256 indexed newBorrowCap);
 
   /**
-   * @notice Emitted when the collateral params have been updated using the steward
-   * @param asset address of the underlying asset for which collateral params have been updated
+   * @notice Emitted when the uOptimal has been updated using the steward
+   * @param asset address of the underlying asset for which uOptimal has been updated
+   * @param newOptimalUsageRatio new uOptimal which has been set for the asset
    */
-  event CollateralUpdate(address indexed asset);
+  event OptimalUsageRatioUpdated(address indexed asset, uint256 indexed newOptimalUsageRatio);
+
+  /**
+   * @notice Emitted when the base variable borrow rate has been updated using the steward
+   * @param asset address of the underlying asset for which base variable borrow rate has been updated
+   * @param newBaseVariableBorrowRate new base variable borrow rate which has been set for the asset
+   */
+  event BaseVariableBorrowRateUpdated(address indexed asset, uint256 indexed newBaseVariableBorrowRate);
+
+  /**
+   * @notice Emitted when the variable rate slope 1 has been updated using the steward
+   * @param asset address of the underlying asset for which variable rate slope 1 has been updated
+   * @param newVariableRateSlope1 new variable rate slope 1 which has been set for the asset
+   */
+  event VariableRateSlope1Updated(address indexed asset, uint256 indexed newVariableRateSlope1);
+
+  /**
+   * @notice Emitted when the variable rate slope 2 has been updated using the steward
+   * @param asset address of the underlying asset for which variable rate slope 2 has been updated
+   * @param newVariableRateSlope2 new variable rate slope 2 which has been set for the asset
+   */
+  event VariableRateSlope2Updated(address indexed asset, uint256 indexed newVariableRateSlope2);
+
+  /**
+   * @notice Emitted when the loan to value has been updated using the steward
+   * @param asset address of the underlying asset for which loan to value has been updated
+   * @param newLtv new loan to value which has been set for the asset
+   */
+  event LtvUpdated(address indexed asset, uint256 newLtv);
+
+  /**
+   * @notice Emitted when the liquidation threshold has been updated using the steward
+   * @param asset address of the underlying asset for which liquidation threshold has been updated
+   * @param newLiquidationThreshold new liquidation threshold which has been set for the asset
+   */
+  event LiquidationThresholdUpdated(address indexed asset, uint256 newLiquidationThreshold);
+
+  /**
+   * @notice Emitted when the liquidation bonus has been updated using the steward
+   * @param asset address of the underlying asset for which liquidation bonus has been updated
+   * @param newLiquidationBonus new liquidation bonus which has been set for the asset
+   */
+  event LiquidationBonusUpdated(address indexed asset, uint256 newLiquidationBonus);
+
+  /**
+   * @notice Emitted when the debt ceiling has been updated using the steward
+   * @param asset address of the underlying asset for which debt ceiling has been updated
+   * @param newDebtCeiling new debt ceiling which has been set for the asset
+   */
+  event DebtCeilingUpdated(address indexed asset, uint256 newDebtCeiling);
 
   /**
    * @notice Stuct storing the last update by the steward of each risk param

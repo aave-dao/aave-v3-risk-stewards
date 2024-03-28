@@ -88,9 +88,9 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function setRiskConfig(Config memory riskConfig) external onlyOwner {
+  function setRiskConfig(Config calldata riskConfig) external onlyOwner {
     _riskConfig = riskConfig;
-    emit RiskConfigSet();
+    emit RiskConfigSet(riskConfig);
   }
 
   /// @inheritdoc IRiskSteward
@@ -171,7 +171,6 @@ contract RiskSteward is Ownable, IRiskSteward {
         _riskConfig.optimalUsageRatio,
         false
       );
-
       _validateParamUpdate(
         currentBaseVariableBorrowRate,
         ratesUpdate[i].params.baseVariableBorrowRate,
@@ -179,7 +178,6 @@ contract RiskSteward is Ownable, IRiskSteward {
         _riskConfig.baseVariableBorrowRate,
         false
       );
-
       _validateParamUpdate(
         currentVariableRateSlope1,
         ratesUpdate[i].params.variableRateSlope1,
@@ -187,7 +185,6 @@ contract RiskSteward is Ownable, IRiskSteward {
         _riskConfig.variableRateSlope1,
         false
       );
-
       _validateParamUpdate(
         currentVariableRateSlope2,
         ratesUpdate[i].params.variableRateSlope2,
@@ -308,10 +305,12 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       if (capsUpdate[i].supplyCap != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].supplyCapLastUpdated = uint40(block.timestamp);
+        emit SupplyCapUpdated(asset, capsUpdate[i].supplyCap);
       }
 
       if (capsUpdate[i].borrowCap != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].borrowCapLastUpdated = uint40(block.timestamp);
+        emit BorrowCapUpdated(asset, capsUpdate[i].borrowCap);
       }
     }
 
@@ -330,18 +329,22 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       if (ratesUpdate[i].params.optimalUsageRatio != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].optimalUsageRatioLastUpdated = uint40(block.timestamp);
+        emit OptimalUsageRatioUpdated(asset, ratesUpdate[i].params.optimalUsageRatio);
       }
 
       if (ratesUpdate[i].params.baseVariableBorrowRate != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].baseVariableRateLastUpdated = uint40(block.timestamp);
+        emit BaseVariableBorrowRateUpdated(asset, ratesUpdate[i].params.baseVariableBorrowRate);
       }
 
       if (ratesUpdate[i].params.variableRateSlope1 != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].variableRateSlope1LastUpdated = uint40(block.timestamp);
+        emit VariableRateSlope1Updated(asset, ratesUpdate[i].params.variableRateSlope1);
       }
 
       if (ratesUpdate[i].params.variableRateSlope2 != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].variableRateSlope2LastUpdated = uint40(block.timestamp);
+        emit VariableRateSlope2Updated(asset, ratesUpdate[i].params.variableRateSlope2);
       }
     }
 
@@ -360,15 +363,19 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       if (collateralUpdates[i].ltv != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].ltvLastUpdated = uint40(block.timestamp);
+        emit LtvUpdated(asset, collateralUpdates[i].ltv);
       }
       if (collateralUpdates[i].liqThreshold != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].liquidationThresholdLastUpdated = uint40(block.timestamp);
+        emit LiquidationThresholdUpdated(asset, collateralUpdates[i].liqThreshold);
       }
       if (collateralUpdates[i].liqBonus != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].liquidationBonusLastUpdated = uint40(block.timestamp);
+        emit LiquidationBonusUpdated(asset, collateralUpdates[i].liqBonus);
       }
       if (collateralUpdates[i].debtCeiling != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].debtCeilingLastUpdated = uint40(block.timestamp);
+        emit DebtCeilingUpdated(asset, collateralUpdates[i].debtCeiling);
       }
     }
 
