@@ -95,7 +95,7 @@ interface IRiskSteward {
   event DebtCeilingUpdated(address indexed asset, uint256 newDebtCeiling);
 
   /**
-   * @notice Stuct storing the last update by the steward of each risk param
+   * @notice Struct storing the last update by the steward of each risk param
    */
   struct Debounce {
     uint40 supplyCapLastUpdated;
@@ -111,7 +111,7 @@ interface IRiskSteward {
   }
 
   /**
-   * @notice Stuct storing the minimum delay and maximum percent change for a risk param
+   * @notice Struct storing the minimum delay and maximum percent change for a risk param
    */
   struct RiskParamConfig {
     uint40 minDelay;
@@ -119,7 +119,7 @@ interface IRiskSteward {
   }
 
   /**
-   * @notice Stuct storing the risk configuration for all the risk param
+   * @notice Struct storing the risk configuration for all the risk param
    */
   struct Config {
     RiskParamConfig ltv;
