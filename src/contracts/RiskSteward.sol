@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
+import {ConfigConstants} from './libraries/ConfigConstants.sol';
 import {RiskStewardErrors} from './libraries/RiskStewardErrors.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
@@ -134,14 +135,14 @@ contract RiskSteward is Ownable, IRiskSteward {
         capsUpdate[i].supplyCap,
         _timelocks[asset].supplyCapLastUpdated,
         _riskConfig.supplyCap,
-        true
+        ConfigConstants.IS_SUPPLY_CAP_CHANGE_RELATIVE
       );
       _validateParamUpdate(
         currentBorrowCap,
         capsUpdate[i].borrowCap,
         _timelocks[asset].borrowCapLastUpdated,
         _riskConfig.borrowCap,
-        true
+        ConfigConstants.IS_BORROW_CAP_CHANGE_RELATIVE
       );
     }
   }
@@ -169,28 +170,28 @@ contract RiskSteward is Ownable, IRiskSteward {
         ratesUpdate[i].params.optimalUsageRatio,
         _timelocks[asset].optimalUsageRatioLastUpdated,
         _riskConfig.optimalUsageRatio,
-        false
+        ConfigConstants.IS_OPTIMAL_USAGE_CHANGE_RELATIVE
       );
       _validateParamUpdate(
         currentBaseVariableBorrowRate,
         ratesUpdate[i].params.baseVariableBorrowRate,
         _timelocks[asset].baseVariableRateLastUpdated,
         _riskConfig.baseVariableBorrowRate,
-        false
+        ConfigConstants.IS_BASE_VARIABLE_BORROW_RATE_CHANGE_RELATIVE
       );
       _validateParamUpdate(
         currentVariableRateSlope1,
         ratesUpdate[i].params.variableRateSlope1,
         _timelocks[asset].variableRateSlope1LastUpdated,
         _riskConfig.variableRateSlope1,
-        false
+        ConfigConstants.IS_VARIABLE_RATE_SLOPE_1_CHANGE_RELATIVE
       );
       _validateParamUpdate(
         currentVariableRateSlope2,
         ratesUpdate[i].params.variableRateSlope2,
         _timelocks[asset].variableRateSlope2LastUpdated,
         _riskConfig.variableRateSlope2,
-        false
+        ConfigConstants.IS_VARIABLE_RATE_SLOPE_2_CHANGE_RELATIVE
       );
     }
   }
@@ -214,7 +215,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       require(
         collateralUpdates[i].ltv != 0 &&
           collateralUpdates[i].liqThreshold != 0 &&
-          collateralUpdates[i].liqThreshold != 0 &&
+          collateralUpdates[i].liqBonus != 0 &&
           collateralUpdates[i].debtCeiling != 0,
         RiskStewardErrors.INVALID_UPDATE_TO_ZERO
       );
@@ -238,28 +239,28 @@ contract RiskSteward is Ownable, IRiskSteward {
         collateralUpdates[i].ltv,
         _timelocks[asset].ltvLastUpdated,
         _riskConfig.ltv,
-        false
+        ConfigConstants.IS_LTV_CHANGE_RELATIVE
       );
       _validateParamUpdate(
         currentLiquidationThreshold,
         collateralUpdates[i].liqThreshold,
         _timelocks[asset].liquidationThresholdLastUpdated,
         _riskConfig.liquidationThreshold,
-        false
+        ConfigConstants.IS_LIQUDATION_THRESHOLD_CHANGE_RELATIVE
       );
       _validateParamUpdate(
         currentLiquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
         collateralUpdates[i].liqBonus,
         _timelocks[asset].liquidationBonusLastUpdated,
         _riskConfig.liquidationBonus,
-        false
+        ConfigConstants.IS_LIQUIDATION_BONUS_CHANGE_RELATIVE
       );
       _validateParamUpdate(
         currentDebtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
         collateralUpdates[i].debtCeiling,
         _timelocks[asset].debtCeilingLastUpdated,
         _riskConfig.debtCeiling,
-        true
+        ConfigConstants.IS_DEBT_CEILING_CHANGE_RELATIVE
       );
     }
   }
