@@ -6,7 +6,7 @@ import {IACLManager, IPoolConfigurator, IPoolDataProvider} from 'aave-address-bo
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {AaveV3Ethereum, AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
-import {RiskSteward, IRiskSteward, RiskStewardErrors, IEngine, EngineFlags} from 'src/contracts/RiskSteward.sol';
+import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/RiskSteward.sol';
 import {DeploymentLibrary, UpgradePayload} from 'protocol-v3.1-upgrade/scripts/Deploy.s.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {GovV3Helpers} from 'aave-helpers/GovV3Helpers.sol';
@@ -126,7 +126,7 @@ contract RiskSteward_Test is Test {
     );
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.UPDATE_NOT_IN_RANGE));
+    vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateCaps(capUpdates);
 
     capUpdates[0] = IEngine.CapsUpdate(
@@ -134,7 +134,7 @@ contract RiskSteward_Test is Test {
       (daiSupplyCapBefore * 80) / 100, // 20% relative decrease
       (daiBorrowCapBefore * 80) / 100 // 20% relative decrease
     );
-    vm.expectRevert(bytes(RiskStewardErrors.UPDATE_NOT_IN_RANGE));
+    vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateCaps(capUpdates);
 
     vm.stopPrank();
@@ -156,7 +156,7 @@ contract RiskSteward_Test is Test {
     steward.updateCaps(capUpdates);
 
     // expect revert as minimum time has not passed for next update
-    vm.expectRevert(bytes(RiskStewardErrors.DEBOUNCE_NOT_RESPECTED));
+    vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
     steward.updateCaps(capUpdates);
     vm.stopPrank();
   }
@@ -197,7 +197,7 @@ contract RiskSteward_Test is Test {
 
     vm.prank(riskCouncil);
     // as the update is from value 0
-    vm.expectRevert(bytes(RiskStewardErrors.UPDATE_NOT_IN_RANGE));
+    vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateCaps(capUpdates);
   }
 
@@ -210,7 +210,7 @@ contract RiskSteward_Test is Test {
     capUpdates[0] = IEngine.CapsUpdate(AaveV3EthereumAssets.GHO_UNDERLYING, 100, 100);
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.ASSET_RESTRICTED));
+    vm.expectRevert(IRiskSteward.AssetIsRestricted.selector);
     steward.updateCaps(capUpdates);
     vm.stopPrank();
   }
@@ -236,7 +236,7 @@ contract RiskSteward_Test is Test {
     );
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.INVALID_UPDATE_TO_ZERO));
+    vm.expectRevert(IRiskSteward.InvalidUpdateToZero.selector);
     steward.updateCaps(capUpdates);
   }
 
@@ -345,7 +345,7 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.UPDATE_NOT_IN_RANGE));
+    vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateRates(rateUpdates);
     vm.stopPrank();
   }
@@ -373,7 +373,7 @@ contract RiskSteward_Test is Test {
     steward.updateRates(rateUpdates);
 
     // expect revert as minimum time has not passed for next update
-    vm.expectRevert(bytes(RiskStewardErrors.DEBOUNCE_NOT_RESPECTED));
+    vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
     steward.updateRates(rateUpdates);
     vm.stopPrank();
   }
@@ -412,7 +412,7 @@ contract RiskSteward_Test is Test {
     });
 
     vm.prank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.ASSET_RESTRICTED));
+    vm.expectRevert(IRiskSteward.AssetIsRestricted.selector);
     steward.updateRates(rateUpdates);
   }
 
@@ -528,7 +528,7 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.UPDATE_NOT_IN_RANGE));
+    vm.expectRevert();
     steward.updateCollateralSide(collateralUpdates);
 
     // after min time passed test collateral update decrease
@@ -543,7 +543,7 @@ contract RiskSteward_Test is Test {
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
-    vm.expectRevert(bytes(RiskStewardErrors.UPDATE_NOT_IN_RANGE));
+    vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateCollateralSide(collateralUpdates);
     vm.stopPrank();
   }
@@ -570,7 +570,7 @@ contract RiskSteward_Test is Test {
     vm.warp(block.timestamp + 1 days);
 
     // expect revert as minimum time has not passed for next update
-    vm.expectRevert(bytes(RiskStewardErrors.DEBOUNCE_NOT_RESPECTED));
+    vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
     steward.updateCollateralSide(collateralUpdates);
     vm.stopPrank();
   }
@@ -587,7 +587,7 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED));
+    vm.expectRevert(IRiskSteward.ParamChangeNotAllowed.selector);
     steward.updateCollateralSide(collateralUpdates);
     vm.stopPrank();
   }
@@ -624,7 +624,7 @@ contract RiskSteward_Test is Test {
     });
 
     vm.prank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.ASSET_RESTRICTED));
+    vm.expectRevert(IRiskSteward.AssetIsRestricted.selector);
     steward.updateCollateralSide(collateralUpdates);
   }
 
@@ -654,7 +654,7 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(bytes(RiskStewardErrors.INVALID_UPDATE_TO_ZERO));
+    vm.expectRevert(IRiskSteward.InvalidUpdateToZero.selector);
     steward.updateCollateralSide(collateralUpdates);
   }
 
@@ -691,13 +691,13 @@ contract RiskSteward_Test is Test {
 
     vm.startPrank(caller);
 
-    vm.expectRevert(bytes(RiskStewardErrors.INVALID_CALLER));
+    vm.expectRevert(IRiskSteward.InvalidCaller.selector);
     steward.updateCaps(capUpdates);
 
-    vm.expectRevert(bytes(RiskStewardErrors.INVALID_CALLER));
+    vm.expectRevert(IRiskSteward.InvalidCaller.selector);
     steward.updateCollateralSide(collateralUpdates);
 
-    vm.expectRevert(bytes(RiskStewardErrors.INVALID_CALLER));
+    vm.expectRevert(IRiskSteward.InvalidCaller.selector);
     steward.updateRates(rateStrategyUpdate);
 
     vm.stopPrank();

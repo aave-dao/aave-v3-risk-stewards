@@ -12,6 +12,41 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-con
  */
 interface IRiskSteward {
   /**
+   * @notice Only the permissioned council is allowed to call methods on the steward
+   */
+  error InvalidCaller();
+
+  /**
+   * @notice A single risk param update can only be changed after the minimum delay configured has passed
+   */
+  error DebounceNotRespected();
+
+  /**
+   * @notice A single risk param update must not be increased / decreased by maxPercentChange configured
+   */
+  error UpdateNotInRange();
+
+  /**
+   * @notice There must be at least one risk param update per execution
+   */
+  error NoZeroUpdates();
+
+  /**
+   * @notice The steward does not allow the risk param change for the param given
+   */
+  error ParamChangeNotAllowed();
+
+  /**
+   * @notice The steward does not allow updates of risk param of a restricted asset
+   */
+  error AssetIsRestricted();
+
+  /**
+   * @notice Setting the risk parameter value to zero is not allowed
+   */
+  error InvalidUpdateToZero();
+
+  /**
    * @notice Emitted when the owner configures an asset as restricted to be used by steward
    * @param asset address of the underlying asset
    * @param isRestricted true if asset is set as restricted, false otherwise
@@ -50,7 +85,10 @@ interface IRiskSteward {
    * @param asset address of the underlying asset for which base variable borrow rate has been updated
    * @param newBaseVariableBorrowRate new base variable borrow rate which has been set for the asset
    */
-  event BaseVariableBorrowRateUpdated(address indexed asset, uint256 indexed newBaseVariableBorrowRate);
+  event BaseVariableBorrowRateUpdated(
+    address indexed asset,
+    uint256 indexed newBaseVariableBorrowRate
+  );
 
   /**
    * @notice Emitted when the variable rate slope 1 has been updated using the steward

@@ -5,7 +5,6 @@ import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
 import {ConfigConstants} from './libraries/ConfigConstants.sol';
-import {RiskStewardErrors} from './libraries/RiskStewardErrors.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
@@ -41,7 +40,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @dev Modifier preventing anyone, but the council to update risk params.
    */
   modifier onlyRiskCouncil() {
-    require(RISK_COUNCIL == msg.sender, RiskStewardErrors.INVALID_CALLER);
+    if (RISK_COUNCIL != msg.sender) revert InvalidCaller();
     _;
   }
 
@@ -115,16 +114,13 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @param capsUpdate list containing the new supply, borrow caps of the assets
    */
   function _validateCapsUpdate(IEngine.CapsUpdate[] calldata capsUpdate) internal view {
-    require(capsUpdate.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
+    if (capsUpdate.length == 0) revert NoZeroUpdates();
 
     for (uint256 i = 0; i < capsUpdate.length; i++) {
       address asset = capsUpdate[i].asset;
 
-      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
-      require(
-        capsUpdate[i].supplyCap != 0 && capsUpdate[i].borrowCap != 0,
-        RiskStewardErrors.INVALID_UPDATE_TO_ZERO
-      );
+      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0) revert InvalidUpdateToZero();
 
       (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL_DATA_PROVIDER.getReserveCaps(
         capsUpdate[i].asset
@@ -152,11 +148,11 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @param ratesUpdate list containing the new interest rates params of the assets
    */
   function _validateRatesUpdate(IEngine.RateStrategyUpdate[] calldata ratesUpdate) internal view {
-    require(ratesUpdate.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
+    if (ratesUpdate.length == 0) revert NoZeroUpdates();
 
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
       address asset = ratesUpdate[i].asset;
-      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
+      if (_restrictedAssets[asset]) revert AssetIsRestricted();
 
       (
         uint256 currentOptimalUsageRatio,
@@ -203,22 +199,19 @@ contract RiskSteward is Ownable, IRiskSteward {
   function _validateCollateralsUpdate(
     IEngine.CollateralUpdate[] calldata collateralUpdates
   ) internal view {
-    require(collateralUpdates.length > 0, RiskStewardErrors.NO_ZERO_UPDATES);
+    if (collateralUpdates.length == 0) revert NoZeroUpdates();
 
     for (uint256 i = 0; i < collateralUpdates.length; i++) {
       address asset = collateralUpdates[i].asset;
-      require(!_restrictedAssets[asset], RiskStewardErrors.ASSET_RESTRICTED);
-      require(
-        collateralUpdates[i].liqProtocolFee == EngineFlags.KEEP_CURRENT,
-        RiskStewardErrors.PARAM_CHANGE_NOT_ALLOWED
-      );
-      require(
-        collateralUpdates[i].ltv != 0 &&
-          collateralUpdates[i].liqThreshold != 0 &&
-          collateralUpdates[i].liqBonus != 0 &&
-          collateralUpdates[i].debtCeiling != 0,
-        RiskStewardErrors.INVALID_UPDATE_TO_ZERO
-      );
+
+      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT) revert ParamChangeNotAllowed();
+      if (
+        collateralUpdates[i].ltv == 0 ||
+        collateralUpdates[i].liqThreshold == 0 ||
+        collateralUpdates[i].liqBonus == 0 ||
+        collateralUpdates[i].debtCeiling == 0
+      ) revert InvalidUpdateToZero();
 
       (
         ,
@@ -281,19 +274,13 @@ contract RiskSteward is Ownable, IRiskSteward {
   ) internal view {
     if (newParamValue == EngineFlags.KEEP_CURRENT) return;
 
-    require(
-      block.timestamp - lastUpdated > riskConfig.minDelay,
-      RiskStewardErrors.DEBOUNCE_NOT_RESPECTED
-    );
-    require(
-      _updateWithinAllowedRange(
+    if (block.timestamp - lastUpdated < riskConfig.minDelay) revert DebounceNotRespected();
+    if (!_updateWithinAllowedRange(
         currentParamValue,
         newParamValue,
         riskConfig.maxPercentChange,
         isChangeRelative
-      ),
-      RiskStewardErrors.UPDATE_NOT_IN_RANGE
-    );
+      )) revert UpdateNotInRange();
   }
 
   /**
