@@ -4,7 +4,7 @@ Expanding from the scope of from CapsPlusRiskSteward, we now introduce the new R
 
 ## Specification
 
-The new RiskSteward we propose follows the same design as the CapsPlusRiskSteward: an smart contract to which the Aave Governance gives `POOL_ADMIN` role over all v3 instances, controlled by a 2-of-2 multi-sig of the risk providers, and heavily constrained on what can do and how by its own logic.
+The new RiskSteward we propose follows the same design as the CapsPlusRiskSteward: a smart contract to which the Aave Governance gives `POOL_ADMIN` the role over all v3 instances, controlled by a 2-of-2 multi-sig of the risk providers, and heavily constrained on what can do and how by its own logic.
 
 _Note: The Risk Stewards 2 will only be available for Aave V3 instances and not Aave V2 due to missing admin roles on Aave V2 instances._
 
