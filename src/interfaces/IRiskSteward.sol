@@ -137,7 +137,7 @@ interface IRiskSteward {
    * @param newLtv new loan to value which has been set for the asset
    * @param nextAllowedTimestamp next permitted timestamp for a new LTV update
    */
-  event LtvUpdated(address indexed asset, uint256 newLtv, uint40 indexed nextAllowedTimestamp);
+  event LtvUpdated(address indexed asset, uint256 indexed newLtv, uint40 indexed nextAllowedTimestamp);
 
   /**
    * @notice Emitted when the liquidation threshold has been updated using the steward
@@ -147,7 +147,7 @@ interface IRiskSteward {
    */
   event LiquidationThresholdUpdated(
     address indexed asset,
-    uint256 newLiquidationThreshold,
+    uint256 indexed newLiquidationThreshold,
     uint40 indexed nextAllowedTimestamp
   );
 
@@ -159,7 +159,7 @@ interface IRiskSteward {
    */
   event LiquidationBonusUpdated(
     address indexed asset,
-    uint256 newLiquidationBonus,
+    uint256 indexed newLiquidationBonus,
     uint40 indexed nextAllowedTimestamp
   );
 
@@ -171,7 +171,7 @@ interface IRiskSteward {
    */
   event DebtCeilingUpdated(
     address indexed asset,
-    uint256 newDebtCeiling,
+    uint256 indexed newDebtCeiling,
     uint40 indexed nextAllowedTimestamp
   );
 
