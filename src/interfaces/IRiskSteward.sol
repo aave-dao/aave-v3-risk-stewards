@@ -63,74 +63,117 @@ interface IRiskSteward {
    * @notice Emitted when the supply cap has been updated using the steward
    * @param asset address of the underlying asset for which supply cap has been updated
    * @param newSupplyCap new supply cap which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new supply cap update
    */
-  event SupplyCapUpdated(address indexed asset, uint256 indexed newSupplyCap);
+  event SupplyCapUpdated(
+    address indexed asset,
+    uint256 indexed newSupplyCap,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Emitted when the borrow cap has been updated using the steward
    * @param asset address of the underlying asset for which borrow cap has been updated
    * @param newBorrowCap new borrow cap which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new borrow cap update
    */
-  event BorrowCapUpdated(address indexed asset, uint256 indexed newBorrowCap);
+  event BorrowCapUpdated(
+    address indexed asset,
+    uint256 indexed newBorrowCap,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Emitted when the uOptimal has been updated using the steward
    * @param asset address of the underlying asset for which uOptimal has been updated
    * @param newOptimalUsageRatio new uOptimal which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new uOptimal update
    */
-  event OptimalUsageRatioUpdated(address indexed asset, uint256 indexed newOptimalUsageRatio);
+  event OptimalUsageRatioUpdated(
+    address indexed asset,
+    uint256 indexed newOptimalUsageRatio,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Emitted when the base variable borrow rate has been updated using the steward
    * @param asset address of the underlying asset for which base variable borrow rate has been updated
    * @param newBaseVariableBorrowRate new base variable borrow rate which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new base variable borrow rate update
    */
   event BaseVariableBorrowRateUpdated(
     address indexed asset,
-    uint256 indexed newBaseVariableBorrowRate
+    uint256 indexed newBaseVariableBorrowRate,
+    uint40 indexed nextAllowedTimestamp
   );
 
   /**
    * @notice Emitted when the variable rate slope 1 has been updated using the steward
    * @param asset address of the underlying asset for which variable rate slope 1 has been updated
    * @param newVariableRateSlope1 new variable rate slope 1 which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new variable rate slope 1 update
    */
-  event VariableRateSlope1Updated(address indexed asset, uint256 indexed newVariableRateSlope1);
+  event VariableRateSlope1Updated(
+    address indexed asset,
+    uint256 indexed newVariableRateSlope1,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Emitted when the variable rate slope 2 has been updated using the steward
    * @param asset address of the underlying asset for which variable rate slope 2 has been updated
    * @param newVariableRateSlope2 new variable rate slope 2 which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new variable rate slope 2 update
    */
-  event VariableRateSlope2Updated(address indexed asset, uint256 indexed newVariableRateSlope2);
+  event VariableRateSlope2Updated(
+    address indexed asset,
+    uint256 indexed newVariableRateSlope2,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Emitted when the loan to value has been updated using the steward
    * @param asset address of the underlying asset for which loan to value has been updated
    * @param newLtv new loan to value which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new LTV update
    */
-  event LtvUpdated(address indexed asset, uint256 newLtv);
+  event LtvUpdated(address indexed asset, uint256 newLtv, uint40 indexed nextAllowedTimestamp);
 
   /**
    * @notice Emitted when the liquidation threshold has been updated using the steward
    * @param asset address of the underlying asset for which liquidation threshold has been updated
    * @param newLiquidationThreshold new liquidation threshold which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new liquidation threshold update
    */
-  event LiquidationThresholdUpdated(address indexed asset, uint256 newLiquidationThreshold);
+  event LiquidationThresholdUpdated(
+    address indexed asset,
+    uint256 newLiquidationThreshold,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Emitted when the liquidation bonus has been updated using the steward
    * @param asset address of the underlying asset for which liquidation bonus has been updated
    * @param newLiquidationBonus new liquidation bonus which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new liquidation bonus update
    */
-  event LiquidationBonusUpdated(address indexed asset, uint256 newLiquidationBonus);
+  event LiquidationBonusUpdated(
+    address indexed asset,
+    uint256 newLiquidationBonus,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Emitted when the debt ceiling has been updated using the steward
    * @param asset address of the underlying asset for which debt ceiling has been updated
    * @param newDebtCeiling new debt ceiling which has been set for the asset
+   * @param nextAllowedTimestamp next permitted timestamp for a new debt ceiling update
    */
-  event DebtCeilingUpdated(address indexed asset, uint256 newDebtCeiling);
+  event DebtCeilingUpdated(
+    address indexed asset,
+    uint256 newDebtCeiling,
+    uint40 indexed nextAllowedTimestamp
+  );
 
   /**
    * @notice Struct storing the last update by the steward of each risk param
