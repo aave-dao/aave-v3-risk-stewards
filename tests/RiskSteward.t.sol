@@ -17,6 +17,10 @@ contract RiskSteward_Test is Test {
   RiskSteward public steward;
   IRiskSteward.Config public riskConfig;
 
+  event AssetRestricted(address indexed asset, bool indexed isRestricted);
+
+  event RiskConfigSet(IRiskSteward.Config indexed riskConfig);
+
   function setUp() public {
     vm.createSelectFork(vm.rpcUrl('mainnet'), 19055256);
 
@@ -700,7 +704,80 @@ contract RiskSteward_Test is Test {
     vm.expectRevert(IRiskSteward.InvalidCaller.selector);
     steward.updateRates(rateStrategyUpdate);
 
+    vm.expectRevert('Ownable: caller is not the owner');
+    steward.setRiskConfig(riskConfig);
+
+    vm.expectRevert('Ownable: caller is not the owner');
+    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+
     vm.stopPrank();
+  }
+
+  function test_assetRestricted() public {
+    vm.expectEmit();
+    emit AssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
+    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+
+    assertTrue(steward.isAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING));
+
+    vm.expectEmit();
+    emit AssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, false);
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
+    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, false);
+
+    assertFalse(steward.isAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING));
+  }
+
+  function test_setRiskConfig() public {
+    IRiskSteward.RiskParamConfig memory newRiskParamConfig = IRiskSteward.RiskParamConfig({
+      minDelay: 10 days,
+      maxPercentChange: 20_00 // 20%
+    });
+
+    IRiskSteward.Config memory newRiskConfig = IRiskSteward.Config({
+      ltv: newRiskParamConfig,
+      liquidationThreshold: newRiskParamConfig,
+      liquidationBonus: newRiskParamConfig,
+      supplyCap: newRiskParamConfig,
+      borrowCap: newRiskParamConfig,
+      debtCeiling: newRiskParamConfig,
+      baseVariableBorrowRate: newRiskParamConfig,
+      variableRateSlope1: newRiskParamConfig,
+      variableRateSlope2: newRiskParamConfig,
+      optimalUsageRatio: newRiskParamConfig
+    });
+
+    vm.expectEmit();
+    emit RiskConfigSet(newRiskConfig);
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
+    steward.setRiskConfig(newRiskConfig);
+
+    IRiskSteward.Config memory updatedRiskConfig = steward.getRiskConfig();
+
+    assertEq(newRiskConfig.ltv.minDelay, updatedRiskConfig.ltv.minDelay);
+    assertEq(newRiskConfig.ltv.maxPercentChange, updatedRiskConfig.ltv.maxPercentChange);
+    assertEq(newRiskConfig.liquidationThreshold.minDelay, updatedRiskConfig.liquidationThreshold.minDelay);
+    assertEq(newRiskConfig.liquidationThreshold.maxPercentChange, updatedRiskConfig.liquidationThreshold.maxPercentChange);
+    assertEq(newRiskConfig.liquidationBonus.minDelay, updatedRiskConfig.liquidationBonus.minDelay);
+    assertEq(newRiskConfig.liquidationBonus.maxPercentChange, updatedRiskConfig.liquidationBonus.maxPercentChange);
+    assertEq(newRiskConfig.supplyCap.minDelay, updatedRiskConfig.supplyCap.minDelay);
+    assertEq(newRiskConfig.supplyCap.maxPercentChange, updatedRiskConfig.supplyCap.maxPercentChange);
+    assertEq(newRiskConfig.borrowCap.minDelay, updatedRiskConfig.borrowCap.minDelay);
+    assertEq(newRiskConfig.borrowCap.maxPercentChange, updatedRiskConfig.borrowCap.maxPercentChange);
+    assertEq(newRiskConfig.debtCeiling.minDelay, updatedRiskConfig.debtCeiling.minDelay);
+    assertEq(newRiskConfig.debtCeiling.maxPercentChange, updatedRiskConfig.debtCeiling.maxPercentChange);
+    assertEq(newRiskConfig.baseVariableBorrowRate.minDelay, updatedRiskConfig.baseVariableBorrowRate.minDelay);
+    assertEq(newRiskConfig.baseVariableBorrowRate.maxPercentChange, updatedRiskConfig.baseVariableBorrowRate.maxPercentChange);
+    assertEq(newRiskConfig.variableRateSlope1.minDelay, updatedRiskConfig.variableRateSlope1.minDelay);
+    assertEq(newRiskConfig.variableRateSlope1.maxPercentChange, updatedRiskConfig.variableRateSlope1.maxPercentChange);
+    assertEq(newRiskConfig.variableRateSlope2.minDelay, updatedRiskConfig.variableRateSlope2.minDelay);
+    assertEq(newRiskConfig.variableRateSlope2.maxPercentChange, updatedRiskConfig.variableRateSlope2.maxPercentChange);
+    assertEq(newRiskConfig.optimalUsageRatio.minDelay, updatedRiskConfig.optimalUsageRatio.minDelay);
+    assertEq(newRiskConfig.optimalUsageRatio.maxPercentChange, updatedRiskConfig.optimalUsageRatio.maxPercentChange);
   }
 
   function _bpsToRay(uint256 amount) internal pure returns (uint256) {

@@ -57,8 +57,8 @@ contract RiskSteward is Ownable, IRiskSteward {
     Config memory riskConfig
   ) {
     POOL_DATA_PROVIDER = poolDataProvider;
-    RISK_COUNCIL = riskCouncil;
     CONFIG_ENGINE = engine;
+    RISK_COUNCIL = riskCouncil;
     _riskConfig = riskConfig;
   }
 
