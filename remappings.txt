@@ -6,4 +6,3 @@ aave-address-book/=lib/aave-helpers/lib/aave-address-book/src/
 solidity-utils/=lib/aave-helpers/lib/solidity-utils/src
 lib/aave-helpers/lib/aave-address-book:aave-v3-core/=lib/aave-helpers/lib/aave-address-book/lib/aave-v3-core/
 lib/aave-helpers:aave-v3-core/=lib/aave-helpers/lib/aave-address-book/lib/aave-v3-core/
-aave-v3-core/=lib/protocol-v3.1-upgrade/lib/aave-v3-origin/src/core

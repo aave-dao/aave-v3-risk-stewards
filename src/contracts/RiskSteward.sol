@@ -4,11 +4,10 @@ pragma solidity ^0.8.0;
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
-import {ConfigConstants} from './libraries/ConfigConstants.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
-import {IDefaultInterestRateStrategyV2} from 'aave-v3-core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
+import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 
 /**
  * @title RiskSteward
@@ -127,18 +126,22 @@ contract RiskSteward is Ownable, IRiskSteward {
       );
 
       _validateParamUpdate(
-        currentSupplyCap,
-        capsUpdate[i].supplyCap,
-        _timelocks[asset].supplyCapLastUpdated,
-        _riskConfig.supplyCap,
-        ConfigConstants.IS_SUPPLY_CAP_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentSupplyCap,
+          newParamValue: capsUpdate[i].supplyCap,
+          lastUpdated: _timelocks[asset].supplyCapLastUpdated,
+          riskConfig: _riskConfig.supplyCap,
+          isChangeRelative: true
+        })
       );
       _validateParamUpdate(
-        currentBorrowCap,
-        capsUpdate[i].borrowCap,
-        _timelocks[asset].borrowCapLastUpdated,
-        _riskConfig.borrowCap,
-        ConfigConstants.IS_BORROW_CAP_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentBorrowCap,
+          newParamValue: capsUpdate[i].borrowCap,
+          lastUpdated: _timelocks[asset].borrowCapLastUpdated,
+          riskConfig: _riskConfig.borrowCap,
+          isChangeRelative: true
+        })
       );
     }
   }
@@ -162,32 +165,40 @@ contract RiskSteward is Ownable, IRiskSteward {
       ) = _getInterestRatesForAsset(asset);
 
       _validateParamUpdate(
-        currentOptimalUsageRatio,
-        ratesUpdate[i].params.optimalUsageRatio,
-        _timelocks[asset].optimalUsageRatioLastUpdated,
-        _riskConfig.optimalUsageRatio,
-        ConfigConstants.IS_OPTIMAL_USAGE_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentOptimalUsageRatio,
+          newParamValue: ratesUpdate[i].params.optimalUsageRatio,
+          lastUpdated: _timelocks[asset].optimalUsageRatioLastUpdated,
+          riskConfig: _riskConfig.optimalUsageRatio,
+          isChangeRelative: false
+        })
       );
       _validateParamUpdate(
-        currentBaseVariableBorrowRate,
-        ratesUpdate[i].params.baseVariableBorrowRate,
-        _timelocks[asset].baseVariableRateLastUpdated,
-        _riskConfig.baseVariableBorrowRate,
-        ConfigConstants.IS_BASE_VARIABLE_BORROW_RATE_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentBaseVariableBorrowRate,
+          newParamValue: ratesUpdate[i].params.baseVariableBorrowRate,
+          lastUpdated: _timelocks[asset].baseVariableRateLastUpdated,
+          riskConfig: _riskConfig.baseVariableBorrowRate,
+          isChangeRelative: false
+        })
       );
       _validateParamUpdate(
-        currentVariableRateSlope1,
-        ratesUpdate[i].params.variableRateSlope1,
-        _timelocks[asset].variableRateSlope1LastUpdated,
-        _riskConfig.variableRateSlope1,
-        ConfigConstants.IS_VARIABLE_RATE_SLOPE_1_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentVariableRateSlope1,
+          newParamValue: ratesUpdate[i].params.variableRateSlope1,
+          lastUpdated: _timelocks[asset].variableRateSlope1LastUpdated,
+          riskConfig: _riskConfig.variableRateSlope1,
+          isChangeRelative: false
+        })
       );
       _validateParamUpdate(
-        currentVariableRateSlope2,
-        ratesUpdate[i].params.variableRateSlope2,
-        _timelocks[asset].variableRateSlope2LastUpdated,
-        _riskConfig.variableRateSlope2,
-        ConfigConstants.IS_VARIABLE_RATE_SLOPE_2_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentVariableRateSlope2,
+          newParamValue: ratesUpdate[i].params.variableRateSlope2,
+          lastUpdated: _timelocks[asset].variableRateSlope2LastUpdated,
+          riskConfig: _riskConfig.variableRateSlope2,
+          isChangeRelative: false
+        })
       );
     }
   }
@@ -228,59 +239,60 @@ contract RiskSteward is Ownable, IRiskSteward {
       uint256 currentDebtCeiling = POOL_DATA_PROVIDER.getDebtCeiling(asset);
 
       _validateParamUpdate(
-        currentLtv,
-        collateralUpdates[i].ltv,
-        _timelocks[asset].ltvLastUpdated,
-        _riskConfig.ltv,
-        ConfigConstants.IS_LTV_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentLtv,
+          newParamValue: collateralUpdates[i].ltv,
+          lastUpdated: _timelocks[asset].ltvLastUpdated,
+          riskConfig: _riskConfig.ltv,
+          isChangeRelative: false
+        })
       );
       _validateParamUpdate(
-        currentLiquidationThreshold,
-        collateralUpdates[i].liqThreshold,
-        _timelocks[asset].liquidationThresholdLastUpdated,
-        _riskConfig.liquidationThreshold,
-        ConfigConstants.IS_LIQUDATION_THRESHOLD_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentLiquidationThreshold,
+          newParamValue: collateralUpdates[i].liqThreshold,
+          lastUpdated: _timelocks[asset].liquidationThresholdLastUpdated,
+          riskConfig: _riskConfig.liquidationThreshold,
+          isChangeRelative: false
+        })
       );
       _validateParamUpdate(
-        currentLiquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
-        collateralUpdates[i].liqBonus,
-        _timelocks[asset].liquidationBonusLastUpdated,
-        _riskConfig.liquidationBonus,
-        ConfigConstants.IS_LIQUIDATION_BONUS_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentLiquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
+          newParamValue: collateralUpdates[i].liqBonus,
+          lastUpdated: _timelocks[asset].liquidationBonusLastUpdated,
+          riskConfig: _riskConfig.liquidationBonus,
+          isChangeRelative: false
+        })
       );
       _validateParamUpdate(
-        currentDebtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
-        collateralUpdates[i].debtCeiling,
-        _timelocks[asset].debtCeilingLastUpdated,
-        _riskConfig.debtCeiling,
-        ConfigConstants.IS_DEBT_CEILING_CHANGE_RELATIVE
+        ValidationParam({
+          currentParamValue: currentDebtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
+          newParamValue: collateralUpdates[i].debtCeiling,
+          lastUpdated: _timelocks[asset].debtCeilingLastUpdated,
+          riskConfig: _riskConfig.debtCeiling,
+          isChangeRelative: true
+        })
       );
     }
   }
 
   /**
    * @notice method to validate the risk param update is within the allowed bound and the debounce is respected
-   * @param currentParamValue the current value of the risk param
-   * @param newParamValue the new value of the risk param
-   * @param lastUpdated timestamp when the risk param was last updated by the steward
-   * @param riskConfig the risk configuration containing the minimum delay and the max percent change allowed for the risk param
+   * @param validationParam struct containing values used for validation of the risk param update
    */
   function _validateParamUpdate(
-    uint256 currentParamValue,
-    uint256 newParamValue,
-    uint40 lastUpdated,
-    RiskParamConfig memory riskConfig,
-    bool isChangeRelative
+    ValidationParam memory validationParam
   ) internal view {
-    if (newParamValue == EngineFlags.KEEP_CURRENT) return;
+    if (validationParam.newParamValue == EngineFlags.KEEP_CURRENT) return;
 
-    if (block.timestamp - lastUpdated < riskConfig.minDelay) revert DebounceNotRespected();
+    if (block.timestamp - validationParam.lastUpdated < validationParam.riskConfig.minDelay) revert DebounceNotRespected();
     if (
       !_updateWithinAllowedRange(
-        currentParamValue,
-        newParamValue,
-        riskConfig.maxPercentChange,
-        isChangeRelative
+        validationParam.currentParamValue,
+        validationParam.newParamValue,
+        validationParam.riskConfig.maxPercentChange,
+        validationParam.isChangeRelative
       )
     ) revert UpdateNotInRange();
   }
