@@ -15,6 +15,8 @@ import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 contract RiskSteward_Test is Test {
   address public constant riskCouncil = address(42);
   RiskSteward public steward;
+  address public configEngine;
+  IRiskSteward.RiskParamConfig public defaultRiskParamConfig;
   IRiskSteward.Config public riskConfig;
 
   event AssetRestricted(address indexed asset, bool indexed isRestricted);
@@ -29,11 +31,11 @@ contract RiskSteward_Test is Test {
     GovV3Helpers.executePayload(vm, v3_1_updatePayload);
 
     // deploy new config engine
-    address configEngine = ConfigEngineDeployer.deployEngine(
+    configEngine = ConfigEngineDeployer.deployEngine(
       address(UpgradePayload(v3_1_updatePayload).DEFAULT_IR())
     );
 
-    IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
+    defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
       minDelay: 5 days,
       maxPercentChange: 10_00 // 10%
     });
@@ -686,7 +688,7 @@ contract RiskSteward_Test is Test {
     rateStrategyUpdate[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.DAI_UNDERLYING,
       params: IEngine.InterestRateInputData({
-        optimalUsageRatio: _bpsToRay(90_00),
+        optimalUsageRatio: 90_00,
         baseVariableBorrowRate: EngineFlags.KEEP_CURRENT,
         variableRateSlope1: EngineFlags.KEEP_CURRENT,
         variableRateSlope2: EngineFlags.KEEP_CURRENT
@@ -737,7 +739,7 @@ contract RiskSteward_Test is Test {
       maxPercentChange: 20_00 // 20%
     });
 
-    IRiskSteward.Config memory newRiskConfig = IRiskSteward.Config({
+    IRiskSteward.Config memory initialRiskConfig = IRiskSteward.Config({
       ltv: newRiskParamConfig,
       liquidationThreshold: newRiskParamConfig,
       liquidationBonus: newRiskParamConfig,
@@ -751,37 +753,65 @@ contract RiskSteward_Test is Test {
     });
 
     vm.expectEmit();
-    emit RiskConfigSet(newRiskConfig);
+    emit RiskConfigSet(initialRiskConfig);
 
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward.setRiskConfig(newRiskConfig);
+    steward.setRiskConfig(initialRiskConfig);
 
-    IRiskSteward.Config memory updatedRiskConfig = steward.getRiskConfig();
-
-    assertEq(newRiskConfig.ltv.minDelay, updatedRiskConfig.ltv.minDelay);
-    assertEq(newRiskConfig.ltv.maxPercentChange, updatedRiskConfig.ltv.maxPercentChange);
-    assertEq(newRiskConfig.liquidationThreshold.minDelay, updatedRiskConfig.liquidationThreshold.minDelay);
-    assertEq(newRiskConfig.liquidationThreshold.maxPercentChange, updatedRiskConfig.liquidationThreshold.maxPercentChange);
-    assertEq(newRiskConfig.liquidationBonus.minDelay, updatedRiskConfig.liquidationBonus.minDelay);
-    assertEq(newRiskConfig.liquidationBonus.maxPercentChange, updatedRiskConfig.liquidationBonus.maxPercentChange);
-    assertEq(newRiskConfig.supplyCap.minDelay, updatedRiskConfig.supplyCap.minDelay);
-    assertEq(newRiskConfig.supplyCap.maxPercentChange, updatedRiskConfig.supplyCap.maxPercentChange);
-    assertEq(newRiskConfig.borrowCap.minDelay, updatedRiskConfig.borrowCap.minDelay);
-    assertEq(newRiskConfig.borrowCap.maxPercentChange, updatedRiskConfig.borrowCap.maxPercentChange);
-    assertEq(newRiskConfig.debtCeiling.minDelay, updatedRiskConfig.debtCeiling.minDelay);
-    assertEq(newRiskConfig.debtCeiling.maxPercentChange, updatedRiskConfig.debtCeiling.maxPercentChange);
-    assertEq(newRiskConfig.baseVariableBorrowRate.minDelay, updatedRiskConfig.baseVariableBorrowRate.minDelay);
-    assertEq(newRiskConfig.baseVariableBorrowRate.maxPercentChange, updatedRiskConfig.baseVariableBorrowRate.maxPercentChange);
-    assertEq(newRiskConfig.variableRateSlope1.minDelay, updatedRiskConfig.variableRateSlope1.minDelay);
-    assertEq(newRiskConfig.variableRateSlope1.maxPercentChange, updatedRiskConfig.variableRateSlope1.maxPercentChange);
-    assertEq(newRiskConfig.variableRateSlope2.minDelay, updatedRiskConfig.variableRateSlope2.minDelay);
-    assertEq(newRiskConfig.variableRateSlope2.maxPercentChange, updatedRiskConfig.variableRateSlope2.maxPercentChange);
-    assertEq(newRiskConfig.optimalUsageRatio.minDelay, updatedRiskConfig.optimalUsageRatio.minDelay);
-    assertEq(newRiskConfig.optimalUsageRatio.maxPercentChange, updatedRiskConfig.optimalUsageRatio.maxPercentChange);
+    _validateRiskConfig(initialRiskConfig, steward.getRiskConfig());
   }
 
-  function _bpsToRay(uint256 amount) internal pure returns (uint256) {
-    return (amount * 1e27) / 10_000;
+  function test_constructor() public {
+    riskConfig = IRiskSteward.Config({
+      ltv: defaultRiskParamConfig,
+      liquidationThreshold: defaultRiskParamConfig,
+      liquidationBonus: defaultRiskParamConfig,
+      supplyCap: defaultRiskParamConfig,
+      borrowCap: defaultRiskParamConfig,
+      debtCeiling: defaultRiskParamConfig,
+      baseVariableBorrowRate: defaultRiskParamConfig,
+      variableRateSlope1: defaultRiskParamConfig,
+      variableRateSlope2: defaultRiskParamConfig,
+      optimalUsageRatio: defaultRiskParamConfig
+    });
+
+    steward = new RiskSteward(
+      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
+      IEngine(configEngine),
+      riskCouncil,
+      riskConfig
+    );
+
+    assertEq(address(steward.POOL_DATA_PROVIDER()), address(AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER));
+    assertEq(address(steward.CONFIG_ENGINE()), address(IEngine(configEngine)));
+    assertEq(steward.RISK_COUNCIL(), riskCouncil);
+    _validateRiskConfig(riskConfig, steward.getRiskConfig());
+  }
+
+  function _validateRiskConfig(
+    IRiskSteward.Config memory initialRiskConfig,
+    IRiskSteward.Config memory updatedRiskConfig
+  ) internal {
+    assertEq(initialRiskConfig.ltv.minDelay, updatedRiskConfig.ltv.minDelay);
+    assertEq(initialRiskConfig.ltv.maxPercentChange, updatedRiskConfig.ltv.maxPercentChange);
+    assertEq(initialRiskConfig.liquidationThreshold.minDelay, updatedRiskConfig.liquidationThreshold.minDelay);
+    assertEq(initialRiskConfig.liquidationThreshold.maxPercentChange, updatedRiskConfig.liquidationThreshold.maxPercentChange);
+    assertEq(initialRiskConfig.liquidationBonus.minDelay, updatedRiskConfig.liquidationBonus.minDelay);
+    assertEq(initialRiskConfig.liquidationBonus.maxPercentChange, updatedRiskConfig.liquidationBonus.maxPercentChange);
+    assertEq(initialRiskConfig.supplyCap.minDelay, updatedRiskConfig.supplyCap.minDelay);
+    assertEq(initialRiskConfig.supplyCap.maxPercentChange, updatedRiskConfig.supplyCap.maxPercentChange);
+    assertEq(initialRiskConfig.borrowCap.minDelay, updatedRiskConfig.borrowCap.minDelay);
+    assertEq(initialRiskConfig.borrowCap.maxPercentChange, updatedRiskConfig.borrowCap.maxPercentChange);
+    assertEq(initialRiskConfig.debtCeiling.minDelay, updatedRiskConfig.debtCeiling.minDelay);
+    assertEq(initialRiskConfig.debtCeiling.maxPercentChange, updatedRiskConfig.debtCeiling.maxPercentChange);
+    assertEq(initialRiskConfig.baseVariableBorrowRate.minDelay, updatedRiskConfig.baseVariableBorrowRate.minDelay);
+    assertEq(initialRiskConfig.baseVariableBorrowRate.maxPercentChange, updatedRiskConfig.baseVariableBorrowRate.maxPercentChange);
+    assertEq(initialRiskConfig.variableRateSlope1.minDelay, updatedRiskConfig.variableRateSlope1.minDelay);
+    assertEq(initialRiskConfig.variableRateSlope1.maxPercentChange, updatedRiskConfig.variableRateSlope1.maxPercentChange);
+    assertEq(initialRiskConfig.variableRateSlope2.minDelay, updatedRiskConfig.variableRateSlope2.minDelay);
+    assertEq(initialRiskConfig.variableRateSlope2.maxPercentChange, updatedRiskConfig.variableRateSlope2.maxPercentChange);
+    assertEq(initialRiskConfig.optimalUsageRatio.minDelay, updatedRiskConfig.optimalUsageRatio.minDelay);
+    assertEq(initialRiskConfig.optimalUsageRatio.maxPercentChange, updatedRiskConfig.optimalUsageRatio.maxPercentChange);
   }
 
   function _getInterestRatesForAsset(
