@@ -427,14 +427,13 @@ contract RiskSteward is Ownable, IRiskSteward {
     bool isChangeRelative
   ) internal pure returns (bool) {
     // diff denotes the difference between the from and to values, ensuring it is a positive value always
-    int256 diff = int256(from) - int256(to);
-    if (diff < 0) diff = -diff;
+    uint256 diff = from > to ? from - to : to - from;
 
     // maxDiff denotes the max permitted difference on both the upper and lower bounds, if the maxPercentChange is relative in value
     // we calculate the max permitted difference using the maxPercentChange and the from value, otherwise if the maxPercentChange is absolute in value
     // the max permitted difference is the maxPercentChange itself
     uint256 maxDiff = isChangeRelative ? (maxPercentChange * from) / BPS_MAX : maxPercentChange;
-    if (uint256(diff) > maxDiff) return false;
+    if (diff > maxDiff) return false;
     return true;
   }
 }
