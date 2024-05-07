@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
 
 /**
  * @title IRiskSteward
@@ -60,122 +60,6 @@ interface IRiskSteward {
   event RiskConfigSet(Config indexed riskConfig);
 
   /**
-   * @notice Emitted when the supply cap has been updated using the steward
-   * @param asset address of the underlying asset for which supply cap has been updated
-   * @param newSupplyCap new supply cap which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new supply cap update
-   */
-  event SupplyCapUpdated(
-    address indexed asset,
-    uint256 indexed newSupplyCap,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the borrow cap has been updated using the steward
-   * @param asset address of the underlying asset for which borrow cap has been updated
-   * @param newBorrowCap new borrow cap which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new borrow cap update
-   */
-  event BorrowCapUpdated(
-    address indexed asset,
-    uint256 indexed newBorrowCap,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the uOptimal has been updated using the steward
-   * @param asset address of the underlying asset for which uOptimal has been updated
-   * @param newOptimalUsageRatio new uOptimal which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new uOptimal update
-   */
-  event OptimalUsageRatioUpdated(
-    address indexed asset,
-    uint256 indexed newOptimalUsageRatio,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the base variable borrow rate has been updated using the steward
-   * @param asset address of the underlying asset for which base variable borrow rate has been updated
-   * @param newBaseVariableBorrowRate new base variable borrow rate which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new base variable borrow rate update
-   */
-  event BaseVariableBorrowRateUpdated(
-    address indexed asset,
-    uint256 indexed newBaseVariableBorrowRate,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the variable rate slope 1 has been updated using the steward
-   * @param asset address of the underlying asset for which variable rate slope 1 has been updated
-   * @param newVariableRateSlope1 new variable rate slope 1 which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new variable rate slope 1 update
-   */
-  event VariableRateSlope1Updated(
-    address indexed asset,
-    uint256 indexed newVariableRateSlope1,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the variable rate slope 2 has been updated using the steward
-   * @param asset address of the underlying asset for which variable rate slope 2 has been updated
-   * @param newVariableRateSlope2 new variable rate slope 2 which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new variable rate slope 2 update
-   */
-  event VariableRateSlope2Updated(
-    address indexed asset,
-    uint256 indexed newVariableRateSlope2,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the loan to value has been updated using the steward
-   * @param asset address of the underlying asset for which loan to value has been updated
-   * @param newLtv new loan to value which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new LTV update
-   */
-  event LtvUpdated(address indexed asset, uint256 indexed newLtv, uint40 indexed nextAllowedTimestamp);
-
-  /**
-   * @notice Emitted when the liquidation threshold has been updated using the steward
-   * @param asset address of the underlying asset for which liquidation threshold has been updated
-   * @param newLiquidationThreshold new liquidation threshold which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new liquidation threshold update
-   */
-  event LiquidationThresholdUpdated(
-    address indexed asset,
-    uint256 indexed newLiquidationThreshold,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the liquidation bonus has been updated using the steward
-   * @param asset address of the underlying asset for which liquidation bonus has been updated
-   * @param newLiquidationBonus new liquidation bonus which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new liquidation bonus update
-   */
-  event LiquidationBonusUpdated(
-    address indexed asset,
-    uint256 indexed newLiquidationBonus,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
-   * @notice Emitted when the debt ceiling has been updated using the steward
-   * @param asset address of the underlying asset for which debt ceiling has been updated
-   * @param newDebtCeiling new debt ceiling which has been set for the asset
-   * @param nextAllowedTimestamp next permitted timestamp for a new debt ceiling update
-   */
-  event DebtCeilingUpdated(
-    address indexed asset,
-    uint256 indexed newDebtCeiling,
-    uint40 indexed nextAllowedTimestamp
-  );
-
-  /**
    * @notice Struct storing the last update by the steward of each risk param
    */
   struct Debounce {
@@ -189,6 +73,22 @@ interface IRiskSteward {
     uint40 variableRateSlope1LastUpdated;
     uint40 variableRateSlope2LastUpdated;
     uint40 optimalUsageRatioLastUpdated;
+  }
+
+  /**
+   * @notice Struct storing the params used for validation of the risk param update
+   * @param currentValue the current value of the risk param
+   * @param newValue the new value of the risk param
+   * @param lastUpdated timestamp when the risk param was last updated by the steward
+   * @param riskConfig the risk configuration containing the minimum delay and the max percent change allowed for the risk param
+   * @param isChangeRelative true, if risk param change is relative in value, false if risk param change is absolute in value
+   */
+  struct ParamUpdateValidationInput {
+    uint256 currentValue;
+    uint256 newValue;
+    uint40 lastUpdated;
+    RiskParamConfig riskConfig;
+    bool isChangeRelative;
   }
 
   /**
