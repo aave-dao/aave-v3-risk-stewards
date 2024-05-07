@@ -3,6 +3,7 @@ src = 'src'
 test = 'tests'
 script = 'scripts'
 out = 'out'
+solc = '0.8.19'
 libs = ['lib']
 remappings = [
 ]
