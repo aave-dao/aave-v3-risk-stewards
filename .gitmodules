@@ -4,6 +4,7 @@
 [submodule "lib/aave-helpers"]
 	path = lib/aave-helpers
 	url = https://github.com/bgd-labs/aave-helpers
+  branch = master
 [submodule "lib/protocol-v3.1-upgrade"]
 	path = lib/protocol-v3.1-upgrade
 	url = https://github.com/bgd-labs/protocol-v3.1-upgrade
