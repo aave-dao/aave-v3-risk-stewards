@@ -2,7 +2,7 @@
 
 Expanding from the scope of from CapsPlusRiskSteward, we now introduce the new RiskSteward, allowing hardly constrained risk parameter updates by risk service providers and reducing governance overhead.
 
-[![Coverage badge](./report/coverage.svg)]([https://github.com/bgd-labs/aave-risk-stewards-2](https://bgd-labs.github.io/aave-risk-stewards-2/)
+[![Coverage badge](./report/coverage.svg)](https://bgd-labs.github.io/aave-risk-stewards-2/)
 
 ## Specification
 
