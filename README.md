@@ -10,6 +10,10 @@ The new RiskSteward we propose follows the same design as the CapsPlusRiskStewar
 
 _Note: The Risk Stewards 2 will only be available for Aave V3 instances and not Aave V2 due to missing admin roles on Aave V2 instances._
 
+<img src="./docs/risk-steward-diagram.png" alt="Risk Steward Diagram Flow" width="100%" height="100%">
+
+<br/>
+
 The following risk params could be changed by the RiskStewards:
 
 - Supply Caps
