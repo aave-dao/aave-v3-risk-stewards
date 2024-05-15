@@ -8,6 +8,8 @@ import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
+import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
+import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 
 /**
  * @title RiskSteward
@@ -412,13 +414,29 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to update the oracle price caps update
    * @param priceCapsUpdate list containing the new price cap params for the oracles
    */
-  function _updatePriceCaps(PriceCapUpdate[] calldata priceCapsUpdate) internal view {}
+  function _updatePriceCaps(PriceCapUpdate[] calldata priceCapsUpdate) internal {
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
+
+      IPriceCapAdapter(oracle).setCapParameters(priceCapsUpdate[i].priceCapUpdateParams);
+    }
+  }
 
   /**
    * @notice method to update the oracle stable price caps update
    * @param priceCapsUpdate list containing the new price cap values for the oracles
    */
-  function _updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapsUpdate) internal view {}
+  function _updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapsUpdate) internal {
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
+
+      IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap);
+    }
+  }
 
   /**
    * @notice method to fetch the current interest rate params of the asset
