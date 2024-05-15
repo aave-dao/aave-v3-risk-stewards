@@ -82,6 +82,20 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
+  function updatePriceCaps(PriceCapUpdate[] calldata priceCapUpdates) external onlyRiskCouncil {
+    _validatePriceCapUpdate(priceCapUpdates);
+    _updatePriceCaps(priceCapUpdates);
+  }
+
+  /// @inheritdoc IRiskSteward
+  function updateStablePriceCaps(
+    PriceCapStableUpdate[] calldata priceCapUpdates
+  ) external onlyRiskCouncil {
+    _validatePriceCapStableUpdate(priceCapUpdates);
+    _updateStablePriceCaps(priceCapUpdates);
+  }
+
+  /// @inheritdoc IRiskSteward
   function getTimelock(address asset) external view returns (Debounce memory) {
     return _timelocks[asset];
   }
@@ -119,7 +133,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       address asset = capsUpdate[i].asset;
 
       if (_restrictedAssets[asset]) revert AssetIsRestricted();
-      if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0) revert InvalidUpdateToZero();
+      if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
+        revert InvalidUpdateToZero();
 
       (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL_DATA_PROVIDER.getReserveCaps(
         capsUpdate[i].asset
@@ -216,7 +231,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       address asset = collateralUpdates[i].asset;
 
       if (_restrictedAssets[asset]) revert AssetIsRestricted();
-      if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT) revert ParamChangeNotAllowed();
+      if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT)
+        revert ParamChangeNotAllowed();
       if (
         collateralUpdates[i].ltv == 0 ||
         collateralUpdates[i].liqThreshold == 0 ||
@@ -278,15 +294,28 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
+   * @notice method to validate the oracle price caps update
+   * @param priceCapsUpdate list containing the new price cap params for the oracles
+   */
+  function _validatePriceCapUpdate(PriceCapUpdate[] calldata priceCapsUpdate) internal view {}
+
+  /**
+   * @notice method to validate the oracle stable price caps update
+   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   */
+  function _validatePriceCapStableUpdate(
+    PriceCapStableUpdate[] calldata priceCapsUpdate
+  ) internal view {}
+
+  /**
    * @notice method to validate the risk param update is within the allowed bound and the debounce is respected
    * @param validationParam struct containing values used for validation of the risk param update
    */
-  function _validateParamUpdate(
-    ParamUpdateValidationInput memory validationParam
-  ) internal view {
+  function _validateParamUpdate(ParamUpdateValidationInput memory validationParam) internal view {
     if (validationParam.newValue == EngineFlags.KEEP_CURRENT) return;
 
-    if (block.timestamp - validationParam.lastUpdated < validationParam.riskConfig.minDelay) revert DebounceNotRespected();
+    if (block.timestamp - validationParam.lastUpdated < validationParam.riskConfig.minDelay)
+      revert DebounceNotRespected();
     if (
       !_updateWithinAllowedRange(
         validationParam.currentValue,
@@ -378,6 +407,18 @@ contract RiskSteward is Ownable, IRiskSteward {
       abi.encodeWithSelector(CONFIG_ENGINE.updateCollateralSide.selector, collateralUpdates)
     );
   }
+
+  /**
+   * @notice method to update the oracle price caps update
+   * @param priceCapsUpdate list containing the new price cap params for the oracles
+   */
+  function _updatePriceCaps(PriceCapUpdate[] calldata priceCapsUpdate) internal view {}
+
+  /**
+   * @notice method to update the oracle stable price caps update
+   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   */
+  function _updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapsUpdate) internal view {}
 
   /**
    * @notice method to fetch the current interest rate params of the asset

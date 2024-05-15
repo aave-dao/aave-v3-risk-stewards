@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
+import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
 /**
  * @title IRiskSteward
@@ -42,6 +43,11 @@ interface IRiskSteward {
   error AssetIsRestricted();
 
   /**
+   * @notice The steward does not allow updates of cap param of a restricted oracle
+   */
+  error OracleIsRestricted();
+
+  /**
    * @notice Setting the risk parameter value to zero is not allowed
    */
   error InvalidUpdateToZero();
@@ -73,6 +79,7 @@ interface IRiskSteward {
     uint40 variableRateSlope1LastUpdated;
     uint40 variableRateSlope2LastUpdated;
     uint40 optimalUsageRatioLastUpdated;
+    uint40 priceCapLastUpdated;
   }
 
   /**
@@ -113,6 +120,24 @@ interface IRiskSteward {
     RiskParamConfig variableRateSlope1;
     RiskParamConfig variableRateSlope2;
     RiskParamConfig optimalUsageRatio;
+    RiskParamConfig priceCap;
+    RiskParamConfig priceCapStable;
+  }
+
+  /**
+   * @notice Struct used to update the cap params
+   */
+  struct PriceCapUpdate {
+    address oracle;
+    IPriceCapAdapter.PriceCapUpdateParams priceCapUpdateParams;
+  }
+
+  /**
+   * @notice Struct used to update the stable cap params
+   */
+  struct PriceCapStableUpdate {
+    address oracle;
+    int256 priceCap;
   }
 
   /**
@@ -147,13 +172,29 @@ interface IRiskSteward {
   function updateRates(IEngine.RateStrategyUpdate[] calldata rateUpdates) external;
 
   /**
-   * @notice Allows updating collateral params across multiple assets
+   * @notice Allows updating price cap params across multiple assets
    * @dev A collateral update is only possible after minDelay has passed after last update
    * @dev A collateral increase / decrease is only allowed by a magnitude of maxPercentChange
    * @param collateralUpdates struct containing new collateral rate params to be updated
    */
   function updateCollateralSide(IEngine.CollateralUpdate[] calldata collateralUpdates) external;
 
+  /**
+   * @notice Allows updating price cap params across multiple oracles
+   * @dev A price cap update is only possible after minDelay has passed after last update
+   * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param priceCapUpdates struct containing new price cap params to be updated
+   */
+  function updatePriceCaps(PriceCapUpdate[] calldata priceCapUpdates) external;
+
+  /**
+   * @notice Allows updating price cap params across multiple oracles
+   * @dev A price cap update is only possible after minDelay has passed after last update
+   * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param priceCapUpdates struct containing new price cap params to be updated
+   */
+  function updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapUpdates) external;
+  
   /**
    * @notice method to check if an asset is restricted to be used by the risk stewards
    * @param asset address of the underlying asset

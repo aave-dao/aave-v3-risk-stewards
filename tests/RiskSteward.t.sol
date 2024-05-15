@@ -54,7 +54,9 @@ contract RiskSteward_Test is Test {
       baseVariableBorrowRate: defaultRiskParamConfig,
       variableRateSlope1: defaultRiskParamConfig,
       variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig
+      optimalUsageRatio: defaultRiskParamConfig,
+      priceCap: defaultRiskParamConfig,
+      priceCapStable: defaultRiskParamConfig
     });
 
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
@@ -749,7 +751,9 @@ contract RiskSteward_Test is Test {
       baseVariableBorrowRate: newRiskParamConfig,
       variableRateSlope1: newRiskParamConfig,
       variableRateSlope2: newRiskParamConfig,
-      optimalUsageRatio: newRiskParamConfig
+      optimalUsageRatio: newRiskParamConfig,
+      priceCap: newRiskParamConfig,
+      priceCapStable: newRiskParamConfig
     });
 
     vm.expectEmit();
@@ -772,7 +776,9 @@ contract RiskSteward_Test is Test {
       baseVariableBorrowRate: defaultRiskParamConfig,
       variableRateSlope1: defaultRiskParamConfig,
       variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig
+      optimalUsageRatio: defaultRiskParamConfig,
+      priceCap: defaultRiskParamConfig,
+      priceCapStable: defaultRiskParamConfig
     });
 
     steward = new RiskSteward(
@@ -782,7 +788,10 @@ contract RiskSteward_Test is Test {
       riskConfig
     );
 
-    assertEq(address(steward.POOL_DATA_PROVIDER()), address(AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER));
+    assertEq(
+      address(steward.POOL_DATA_PROVIDER()),
+      address(AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER)
+    );
     assertEq(address(steward.CONFIG_ENGINE()), address(IEngine(configEngine)));
     assertEq(steward.RISK_COUNCIL(), riskCouncil);
     _validateRiskConfig(riskConfig, steward.getRiskConfig());
@@ -794,24 +803,69 @@ contract RiskSteward_Test is Test {
   ) internal {
     assertEq(initialRiskConfig.ltv.minDelay, updatedRiskConfig.ltv.minDelay);
     assertEq(initialRiskConfig.ltv.maxPercentChange, updatedRiskConfig.ltv.maxPercentChange);
-    assertEq(initialRiskConfig.liquidationThreshold.minDelay, updatedRiskConfig.liquidationThreshold.minDelay);
-    assertEq(initialRiskConfig.liquidationThreshold.maxPercentChange, updatedRiskConfig.liquidationThreshold.maxPercentChange);
-    assertEq(initialRiskConfig.liquidationBonus.minDelay, updatedRiskConfig.liquidationBonus.minDelay);
-    assertEq(initialRiskConfig.liquidationBonus.maxPercentChange, updatedRiskConfig.liquidationBonus.maxPercentChange);
+    assertEq(
+      initialRiskConfig.liquidationThreshold.minDelay,
+      updatedRiskConfig.liquidationThreshold.minDelay
+    );
+    assertEq(
+      initialRiskConfig.liquidationThreshold.maxPercentChange,
+      updatedRiskConfig.liquidationThreshold.maxPercentChange
+    );
+    assertEq(
+      initialRiskConfig.liquidationBonus.minDelay,
+      updatedRiskConfig.liquidationBonus.minDelay
+    );
+    assertEq(
+      initialRiskConfig.liquidationBonus.maxPercentChange,
+      updatedRiskConfig.liquidationBonus.maxPercentChange
+    );
     assertEq(initialRiskConfig.supplyCap.minDelay, updatedRiskConfig.supplyCap.minDelay);
-    assertEq(initialRiskConfig.supplyCap.maxPercentChange, updatedRiskConfig.supplyCap.maxPercentChange);
+    assertEq(
+      initialRiskConfig.supplyCap.maxPercentChange,
+      updatedRiskConfig.supplyCap.maxPercentChange
+    );
     assertEq(initialRiskConfig.borrowCap.minDelay, updatedRiskConfig.borrowCap.minDelay);
-    assertEq(initialRiskConfig.borrowCap.maxPercentChange, updatedRiskConfig.borrowCap.maxPercentChange);
+    assertEq(
+      initialRiskConfig.borrowCap.maxPercentChange,
+      updatedRiskConfig.borrowCap.maxPercentChange
+    );
     assertEq(initialRiskConfig.debtCeiling.minDelay, updatedRiskConfig.debtCeiling.minDelay);
-    assertEq(initialRiskConfig.debtCeiling.maxPercentChange, updatedRiskConfig.debtCeiling.maxPercentChange);
-    assertEq(initialRiskConfig.baseVariableBorrowRate.minDelay, updatedRiskConfig.baseVariableBorrowRate.minDelay);
-    assertEq(initialRiskConfig.baseVariableBorrowRate.maxPercentChange, updatedRiskConfig.baseVariableBorrowRate.maxPercentChange);
-    assertEq(initialRiskConfig.variableRateSlope1.minDelay, updatedRiskConfig.variableRateSlope1.minDelay);
-    assertEq(initialRiskConfig.variableRateSlope1.maxPercentChange, updatedRiskConfig.variableRateSlope1.maxPercentChange);
-    assertEq(initialRiskConfig.variableRateSlope2.minDelay, updatedRiskConfig.variableRateSlope2.minDelay);
-    assertEq(initialRiskConfig.variableRateSlope2.maxPercentChange, updatedRiskConfig.variableRateSlope2.maxPercentChange);
-    assertEq(initialRiskConfig.optimalUsageRatio.minDelay, updatedRiskConfig.optimalUsageRatio.minDelay);
-    assertEq(initialRiskConfig.optimalUsageRatio.maxPercentChange, updatedRiskConfig.optimalUsageRatio.maxPercentChange);
+    assertEq(
+      initialRiskConfig.debtCeiling.maxPercentChange,
+      updatedRiskConfig.debtCeiling.maxPercentChange
+    );
+    assertEq(
+      initialRiskConfig.baseVariableBorrowRate.minDelay,
+      updatedRiskConfig.baseVariableBorrowRate.minDelay
+    );
+    assertEq(
+      initialRiskConfig.baseVariableBorrowRate.maxPercentChange,
+      updatedRiskConfig.baseVariableBorrowRate.maxPercentChange
+    );
+    assertEq(
+      initialRiskConfig.variableRateSlope1.minDelay,
+      updatedRiskConfig.variableRateSlope1.minDelay
+    );
+    assertEq(
+      initialRiskConfig.variableRateSlope1.maxPercentChange,
+      updatedRiskConfig.variableRateSlope1.maxPercentChange
+    );
+    assertEq(
+      initialRiskConfig.variableRateSlope2.minDelay,
+      updatedRiskConfig.variableRateSlope2.minDelay
+    );
+    assertEq(
+      initialRiskConfig.variableRateSlope2.maxPercentChange,
+      updatedRiskConfig.variableRateSlope2.maxPercentChange
+    );
+    assertEq(
+      initialRiskConfig.optimalUsageRatio.minDelay,
+      updatedRiskConfig.optimalUsageRatio.minDelay
+    );
+    assertEq(
+      initialRiskConfig.optimalUsageRatio.maxPercentChange,
+      updatedRiskConfig.optimalUsageRatio.maxPercentChange
+    );
   }
 
   function _getInterestRatesForAsset(
