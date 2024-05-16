@@ -88,7 +88,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     PriceCapLstUpdate[] calldata priceCapUpdates
   ) external onlyRiskCouncil {
     _validatePriceCapUpdate(priceCapUpdates);
-    _updatePriceCaps(priceCapUpdates);
+    _updateLstPriceCaps(priceCapUpdates);
   }
 
   /// @inheritdoc IRiskSteward
@@ -355,8 +355,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       uint8 decimals = IPriceCapAdapterStable(oracle).decimals();
 
       // convert to cents
-      uint256 currentValue = uint256(currentPriceCap) / (10 ** decimals - 4);
-      uint256 newValue = uint256(priceCapsUpdate[i].priceCap) / (10 ** decimals - 4);
+      uint256 currentValue = uint256(currentPriceCap) / (10 ** (decimals - 4));
+      uint256 newValue = uint256(priceCapsUpdate[i].priceCap) / (10 ** (decimals - 4));
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -475,7 +475,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to update the oracle price caps update
    * @param priceCapsUpdate list containing the new price cap params for the oracles
    */
-  function _updatePriceCaps(PriceCapLstUpdate[] calldata priceCapsUpdate) internal {
+  function _updateLstPriceCaps(PriceCapLstUpdate[] calldata priceCapsUpdate) internal {
     for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
       address oracle = priceCapsUpdate[i].oracle;
 
@@ -498,8 +498,6 @@ contract RiskSteward is Ownable, IRiskSteward {
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
       IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap);
-
-      if (IPriceCapAdapterStable(oracle).isCapped()) revert InvalidPriceCapUpdate();
     }
   }
 
