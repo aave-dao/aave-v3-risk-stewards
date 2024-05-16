@@ -313,7 +313,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       ) revert InvalidUpdateToZero();
 
       // get current rate
-      uint256 currentSnapshotRatio = IPriceCapAdapter(oracle).getSnapshotRatio();
+      uint256 currentMaxYearlyGrowthPercent = IPriceCapAdapter(oracle)
+        .getMaxYearlyGrowthRatePercent();
       uint104 currentRatio = uint104(uint256(IPriceCapAdapter(oracle).getRatio()));
 
       // check that snapshotRatio is less or equal than current one
@@ -322,7 +323,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
-          currentValue: currentSnapshotRatio,
+          currentValue: currentMaxYearlyGrowthPercent,
           newValue: priceCapsUpdate[i].priceCapUpdateParams.maxYearlyRatioGrowthPercent,
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
           riskConfig: _riskConfig.priceCap,
