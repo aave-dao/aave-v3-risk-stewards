@@ -177,7 +177,7 @@ interface IRiskSteward {
   function updateRates(IEngine.RateStrategyUpdate[] calldata rateUpdates) external;
 
   /**
-   * @notice Allows updating price cap params across multiple assets
+   * @notice Allows updating collateral params across multiple assets
    * @dev A collateral update is only possible after minDelay has passed after last update
    * @dev A collateral increase / decrease is only allowed by a magnitude of maxPercentChange
    * @param collateralUpdates struct containing new collateral rate params to be updated
