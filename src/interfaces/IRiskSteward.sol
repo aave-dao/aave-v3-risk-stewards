@@ -53,6 +53,11 @@ interface IRiskSteward {
   error InvalidUpdateToZero();
 
   /**
+   * @notice Setting the price cap to be capping the value is not allowed
+   */
+  error InvalidPriceCapUpdate();
+
+  /**
    * @notice Emitted when the owner configures an asset as restricted to be used by steward
    * @param asset address of the underlying asset
    * @param isRestricted true if asset is set as restricted, false otherwise
@@ -194,7 +199,7 @@ interface IRiskSteward {
    * @param priceCapUpdates struct containing new price cap params to be updated
    */
   function updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapUpdates) external;
-  
+
   /**
    * @notice method to check if an asset is restricted to be used by the risk stewards
    * @param asset address of the underlying asset

@@ -299,7 +299,38 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to validate the oracle price caps update
    * @param priceCapsUpdate list containing the new price cap params for the oracles
    */
-  function _validatePriceCapUpdate(PriceCapUpdate[] calldata priceCapsUpdate) internal view {}
+  function _validatePriceCapUpdate(PriceCapUpdate[] calldata priceCapsUpdate) internal view {
+    if (priceCapsUpdate.length == 0) revert NoZeroUpdates();
+
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      if (_restrictedAssets[oracle]) revert OracleIsRestricted();
+      if (
+        priceCapsUpdate[i].priceCapUpdateParams.snapshotRatio == 0 ||
+        priceCapsUpdate[i].priceCapUpdateParams.snapshotTimestamp == 0 ||
+        priceCapsUpdate[i].priceCapUpdateParams.maxYearlyRatioGrowthPercent == 0
+      ) revert InvalidUpdateToZero();
+
+      // get current rate
+      uint256 currentSnapshotRatio = IPriceCapAdapter(oracle).getSnapshotRatio();
+      uint104 currentRatio = uint104(uint256(IPriceCapAdapter(oracle).getRatio()));
+
+      // check that snapshotRatio is less or equal than current one
+      if (priceCapsUpdate[i].priceCapUpdateParams.snapshotRatio > currentRatio)
+        revert UpdateNotInRange();
+
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentSnapshotRatio,
+          newValue: priceCapsUpdate[i].priceCapUpdateParams.maxYearlyRatioGrowthPercent,
+          lastUpdated: _timelocks[oracle].priceCapLastUpdated,
+          riskConfig: _riskConfig.priceCap,
+          isChangeRelative: true
+        })
+      );
+    }
+  }
 
   /**
    * @notice method to validate the oracle stable price caps update
@@ -307,7 +338,34 @@ contract RiskSteward is Ownable, IRiskSteward {
    */
   function _validatePriceCapStableUpdate(
     PriceCapStableUpdate[] calldata priceCapsUpdate
-  ) internal view {}
+  ) internal view {
+    if (priceCapsUpdate.length == 0) revert NoZeroUpdates();
+
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      if (_restrictedAssets[oracle]) revert OracleIsRestricted();
+      if (priceCapsUpdate[i].priceCap == 0) revert InvalidUpdateToZero();
+
+      // get current rate
+      int256 currentPriceCap = IPriceCapAdapterStable(oracle).getPriceCap();
+      uint8 decimals = IPriceCapAdapterStable(oracle).decimals();
+
+      // convert to cents
+      uint256 currentValue = uint256(currentPriceCap) / (10 ** decimals - 4);
+      uint256 newValue = uint256(priceCapsUpdate[i].priceCap) / (10 ** decimals - 4);
+
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentValue,
+          newValue: newValue,
+          lastUpdated: _timelocks[oracle].priceCapLastUpdated,
+          riskConfig: _riskConfig.priceCapStable,
+          isChangeRelative: false
+        })
+      );
+    }
+  }
 
   /**
    * @notice method to validate the risk param update is within the allowed bound and the debounce is respected
@@ -421,6 +479,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
       IPriceCapAdapter(oracle).setCapParameters(priceCapsUpdate[i].priceCapUpdateParams);
+
+      if (IPriceCapAdapter(oracle).isCapped()) revert InvalidPriceCapUpdate();
     }
   }
 
@@ -435,6 +495,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
       IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap);
+
+      if (IPriceCapAdapterStable(oracle).isCapped()) revert InvalidPriceCapUpdate();
     }
   }
 
