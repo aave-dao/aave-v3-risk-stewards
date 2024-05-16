@@ -125,14 +125,14 @@ interface IRiskSteward {
     RiskParamConfig variableRateSlope1;
     RiskParamConfig variableRateSlope2;
     RiskParamConfig optimalUsageRatio;
-    RiskParamConfig priceCap;
+    RiskParamConfig priceCapLst;
     RiskParamConfig priceCapStable;
   }
 
   /**
-   * @notice Struct used to update the cap params
+   * @notice Struct used to update the LST cap params
    */
-  struct PriceCapUpdate {
+  struct PriceCapLstUpdate {
     address oracle;
     IPriceCapAdapter.PriceCapUpdateParams priceCapUpdateParams;
   }
@@ -185,12 +185,12 @@ interface IRiskSteward {
   function updateCollateralSide(IEngine.CollateralUpdate[] calldata collateralUpdates) external;
 
   /**
-   * @notice Allows updating price cap params across multiple oracles
+   * @notice Allows updating lst price cap params across multiple oracles
    * @dev A price cap update is only possible after minDelay has passed after last update
    * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
    * @param priceCapUpdates struct containing new price cap params to be updated
    */
-  function updatePriceCaps(PriceCapUpdate[] calldata priceCapUpdates) external;
+  function updateLstPriceCaps(PriceCapLstUpdate[] calldata priceCapUpdates) external;
 
   /**
    * @notice Allows updating price cap params across multiple oracles

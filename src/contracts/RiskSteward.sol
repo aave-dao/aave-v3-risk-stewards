@@ -84,7 +84,9 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updatePriceCaps(PriceCapUpdate[] calldata priceCapUpdates) external onlyRiskCouncil {
+  function updateLstPriceCaps(
+    PriceCapLstUpdate[] calldata priceCapUpdates
+  ) external onlyRiskCouncil {
     _validatePriceCapUpdate(priceCapUpdates);
     _updatePriceCaps(priceCapUpdates);
   }
@@ -299,7 +301,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to validate the oracle price caps update
    * @param priceCapsUpdate list containing the new price cap params for the oracles
    */
-  function _validatePriceCapUpdate(PriceCapUpdate[] calldata priceCapsUpdate) internal view {
+  function _validatePriceCapUpdate(PriceCapLstUpdate[] calldata priceCapsUpdate) internal view {
     if (priceCapsUpdate.length == 0) revert NoZeroUpdates();
 
     for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
@@ -326,7 +328,7 @@ contract RiskSteward is Ownable, IRiskSteward {
           currentValue: currentMaxYearlyGrowthPercent,
           newValue: priceCapsUpdate[i].priceCapUpdateParams.maxYearlyRatioGrowthPercent,
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
-          riskConfig: _riskConfig.priceCap,
+          riskConfig: _riskConfig.priceCapLst,
           isChangeRelative: true
         })
       );
@@ -473,7 +475,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to update the oracle price caps update
    * @param priceCapsUpdate list containing the new price cap params for the oracles
    */
-  function _updatePriceCaps(PriceCapUpdate[] calldata priceCapsUpdate) internal {
+  function _updatePriceCaps(PriceCapLstUpdate[] calldata priceCapsUpdate) internal {
     for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
       address oracle = priceCapsUpdate[i].oracle;
 
@@ -555,6 +557,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     // we calculate the max permitted difference using the maxPercentChange and the from value, otherwise if the maxPercentChange is absolute in value
     // the max permitted difference is the maxPercentChange itself
     uint256 maxDiff = isChangeRelative ? (maxPercentChange * from) / BPS_MAX : maxPercentChange;
+
     if (diff > maxDiff) return false;
     return true;
   }
