@@ -29,6 +29,8 @@ The following risk params could be changed by the RiskStewards:
 - Slope 2
 - Optimal point
 
+- Cap parameters for CAPO
+
 #### Min Delay:
 
 For each risk param, `minDelay` can be configured, which is the minimum amount of delay (denominated in seconds) required before pushing another update for the risk param. Please note that this is specific for a risk param and includes both in upwards and downwards direction. Ex. after increasing LTV by 5%, we must wait by `minDelay` before either increasing it again or decreasing it.
@@ -38,13 +40,19 @@ For each risk param, `minDelay` can be configured, which is the minimum amount o
 For each risk param, `maxPercentChange` which is the maximum percent change allowed (both upwards and downwards) for the risk param using the RiskStewards.
 
 - Supply cap, Borrow cap and Debt ceiling: The `maxPercentChange` is relative and is denominated in BPS. (Ex. `50_00` for +-50% relative change).
-For example, for a current supply cap of an asset at 1_000_000 and `maxPercentChange` configured for supply cap at `50_00`, the max supply cap that can be configured is 1_500_000 and the minimum 500_000 via the steward.
+  For example, for a current supply cap of an asset at 1_000_000 and `maxPercentChange` configured for supply cap at `50_00`, the max supply cap that can be configured is 1_500_000 and the minimum 500_000 via the steward.
 
 - LTV, LT, LB: The `maxPercentChange` is in absolute values and is also denominated in BPS. (Ex. `5_00` for +-5% change in LTV).
-For example, for a current LTV of an asset configured at 70_00 (70%) and  `maxPercentChange` configured for ltv at `10_00`, the max ltv that can be configured is 77_00 (77%) and the minimum 63_00 (63%) via the steward.
+  For example, for a current LTV of an asset configured at 70_00 (70%) and `maxPercentChange` configured for ltv at `10_00`, the max ltv that can be configured is 77_00 (77%) and the minimum 63_00 (63%) via the steward.
 
 - Interest rates params: For Base Variable Borrow Rate, Slope 1, Slope 2, uOptimal the `maxPercentChange` is in absolute values and is denominated in BPS.
-For example, for a current uOptimal of an asset configured at 50_00 (50%) and  `maxPercentChange` configured for uOptimal at `10_00`, the max ltv that can be configured is 55_00 (55%) and the minimum 45_00 (45%) via the steward.
+  For example, for a current uOptimal of an asset configured at 50_00 (50%) and `maxPercentChange` configured for uOptimal at `10_00`, the max ltv that can be configured is 55_00 (55%) and the minimum 45_00 (45%) via the steward.
+
+- LST Cap adapter params: `snapshotRatio` must be less or equal to the actual one. The `maxPercentChange` is applied to `maxYearlyGrowthPercent`, it is relative and is denominated in BPS. (Ex. `10_00` for +-10% relative change).
+  For example, for a max yearly growth percent at 10_00 and `maxPercentChange` configured at `10_00`, the max yearly growth percent that can be configured is 11_00 and the minimum 9_00 via the steward.
+
+- Stable price cap: the `maxPercentChange` is in absolute values and is denominated in BPS.
+  For example, for a current price cap of an oracle configured at 1_04_000000 (4%) and `maxPercentChange` configured at `1_00`, the max price cap that can be configured is 1_05_000000 (5%) and the minimum 1_03_000000 (3%) via the steward.
 
 After the activation proposal, these params could only be changed by the governance by calling the `setRiskConfig()` method.
 
@@ -52,7 +60,7 @@ _Note: The Risk Stewards will not allow setting the values to 0 for supply cap, 
 
 #### Restricted Assets:
 
-Some assets can also be restricted on the RiskStewards by calling the `setAssetRestricted()` method. This prevents the RiskStewards to make any updates on the specific asset. One example of the restricted asset could be GHO.
+Some assets/oracles can also be restricted on the RiskStewards by calling the `setAssetRestricted()` method. This prevents the RiskStewards to make any updates on the specific asset. One example of the restricted asset could be GHO.
 
 ### Setup
 
