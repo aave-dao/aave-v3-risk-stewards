@@ -35,7 +35,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
   mapping(address => Debounce) internal _timelocks;
 
-  mapping(address => bool) internal _restrictedAssets;
+  mapping(address => bool) internal _restrictedAddresses;
 
   /**
    * @dev Modifier preventing anyone, but the council to update risk params.
@@ -114,14 +114,14 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function isAssetRestricted(address asset) external view returns (bool) {
-    return _restrictedAssets[asset];
+  function isAddressRestricted(address contractAddress) external view returns (bool) {
+    return _restrictedAddresses[contractAddress];
   }
 
   /// @inheritdoc IRiskSteward
-  function setAssetRestricted(address asset, bool isRestricted) external onlyOwner {
-    _restrictedAssets[asset] = isRestricted;
-    emit AssetRestricted(asset, isRestricted);
+  function setAddressRestricted(address contractAddress, bool isRestricted) external onlyOwner {
+    _restrictedAddresses[contractAddress] = isRestricted;
+    emit AddressRestricted(contractAddress, isRestricted);
   }
 
   /**
@@ -134,7 +134,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < capsUpdate.length; i++) {
       address asset = capsUpdate[i].asset;
 
-      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
 
@@ -172,7 +172,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
       address asset = ratesUpdate[i].asset;
-      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
 
       (
         uint256 currentOptimalUsageRatio,
@@ -232,7 +232,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < collateralUpdates.length; i++) {
       address asset = collateralUpdates[i].asset;
 
-      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT)
         revert ParamChangeNotAllowed();
       if (
@@ -305,7 +305,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
       address oracle = priceCapsUpdate[i].oracle;
 
-      if (_restrictedAssets[oracle]) revert OracleIsRestricted();
+      if (_restrictedAddresses[oracle]) revert OracleIsRestricted();
       if (
         priceCapsUpdate[i].priceCapUpdateParams.snapshotRatio == 0 ||
         priceCapsUpdate[i].priceCapUpdateParams.snapshotTimestamp == 0 ||
@@ -345,7 +345,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
       address oracle = priceCapsUpdate[i].oracle;
 
-      if (_restrictedAssets[oracle]) revert OracleIsRestricted();
+      if (_restrictedAddresses[oracle]) revert OracleIsRestricted();
       if (priceCapsUpdate[i].priceCap == 0) revert InvalidUpdateToZero();
 
       // get current rate

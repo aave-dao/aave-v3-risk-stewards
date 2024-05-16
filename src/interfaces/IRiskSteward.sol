@@ -58,11 +58,11 @@ interface IRiskSteward {
   error InvalidPriceCapUpdate();
 
   /**
-   * @notice Emitted when the owner configures an asset as restricted to be used by steward
-   * @param asset address of the underlying asset
+   * @notice Emitted when the owner configures an asset/oracle as restricted to be used by steward
+   * @param contractAddress address of the underlying asset or oracle
    * @param isRestricted true if asset is set as restricted, false otherwise
    */
-  event AssetRestricted(address indexed asset, bool indexed isRestricted);
+  event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
 
   /**
    * @notice Emitted when the risk configuration for the risk params has been set
@@ -201,18 +201,18 @@ interface IRiskSteward {
   function updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapUpdates) external;
 
   /**
-   * @notice method to check if an asset is restricted to be used by the risk stewards
-   * @param asset address of the underlying asset
+   * @notice method to check if an asset/oracle is restricted to be used by the risk stewards
+   * @param contractAddress address of the underlying asset or oracle
    * @return bool if asset is restricted or not
    */
-  function isAssetRestricted(address asset) external view returns (bool);
+  function isAddressRestricted(address contractAddress) external view returns (bool);
 
   /**
-   * @notice method called by the owner to set an asset as restricted
-   * @param asset address of the underlying asset
+   * @notice method called by the owner to set an asset/oracle as restricted
+   * @param contractAddress address of the underlying asset or oracle
    * @param isRestricted true if asset needs to be restricted, false otherwise
    */
-  function setAssetRestricted(address asset, bool isRestricted) external;
+  function setAddressRestricted(address contractAddress, bool isRestricted) external;
 
   /**
    * @notice Returns the timelock for a specific asset i.e the last updated timestamp

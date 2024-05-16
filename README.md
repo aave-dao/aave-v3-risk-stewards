@@ -58,9 +58,9 @@ After the activation proposal, these params could only be changed by the governa
 
 _Note: The Risk Stewards will not allow setting the values to 0 for supply cap, borrow cap, debt ceiling, LTV, Liquidation Threshold, Liquidation Bonus no matter if the maxPercentChange has been configured to 100%. The Risk Stewards will however allow setting the value to 0 for interest rate param updates._
 
-#### Restricted Assets:
+#### Restricted Assets and Oracles:
 
-Some assets/oracles can also be restricted on the RiskStewards by calling the `setAssetRestricted()` method. This prevents the RiskStewards to make any updates on the specific asset. One example of the restricted asset could be GHO.
+Some assets/oracles can also be restricted on the RiskStewards by calling the `setAddressRestricted()` method. This prevents the RiskStewards to make any updates on the specific asset. One example of the restricted asset could be GHO.
 
 ### Setup
 
