@@ -356,7 +356,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       _validateParamUpdate(
         ParamUpdateValidationInput({
           currentValue: uint256(currentPriceCap),
-          newValue: uint256(priceCapsUpdate[i].priceCap),
+          newValue: priceCapsUpdate[i].priceCap,
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
           riskConfig: _riskConfig.priceCapStable,
           isChangeRelative: true
@@ -492,7 +492,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
-      IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap);
+      IPriceCapAdapterStable(oracle).setPriceCap(int256(priceCapsUpdate[i].priceCap));
     }
   }
 

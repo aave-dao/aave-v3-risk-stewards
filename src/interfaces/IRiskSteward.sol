@@ -142,7 +142,7 @@ interface IRiskSteward {
    */
   struct PriceCapStableUpdate {
     address oracle;
-    int256 priceCap;
+    uint256 priceCap;
   }
 
   /**

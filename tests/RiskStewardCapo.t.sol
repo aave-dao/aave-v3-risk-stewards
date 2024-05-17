@@ -333,7 +333,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: (priceCapBefore * 110) / 100 // +10% relative change
+      priceCap: uint256((priceCapBefore * 110) / 100) // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
@@ -343,7 +343,7 @@ contract RiskSteward_Capo_Test is Test {
 
     int256 priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
 
-    assertEq(priceCapAfter, priceCapUpdates[0].priceCap);
+    assertEq(uint256(priceCapAfter), priceCapUpdates[0].priceCap);
     assertEq(lastUpdated.priceCapLastUpdated, block.timestamp);
 
     // after min time passed test collateral update decrease
@@ -351,7 +351,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: (priceCapAfter * 90) / 100 // -10% relative change
+      priceCap: uint256((priceCapAfter * 90) / 100) // -10% relative change
     });
 
     steward.updateStablePriceCaps(priceCapUpdates);
@@ -360,7 +360,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
 
-    assertEq(priceCapAfter, priceCapUpdates[0].priceCap);
+    assertEq(uint256(priceCapAfter), priceCapUpdates[0].priceCap);
     assertEq(lastUpdated.priceCapLastUpdated, block.timestamp);
 
     vm.stopPrank();
@@ -374,7 +374,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: (priceCapBefore * 110) / 100 // +10% relative change
+      priceCap: uint256((priceCapBefore * 110) / 100) // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
@@ -395,7 +395,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: (priceCapBefore * 120) / 100 // +20% relative change
+      priceCap: uint256((priceCapBefore * 120) / 100) // +20% relative change
     });
 
     // expect revert as price cap is out of range
@@ -437,7 +437,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: (priceCapBefore * 110) / 100 // +10% relative change
+      priceCap: uint256((priceCapBefore * 110) / 100) // +10% relative change
     });
 
     // expect revert as price cap is out of range
