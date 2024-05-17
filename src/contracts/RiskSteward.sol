@@ -352,19 +352,14 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       // get current rate
       int256 currentPriceCap = IPriceCapAdapterStable(oracle).getPriceCap();
-      uint8 decimals = IPriceCapAdapterStable(oracle).decimals();
-
-      // convert to cents
-      uint256 currentValue = uint256(currentPriceCap) / (10 ** (decimals - 4));
-      uint256 newValue = uint256(priceCapsUpdate[i].priceCap) / (10 ** (decimals - 4));
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
-          currentValue: currentValue,
-          newValue: newValue,
+          currentValue: uint256(currentPriceCap),
+          newValue: uint256(priceCapsUpdate[i].priceCap),
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
           riskConfig: _riskConfig.priceCapStable,
-          isChangeRelative: false
+          isChangeRelative: true
         })
       );
     }

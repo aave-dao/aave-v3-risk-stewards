@@ -327,14 +327,13 @@ contract RiskSteward_Capo_Test is Test {
 
   function test_updateStablePriceCap() public {
     int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
-    uint256 decimals = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).decimals();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: priceCapBefore + int256(10 ** decimals / 100) // +1%
+      priceCap: (priceCapBefore * 110) / 100 // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
@@ -352,7 +351,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: priceCapBefore - int256(10 ** decimals / 100) // -1%
+      priceCap: (priceCapAfter * 90) / 100 // -10% relative change
     });
 
     steward.updateStablePriceCaps(priceCapUpdates);
@@ -369,14 +368,13 @@ contract RiskSteward_Capo_Test is Test {
 
   function test_updateStablePriceCap_debounceNotRespected() public {
     int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
-    uint256 decimals = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).decimals();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: priceCapBefore + int256(10 ** decimals / 100) // +1%
+      priceCap: (priceCapBefore * 110) / 100 // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
@@ -391,14 +389,13 @@ contract RiskSteward_Capo_Test is Test {
 
   function test_updateStablePriceCap_outOfRange() public {
     int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
-    uint256 decimals = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).decimals();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: priceCapBefore + int256((20 * (10 ** decimals)) / 100) // +20%
+      priceCap: (priceCapBefore * 120) / 100 // +20% relative change
     });
 
     // expect revert as price cap is out of range
@@ -434,14 +431,13 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
 
     int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
-    uint256 decimals = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).decimals();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: priceCapBefore + int256(((10 ** decimals)) / 100) // +10%
+      priceCap: (priceCapBefore * 110) / 100 // +10% relative change
     });
 
     // expect revert as price cap is out of range

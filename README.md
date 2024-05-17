@@ -51,8 +51,8 @@ For each risk param, `maxPercentChange` which is the maximum percent change allo
 - LST Cap adapter params: `snapshotRatio` must be less or equal to the actual one. The `maxPercentChange` is applied to `maxYearlyGrowthPercent`, it is relative and is denominated in BPS. (Ex. `10_00` for +-10% relative change).
   For example, for a max yearly growth percent at 10_00 and `maxPercentChange` configured at `10_00`, the max yearly growth percent that can be configured is 11_00 and the minimum 9_00 via the steward.
 
-- Stable price cap: the `maxPercentChange` is in absolute values and is denominated in cents.
-  For example, for a current price cap of an oracle configured at 1_04_000000 (4%) and `maxPercentChange` configured at `1_00`, the max price cap that can be configured is 1_05_000000 (5%) and the minimum 1_03_000000 (3%) via the steward.
+- Stable price cap: the `maxPercentChange` is in relative values.
+  For example, for a current price cap of an oracle configured at 1_10_000000 and `maxPercentChange` configured at `1_00`, the max price cap that can be configured is 1_11_100000 and the minimum 1_08_900000 via the steward.
 
 After the activation proposal, these params could only be changed by the governance by calling the `setRiskConfig()` method.
 
