@@ -29,7 +29,7 @@ The following risk params could be changed by the RiskStewards:
 - Slope 2
 - Optimal point
 
-- Cap parameters for CAPO
+- Cap parameters for [PriceCapAdapters (CAPO)](https://github.com/bgd-labs/aave-capo/)
 
 #### Min Delay:
 
