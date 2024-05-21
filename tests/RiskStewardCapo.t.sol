@@ -8,6 +8,7 @@ import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/Ris
 import {DeploymentLibrary, UpgradePayload} from 'protocol-v3.1-upgrade/scripts/Deploy.s.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
 import {GovV3Helpers} from 'aave-helpers/GovV3Helpers.sol';
+import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
 import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable, IChainlinkAggregator} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
@@ -419,6 +420,28 @@ contract RiskSteward_Capo_Test is Test {
     vm.startPrank(riskCouncil);
 
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
+    steward.updateStablePriceCaps(priceCapUpdates);
+
+    vm.stopPrank();
+  }
+
+  function test_updateStablePriceCap_keepCurrent_revert() public {
+    uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
+
+    IRiskSteward.PriceCapStableUpdate[]
+      memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
+      oracle: AaveV3EthereumAssets.USDT_ORACLE,
+      priceCap: EngineFlags.KEEP_CURRENT
+    });
+
+    // expect revert as price cap is out of range
+    vm.startPrank(riskCouncil);
+
+    vm.expectRevert();
     steward.updateStablePriceCaps(priceCapUpdates);
 
     vm.stopPrank();
