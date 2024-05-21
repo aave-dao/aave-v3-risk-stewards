@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
+import {SafeCast} from 'solidity-utils/contracts/oz-common/SafeCast.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
@@ -19,6 +20,8 @@ import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStabl
  */
 contract RiskSteward is Ownable, IRiskSteward {
   using Address for address;
+  using SafeCast for uint256;
+  using SafeCast for int256;
 
   /// @inheritdoc IRiskSteward
   IEngine public immutable CONFIG_ENGINE;
@@ -317,7 +320,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       // get current rate
       uint256 currentMaxYearlyGrowthPercent = IPriceCapAdapter(oracle)
         .getMaxYearlyGrowthRatePercent();
-      uint104 currentRatio = uint104(uint256(IPriceCapAdapter(oracle).getRatio()));
+      uint104 currentRatio = IPriceCapAdapter(oracle).getRatio().toUint256().toUint104();
 
       // check that snapshotRatio is less or equal than current one
       if (priceCapsUpdate[i].priceCapUpdateParams.snapshotRatio > currentRatio)
@@ -355,7 +358,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
-          currentValue: uint256(currentPriceCap),
+          currentValue: currentPriceCap.toUint256(),
           newValue: priceCapsUpdate[i].priceCap,
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
           riskConfig: _riskConfig.priceCapStable,
@@ -492,7 +495,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
-      IPriceCapAdapterStable(oracle).setPriceCap(int256(priceCapsUpdate[i].priceCap));
+      IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap.toInt256());
     }
   }
 

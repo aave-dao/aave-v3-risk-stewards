@@ -12,11 +12,15 @@ import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable, IChainlinkAggregator} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 import {PriceCapAdapterStable} from 'aave-capo/contracts/PriceCapAdapterStable.sol';
+import {SafeCast} from 'solidity-utils/contracts/oz-common/SafeCast.sol';
 
 contract RiskSteward_Capo_Test is Test {
+  using SafeCast for uint256;
+  using SafeCast for int256;
+
   address public constant riskCouncil = address(42);
   RiskSteward public steward;
-  int256 currentRatio;
+  uint104 currentRatio;
   uint48 delay;
 
   event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
@@ -63,7 +67,10 @@ contract RiskSteward_Capo_Test is Test {
     AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
     vm.stopPrank();
 
-    currentRatio = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE).getRatio();
+    currentRatio = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
+      .getRatio()
+      .toUint256()
+      .toUint104();
     delay = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE).MINIMUM_SNAPSHOT_DELAY();
 
     PriceCapAdapterStable mockAdapter = new PriceCapAdapterStable(
@@ -90,8 +97,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
-        snapshotRatio: uint104(uint256(currentRatio - 2)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 110) / 100) // 10% relative increase
+        snapshotRatio: (currentRatio - 2),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
     });
 
@@ -125,8 +132,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - delay),
-        snapshotRatio: uint104(uint256(currentRatio - 1)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentAfter * 91) / 100) // ~10% relative decrease
+        snapshotRatio: (currentRatio - 1),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentAfter * 91) / 100).toUint16() // ~10% relative decrease
       })
     });
 
@@ -161,8 +168,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
-        snapshotRatio: uint104(uint256(currentRatio - 2)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 110) / 100) // 10% relative increase
+        snapshotRatio: (currentRatio - 2),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
     });
 
@@ -187,8 +194,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
-        snapshotRatio: uint104(uint256(currentRatio + 1)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 110) / 100) // 10% relative increase
+        snapshotRatio: (currentRatio + 1),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
     });
 
@@ -211,8 +218,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
-        snapshotRatio: uint104(uint256(currentRatio - 1)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 120) / 100) // 20% relative increase
+        snapshotRatio: (currentRatio - 1),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 120) / 100).toUint16() // 20% relative increase
       })
     });
 
@@ -235,8 +242,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
-        snapshotRatio: uint104(uint256(currentRatio / 2)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 110) / 100) // 10% relative increase
+        snapshotRatio: (currentRatio / 2),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
     });
 
@@ -259,8 +266,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: 0,
-        snapshotRatio: uint104(uint256(currentRatio / 2)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 110) / 100) // 10% relative increase
+        snapshotRatio: (currentRatio / 2),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
     });
 
@@ -274,7 +281,7 @@ contract RiskSteward_Capo_Test is Test {
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
         snapshotRatio: 0,
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 110) / 100) // 10% relative increase
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
     });
 
@@ -286,7 +293,7 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
-        snapshotRatio: uint104(uint256(currentRatio / 2)),
+        snapshotRatio: (currentRatio / 2),
         maxYearlyRatioGrowthPercent: 0
       })
     });
@@ -313,8 +320,8 @@ contract RiskSteward_Capo_Test is Test {
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
         snapshotTimestamp: uint48(block.timestamp - 2 * delay),
-        snapshotRatio: uint104(uint256(currentRatio / 2)),
-        maxYearlyRatioGrowthPercent: uint16((maxYearlyGrowthPercentBefore * 110) / 100) // 10% relative increase
+        snapshotRatio: (currentRatio / 2),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
     });
 
@@ -326,14 +333,16 @@ contract RiskSteward_Capo_Test is Test {
   /* ----------------------------- Stable Price Cap Tests ----------------------------- */
 
   function test_updateStablePriceCap() public {
-    int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
+    uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: uint256((priceCapBefore * 110) / 100) // +10% relative change
+      priceCap: ((priceCapBefore * 110) / 100) // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
@@ -341,9 +350,11 @@ contract RiskSteward_Capo_Test is Test {
 
     RiskSteward.Debounce memory lastUpdated = steward.getTimelock(AaveV3EthereumAssets.USDT_ORACLE);
 
-    int256 priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
+    uint256 priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
 
-    assertEq(uint256(priceCapAfter), priceCapUpdates[0].priceCap);
+    assertEq(priceCapAfter, priceCapUpdates[0].priceCap);
     assertEq(lastUpdated.priceCapLastUpdated, block.timestamp);
 
     // after min time passed test collateral update decrease
@@ -351,30 +362,34 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: uint256((priceCapAfter * 90) / 100) // -10% relative change
+      priceCap: ((priceCapAfter * 90) / 100) // -10% relative change
     });
 
     steward.updateStablePriceCaps(priceCapUpdates);
 
     lastUpdated = steward.getTimelock(AaveV3EthereumAssets.USDT_ORACLE);
 
-    priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
+    priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
 
-    assertEq(uint256(priceCapAfter), priceCapUpdates[0].priceCap);
+    assertEq(priceCapAfter, priceCapUpdates[0].priceCap);
     assertEq(lastUpdated.priceCapLastUpdated, block.timestamp);
 
     vm.stopPrank();
   }
 
   function test_updateStablePriceCap_debounceNotRespected() public {
-    int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
+    uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: uint256((priceCapBefore * 110) / 100) // +10% relative change
+      priceCap: ((priceCapBefore * 110) / 100) // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
@@ -388,14 +403,16 @@ contract RiskSteward_Capo_Test is Test {
   }
 
   function test_updateStablePriceCap_outOfRange() public {
-    int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
+    uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: uint256((priceCapBefore * 120) / 100) // +20% relative change
+      priceCap: ((priceCapBefore * 120) / 100) // +20% relative change
     });
 
     // expect revert as price cap is out of range
@@ -430,14 +447,16 @@ contract RiskSteward_Capo_Test is Test {
     steward.setAddressRestricted(AaveV3EthereumAssets.USDT_ORACLE, true);
     vm.stopPrank();
 
-    int256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE).getPriceCap();
+    uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
 
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
-      priceCap: uint256((priceCapBefore * 110) / 100) // +10% relative change
+      priceCap: ((priceCapBefore * 110) / 100) // +10% relative change
     });
 
     // expect revert as price cap is out of range
