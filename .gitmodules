@@ -1,3 +1,6 @@
 [submodule "lib/protocol-v3.1-upgrade"]
 	path = lib/protocol-v3.1-upgrade
 	url = https://github.com/bgd-labs/protocol-v3.1-upgrade
+[submodule "lib/aave-capo"]
+	path = lib/aave-capo
+	url = https://github.com/bgd-labs/aave-capo

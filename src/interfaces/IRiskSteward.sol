@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
+import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
 /**
  * @title IRiskSteward
@@ -42,16 +43,26 @@ interface IRiskSteward {
   error AssetIsRestricted();
 
   /**
+   * @notice The steward does not allow updates of cap param of a restricted oracle
+   */
+  error OracleIsRestricted();
+
+  /**
    * @notice Setting the risk parameter value to zero is not allowed
    */
   error InvalidUpdateToZero();
 
   /**
-   * @notice Emitted when the owner configures an asset as restricted to be used by steward
-   * @param asset address of the underlying asset
+   * @notice Setting the price cap to be capping the value is not allowed
+   */
+  error InvalidPriceCapUpdate();
+
+  /**
+   * @notice Emitted when the owner configures an asset/oracle as restricted to be used by steward
+   * @param contractAddress address of the underlying asset or oracle
    * @param isRestricted true if asset is set as restricted, false otherwise
    */
-  event AssetRestricted(address indexed asset, bool indexed isRestricted);
+  event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
 
   /**
    * @notice Emitted when the risk configuration for the risk params has been set
@@ -73,6 +84,7 @@ interface IRiskSteward {
     uint40 variableRateSlope1LastUpdated;
     uint40 variableRateSlope2LastUpdated;
     uint40 optimalUsageRatioLastUpdated;
+    uint40 priceCapLastUpdated;
   }
 
   /**
@@ -113,6 +125,24 @@ interface IRiskSteward {
     RiskParamConfig variableRateSlope1;
     RiskParamConfig variableRateSlope2;
     RiskParamConfig optimalUsageRatio;
+    RiskParamConfig priceCapLst;
+    RiskParamConfig priceCapStable;
+  }
+
+  /**
+   * @notice Struct used to update the LST cap params
+   */
+  struct PriceCapLstUpdate {
+    address oracle;
+    IPriceCapAdapter.PriceCapUpdateParams priceCapUpdateParams;
+  }
+
+  /**
+   * @notice Struct used to update the stable cap params
+   */
+  struct PriceCapStableUpdate {
+    address oracle;
+    uint256 priceCap;
   }
 
   /**
@@ -155,18 +185,34 @@ interface IRiskSteward {
   function updateCollateralSide(IEngine.CollateralUpdate[] calldata collateralUpdates) external;
 
   /**
-   * @notice method to check if an asset is restricted to be used by the risk stewards
-   * @param asset address of the underlying asset
-   * @return bool if asset is restricted or not
+   * @notice Allows updating lst price cap params across multiple oracles
+   * @dev A price cap update is only possible after minDelay has passed after last update
+   * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param priceCapUpdates struct containing new price cap params to be updated
    */
-  function isAssetRestricted(address asset) external view returns (bool);
+  function updateLstPriceCaps(PriceCapLstUpdate[] calldata priceCapUpdates) external;
 
   /**
-   * @notice method called by the owner to set an asset as restricted
-   * @param asset address of the underlying asset
+   * @notice Allows updating price cap params across multiple oracles
+   * @dev A price cap update is only possible after minDelay has passed after last update
+   * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param priceCapUpdates struct containing new price cap params to be updated
+   */
+  function updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapUpdates) external;
+
+  /**
+   * @notice method to check if an asset/oracle is restricted to be used by the risk stewards
+   * @param contractAddress address of the underlying asset or oracle
+   * @return bool if asset is restricted or not
+   */
+  function isAddressRestricted(address contractAddress) external view returns (bool);
+
+  /**
+   * @notice method called by the owner to set an asset/oracle as restricted
+   * @param contractAddress address of the underlying asset or oracle
    * @param isRestricted true if asset needs to be restricted, false otherwise
    */
-  function setAssetRestricted(address asset, bool isRestricted) external;
+  function setAddressRestricted(address contractAddress, bool isRestricted) external;
 
   /**
    * @notice Returns the timelock for a specific asset i.e the last updated timestamp

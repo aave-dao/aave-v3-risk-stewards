@@ -3,11 +3,14 @@ pragma solidity ^0.8.0;
 
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
+import {SafeCast} from 'solidity-utils/contracts/oz-common/SafeCast.sol';
 import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
+import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
+import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 
 /**
  * @title RiskSteward
@@ -17,6 +20,8 @@ import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/core/contracts/inte
  */
 contract RiskSteward is Ownable, IRiskSteward {
   using Address for address;
+  using SafeCast for uint256;
+  using SafeCast for int256;
 
   /// @inheritdoc IRiskSteward
   IEngine public immutable CONFIG_ENGINE;
@@ -33,7 +38,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
   mapping(address => Debounce) internal _timelocks;
 
-  mapping(address => bool) internal _restrictedAssets;
+  mapping(address => bool) internal _restrictedAddresses;
 
   /**
    * @dev Modifier preventing anyone, but the council to update risk params.
@@ -82,6 +87,22 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
+  function updateLstPriceCaps(
+    PriceCapLstUpdate[] calldata priceCapUpdates
+  ) external onlyRiskCouncil {
+    _validatePriceCapUpdate(priceCapUpdates);
+    _updateLstPriceCaps(priceCapUpdates);
+  }
+
+  /// @inheritdoc IRiskSteward
+  function updateStablePriceCaps(
+    PriceCapStableUpdate[] calldata priceCapUpdates
+  ) external onlyRiskCouncil {
+    _validatePriceCapStableUpdate(priceCapUpdates);
+    _updateStablePriceCaps(priceCapUpdates);
+  }
+
+  /// @inheritdoc IRiskSteward
   function getTimelock(address asset) external view returns (Debounce memory) {
     return _timelocks[asset];
   }
@@ -98,14 +119,14 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function isAssetRestricted(address asset) external view returns (bool) {
-    return _restrictedAssets[asset];
+  function isAddressRestricted(address contractAddress) external view returns (bool) {
+    return _restrictedAddresses[contractAddress];
   }
 
   /// @inheritdoc IRiskSteward
-  function setAssetRestricted(address asset, bool isRestricted) external onlyOwner {
-    _restrictedAssets[asset] = isRestricted;
-    emit AssetRestricted(asset, isRestricted);
+  function setAddressRestricted(address contractAddress, bool isRestricted) external onlyOwner {
+    _restrictedAddresses[contractAddress] = isRestricted;
+    emit AddressRestricted(contractAddress, isRestricted);
   }
 
   /**
@@ -118,7 +139,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < capsUpdate.length; i++) {
       address asset = capsUpdate[i].asset;
 
-      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
 
@@ -156,7 +177,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
       address asset = ratesUpdate[i].asset;
-      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
 
       (
         uint256 currentOptimalUsageRatio,
@@ -216,7 +237,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < collateralUpdates.length; i++) {
       address asset = collateralUpdates[i].asset;
 
-      if (_restrictedAssets[asset]) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT)
         revert ParamChangeNotAllowed();
       if (
@@ -273,6 +294,74 @@ contract RiskSteward is Ownable, IRiskSteward {
           newValue: collateralUpdates[i].debtCeiling,
           lastUpdated: _timelocks[asset].debtCeilingLastUpdated,
           riskConfig: _riskConfig.debtCeiling,
+          isChangeRelative: true
+        })
+      );
+    }
+  }
+
+  /**
+   * @notice method to validate the oracle price caps update
+   * @param priceCapsUpdate list containing the new price cap params for the oracles
+   */
+  function _validatePriceCapUpdate(PriceCapLstUpdate[] calldata priceCapsUpdate) internal view {
+    if (priceCapsUpdate.length == 0) revert NoZeroUpdates();
+
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      if (_restrictedAddresses[oracle]) revert OracleIsRestricted();
+      if (
+        priceCapsUpdate[i].priceCapUpdateParams.snapshotRatio == 0 ||
+        priceCapsUpdate[i].priceCapUpdateParams.snapshotTimestamp == 0 ||
+        priceCapsUpdate[i].priceCapUpdateParams.maxYearlyRatioGrowthPercent == 0
+      ) revert InvalidUpdateToZero();
+
+      // get current rate
+      uint256 currentMaxYearlyGrowthPercent = IPriceCapAdapter(oracle)
+        .getMaxYearlyGrowthRatePercent();
+      uint104 currentRatio = IPriceCapAdapter(oracle).getRatio().toUint256().toUint104();
+
+      // check that snapshotRatio is less or equal than current one
+      if (priceCapsUpdate[i].priceCapUpdateParams.snapshotRatio > currentRatio)
+        revert UpdateNotInRange();
+
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentMaxYearlyGrowthPercent,
+          newValue: priceCapsUpdate[i].priceCapUpdateParams.maxYearlyRatioGrowthPercent,
+          lastUpdated: _timelocks[oracle].priceCapLastUpdated,
+          riskConfig: _riskConfig.priceCapLst,
+          isChangeRelative: true
+        })
+      );
+    }
+  }
+
+  /**
+   * @notice method to validate the oracle stable price caps update
+   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   */
+  function _validatePriceCapStableUpdate(
+    PriceCapStableUpdate[] calldata priceCapsUpdate
+  ) internal view {
+    if (priceCapsUpdate.length == 0) revert NoZeroUpdates();
+
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      if (_restrictedAddresses[oracle]) revert OracleIsRestricted();
+      if (priceCapsUpdate[i].priceCap == 0) revert InvalidUpdateToZero();
+
+      // get current rate
+      int256 currentPriceCap = IPriceCapAdapterStable(oracle).getPriceCap();
+
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentPriceCap.toUint256(),
+          newValue: priceCapsUpdate[i].priceCap,
+          lastUpdated: _timelocks[oracle].priceCapLastUpdated,
+          riskConfig: _riskConfig.priceCapStable,
           isChangeRelative: true
         })
       );
@@ -381,6 +470,36 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
+   * @notice method to update the oracle price caps update
+   * @param priceCapsUpdate list containing the new price cap params for the oracles
+   */
+  function _updateLstPriceCaps(PriceCapLstUpdate[] calldata priceCapsUpdate) internal {
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
+
+      IPriceCapAdapter(oracle).setCapParameters(priceCapsUpdate[i].priceCapUpdateParams);
+
+      if (IPriceCapAdapter(oracle).isCapped()) revert InvalidPriceCapUpdate();
+    }
+  }
+
+  /**
+   * @notice method to update the oracle stable price caps update
+   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   */
+  function _updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapsUpdate) internal {
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
+
+      IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap.toInt256());
+    }
+  }
+
+  /**
    * @notice method to fetch the current interest rate params of the asset
    * @param asset the address of the underlying asset
    * @return optimalUsageRatio the current optimal usage ratio of the asset
@@ -434,6 +553,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     // we calculate the max permitted difference using the maxPercentChange and the from value, otherwise if the maxPercentChange is absolute in value
     // the max permitted difference is the maxPercentChange itself
     uint256 maxDiff = isChangeRelative ? (maxPercentChange * from) / BPS_MAX : maxPercentChange;
+
     if (diff > maxDiff) return false;
     return true;
   }

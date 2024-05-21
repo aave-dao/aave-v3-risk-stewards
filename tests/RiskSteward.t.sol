@@ -19,12 +19,12 @@ contract RiskSteward_Test is Test {
   IRiskSteward.RiskParamConfig public defaultRiskParamConfig;
   IRiskSteward.Config public riskConfig;
 
-  event AssetRestricted(address indexed asset, bool indexed isRestricted);
+  event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
 
   event RiskConfigSet(IRiskSteward.Config indexed riskConfig);
 
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 19055256);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 19339970);
 
     // update protocol to v3.1
     address v3_1_updatePayload = DeploymentLibrary._deployEthereum();
@@ -54,7 +54,9 @@ contract RiskSteward_Test is Test {
       baseVariableBorrowRate: defaultRiskParamConfig,
       variableRateSlope1: defaultRiskParamConfig,
       variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig
+      optimalUsageRatio: defaultRiskParamConfig,
+      priceCapLst: defaultRiskParamConfig,
+      priceCapStable: defaultRiskParamConfig
     });
 
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
@@ -209,7 +211,7 @@ contract RiskSteward_Test is Test {
 
   function test_updateCaps_assetRestricted() public {
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+    steward.setAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
     vm.stopPrank();
 
     IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
@@ -260,7 +262,7 @@ contract RiskSteward_Test is Test {
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.WETH_UNDERLYING,
       params: IEngine.InterestRateInputData({
-        optimalUsageRatio: beforeOptimalUsageRatio + 10_00, // 10% absolute increase
+        optimalUsageRatio: beforeOptimalUsageRatio + 5_00, // 5% absolute increase
         baseVariableBorrowRate: beforeBaseVariableBorrowRate + 10_00, // 10% absolute increase
         variableRateSlope1: beforeVariableRateSlope1 + 10_00, // 10% absolute increase
         variableRateSlope2: beforeVariableRateSlope2 + 10_00 // 10% absolute increase
@@ -368,7 +370,7 @@ contract RiskSteward_Test is Test {
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.WETH_UNDERLYING,
       params: IEngine.InterestRateInputData({
-        optimalUsageRatio: beforeOptimalUsageRatio + 10_00, // 10% absolute increase
+        optimalUsageRatio: beforeOptimalUsageRatio + 5_00, // 5% absolute increase
         baseVariableBorrowRate: beforeBaseVariableBorrowRate + 10_00, // 10% absolute increase
         variableRateSlope1: beforeVariableRateSlope1 + 10_00, // 10% absolute increase
         variableRateSlope2: beforeVariableRateSlope2 + 10_00 // 10% absolute increase
@@ -403,7 +405,7 @@ contract RiskSteward_Test is Test {
 
   function test_updateRates_assetRestricted() public {
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+    steward.setAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
     vm.stopPrank();
 
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
@@ -616,7 +618,7 @@ contract RiskSteward_Test is Test {
 
   function test_updateCollateralSide_assetRestricted() public {
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward.setAssetRestricted(AaveV3EthereumAssets.UNI_UNDERLYING, true);
+    steward.setAddressRestricted(AaveV3EthereumAssets.UNI_UNDERLYING, true);
     vm.stopPrank();
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
@@ -710,27 +712,29 @@ contract RiskSteward_Test is Test {
     steward.setRiskConfig(riskConfig);
 
     vm.expectRevert('Ownable: caller is not the owner');
-    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+    steward.setAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
 
     vm.stopPrank();
   }
 
+  /* ----------------------------- MISC ----------------------------- */
+
   function test_assetRestricted() public {
     vm.expectEmit();
-    emit AssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+    emit AddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
 
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
+    steward.setAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
 
-    assertTrue(steward.isAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING));
+    assertTrue(steward.isAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING));
 
     vm.expectEmit();
-    emit AssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, false);
+    emit AddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, false);
 
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward.setAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, false);
+    steward.setAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, false);
 
-    assertFalse(steward.isAssetRestricted(AaveV3EthereumAssets.GHO_UNDERLYING));
+    assertFalse(steward.isAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING));
   }
 
   function test_setRiskConfig() public {
@@ -749,7 +753,9 @@ contract RiskSteward_Test is Test {
       baseVariableBorrowRate: newRiskParamConfig,
       variableRateSlope1: newRiskParamConfig,
       variableRateSlope2: newRiskParamConfig,
-      optimalUsageRatio: newRiskParamConfig
+      optimalUsageRatio: newRiskParamConfig,
+      priceCapLst: newRiskParamConfig,
+      priceCapStable: newRiskParamConfig
     });
 
     vm.expectEmit();
@@ -772,7 +778,9 @@ contract RiskSteward_Test is Test {
       baseVariableBorrowRate: defaultRiskParamConfig,
       variableRateSlope1: defaultRiskParamConfig,
       variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig
+      optimalUsageRatio: defaultRiskParamConfig,
+      priceCapLst: defaultRiskParamConfig,
+      priceCapStable: defaultRiskParamConfig
     });
 
     steward = new RiskSteward(
@@ -860,6 +868,16 @@ contract RiskSteward_Test is Test {
       initialRiskConfig.optimalUsageRatio.maxPercentChange,
       updatedRiskConfig.optimalUsageRatio.maxPercentChange
     );
+    assertEq(
+      initialRiskConfig.priceCapLst.maxPercentChange,
+      updatedRiskConfig.priceCapLst.maxPercentChange
+    );
+    assertEq(initialRiskConfig.priceCapLst.minDelay, updatedRiskConfig.priceCapLst.minDelay);
+    assertEq(
+      initialRiskConfig.priceCapStable.maxPercentChange,
+      updatedRiskConfig.priceCapStable.maxPercentChange
+    );
+    assertEq(initialRiskConfig.priceCapStable.minDelay, updatedRiskConfig.priceCapStable.minDelay);
   }
 
   function _getInterestRatesForAsset(
