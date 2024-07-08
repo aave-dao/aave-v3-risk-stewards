@@ -10,7 +10,7 @@ Parameters
 Licensor:             Aave DAO, represented by its governance smart contracts
 
 
-Licensed Work:        Aave v3.1
+Licensed Work:        Aave v3 Risk Stewards
                       The Licensed Work is (c) 2024 Aave DAO, represented by its governance smart contracts
 
 Additional Use Grant: You are permitted to use, copy, and modify the Licensed Work, subject to
@@ -21,21 +21,21 @@ Additional Use Grant: You are permitted to use, copy, and modify the Licensed Wo
                         software protocols and applications approved by the Aave governance, including all
                         those produced within compensated service provider engagements with the Aave DAO.
                         The Aave DAO is able to waive this requirement for one or more third-parties, if and
-                        only if explicitly indicating it on a record 'authorizations' on govv3.aavelicense.eth.
+                        only if explicitly indicating it on a record 'authorizations' on v3riskstewards.aavelicense.eth.
                       - You are neither an individual nor a direct or indirect participant in any incorporated
                         organization, DAO, or identifiable group, that has deployed in production any original
                         or derived software ("fork") of the Aave ecosystem for purposes competitive to Aave,
                         within the preceding four years.
                         The Aave DAO is able to waive this requirement for one or more third-parties, if and
-                        only if explicitly indicating it on a record 'authorizations' on v31.aavelicense.eth.
+                        only if explicitly indicating it on a record 'authorizations' on v3riskstewards.aavelicense.eth.
                       - You must ensure that the usage of the Licensed Work does not result in any direct or
                         indirect harm to the Aave ecosystem or the Aave brand. This encompasses, but is not limited to,
                         reputational damage, omission of proper credit/attribution, or utilization for any malicious
                         intent.
 
 Change Date:          The earlier of:
-                      - 2027-03-06
-                      - If specified, the date in the 'change-date' record on v31.aavelicense.eth
+                      - 2027-07-08
+                      - If specified, the date in the 'change-date' record on v3riskstewards.aavelicense.eth
 
 Change License:       MIT
 
