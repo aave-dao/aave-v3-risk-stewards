@@ -4,6 +4,8 @@ Expanding from the scope of CapsPlusRiskSteward, we now introduce the new RiskSt
 
 [![Coverage badge](./report/coverage.svg)](https://bgd-labs.github.io/aave-risk-stewards-2/)
 
+<br>
+
 ## Specification
 
 The new RiskSteward we propose follows the same design as the CapsPlusRiskSteward: a smart contract to which the Aave Governance gives `POOL_ADMIN` the role over all v3 instances, controlled by a 2-of-2 multi-sig of the risk providers, and heavily constrained on what can do and how by its own logic.
@@ -62,18 +64,30 @@ _Note: The Risk Stewards will not allow setting the values to 0 for supply cap, 
 
 Some assets/oracles can also be restricted on the RiskStewards by calling the `setAddressRestricted()` method. This prevents the RiskStewards to make any updates on the specific asset. One example of the restricted asset could be GHO.
 
-### Setup
+<br>
+
+## Security
+
+- Certora security review: [TBA](./)
+
+<br>
+
+## Setup
 
 ```sh
 cp .env.example .env
 forge install
 ```
 
-### Test
+<br>
+
+## Test
 
 ```sh
 forge test
 ```
+
+<br>
 
 ## License
 
