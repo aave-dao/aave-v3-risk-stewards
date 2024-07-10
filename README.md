@@ -1,4 +1,4 @@
-# Aave Risk Stewards Phase 2
+# Aave v3.1 Risk Stewards
 
 Expanding from the scope of from CapsPlusRiskSteward, we now introduce the new RiskSteward, allowing hardly constrained risk parameter updates by risk service providers and reducing governance overhead.
 
