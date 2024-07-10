@@ -1,6 +1,6 @@
 # Aave v3.1 Risk Stewards
 
-Expanding from the scope of from CapsPlusRiskSteward, we now introduce the new RiskSteward, allowing hardly constrained risk parameter updates by risk service providers and reducing governance overhead.
+Expanding from the scope of CapsPlusRiskSteward, we now introduce the new RiskSteward, allowing hardly constrained risk parameter updates by risk service providers and reducing governance overhead.
 
 [![Coverage badge](./report/coverage.svg)](https://bgd-labs.github.io/aave-risk-stewards-2/)
 
@@ -8,7 +8,7 @@ Expanding from the scope of from CapsPlusRiskSteward, we now introduce the new R
 
 The new RiskSteward we propose follows the same design as the CapsPlusRiskSteward: a smart contract to which the Aave Governance gives `POOL_ADMIN` the role over all v3 instances, controlled by a 2-of-2 multi-sig of the risk providers, and heavily constrained on what can do and how by its own logic.
 
-_Note: The Risk Stewards 2 will only be available for Aave V3 instances and not Aave V2 due to missing admin roles on Aave V2 instances._
+_Note: The Risk Stewards will only be available for Aave V3.1 instances and not Aave V2 (or previous Aave v3) due to missing admin roles on Aave V2 instances and other incompatibilities._
 
 <img src="./docs/risk-steward-diagram.png" alt="Risk Steward Diagram Flow" width="100%" height="100%">
 
