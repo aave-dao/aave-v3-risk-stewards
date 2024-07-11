@@ -1,0 +1,19 @@
+diff -ruN .gitignore .gitignore
+--- .gitignore	1970-01-01 02:00:00.000000000 +0200
++++ .gitignore	2024-06-17 10:50:45.283021293 +0300
+@@ -0,0 +1,2 @@
++*
++!.gitignore
+\ No newline at end of file
+diff -ruN src/contracts/RiskSteward.sol src/contracts/RiskSteward.sol
+--- src/contracts/RiskSteward.sol	2024-06-17 10:54:27.077860868 +0300
++++ src/contracts/RiskSteward.sol	2024-06-17 10:52:52.726709896 +0300
+@@ -110,7 +110,7 @@
+   /// @inheritdoc IRiskSteward
+   function setRiskConfig(Config calldata riskConfig) external onlyOwner {
+     _riskConfig = riskConfig;
+-    emit RiskConfigSet(riskConfig);
++    //    emit RiskConfigSet(riskConfig);
+   }
+ 
+   /// @inheritdoc IRiskSteward
