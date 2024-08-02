@@ -7,7 +7,6 @@ import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/core/contracts/inte
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {AaveV3Ethereum, AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
 import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/RiskSteward.sol';
-import {DeploymentLibrary, UpgradePayload} from 'protocol-v3.1-upgrade/scripts/Deploy.s.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
 import {GovV3Helpers} from 'aave-helpers/GovV3Helpers.sol';
 import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
@@ -24,16 +23,9 @@ contract RiskSteward_Test is Test {
   event RiskConfigSet(IRiskSteward.Config indexed riskConfig);
 
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 19339970);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 20439517);
 
-    // update protocol to v3.1
-    address v3_1_updatePayload = DeploymentLibrary._deployEthereum();
-    GovV3Helpers.executePayload(vm, v3_1_updatePayload);
-
-    // deploy new config engine
-    configEngine = ConfigEngineDeployer.deployEngine(
-      address(UpgradePayload(v3_1_updatePayload).DEFAULT_IR())
-    );
+    configEngine = AaveV3Ethereum.CONFIG_ENGINE;
 
     defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
       minDelay: 5 days,
@@ -802,7 +794,7 @@ contract RiskSteward_Test is Test {
   function _validateRiskConfig(
     IRiskSteward.Config memory initialRiskConfig,
     IRiskSteward.Config memory updatedRiskConfig
-  ) internal {
+  ) internal pure {
     assertEq(initialRiskConfig.ltv.minDelay, updatedRiskConfig.ltv.minDelay);
     assertEq(initialRiskConfig.ltv.maxPercentChange, updatedRiskConfig.ltv.maxPercentChange);
     assertEq(
