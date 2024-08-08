@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import 'aave-helpers/ScriptUtils.sol';
+import 'solidity-utils/contracts/utils/ScriptUtils.sol';
 import 'aave-address-book/AaveAddressBook.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {RiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../src/contracts/RiskSteward.sol';
@@ -43,13 +43,27 @@ library DeployRiskStewards {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployEthereum chain=mainnet dry=true
+// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployEthereum chain=mainnet
 contract DeployEthereum is EthereumScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
       address(AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER),
       AaveV3Ethereum.CONFIG_ENGINE,
+      0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8, // eth-risk-council
+      GovernanceV3Ethereum.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployEthereumLido chain=mainnet
+contract DeployEthereumLido is EthereumScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3EthereumLido.AAVE_PROTOCOL_DATA_PROVIDER),
+      AaveV3EthereumLido.CONFIG_ENGINE,
       0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8, // eth-risk-council
       GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
@@ -141,7 +155,7 @@ contract DeployGnosis is GnosisScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployBnb chain=bnb
+// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployBNB chain=bnb
 contract DeployBNB is BNBScript {
   function run() external {
     vm.startBroadcast();
