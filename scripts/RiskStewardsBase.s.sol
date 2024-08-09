@@ -1,26 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import 'forge-std/Test.sol';
-import {Script} from 'forge-std/Script.sol';
-import {AaveGovernanceV2} from 'aave-address-book/AaveGovernanceV2.sol';
-import {IPool} from 'aave-address-book/AaveV3.sol';
-import {CapsPlusRiskSteward} from 'aave-helpers/riskstewards/CapsPlusRiskSteward.sol';
-import {IAaveV3ConfigEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
-import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
-import {ProtocolV3TestBase, ReserveConfig} from 'aave-helpers/ProtocolV3TestBase.sol';
+import {IAaveV3ConfigEngine as IEngine, IPool} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
+import {ProtocolV3TestBase} from 'aave-helpers/ProtocolV3TestBase.sol';
 
-abstract contract RiskStewardBase is ProtocolV3TestBase {
+abstract contract RiskStewardsBase is ProtocolV3TestBase {
   error FailedUpdate();
   IPool immutable POOL;
-  CapsPlusRiskSteward immutable STEWARD;
+  IRiskSteward immutable STEWARD;
 
-  constructor(IPool pool, address steward) {
-    POOL = pool;
-    STEWARD = CapsPlusRiskSteward(steward);
+  uint8 public constant MAX_TX = 5;
+
+  constructor(address pool, address steward) {
+    POOL = IPool(pool);
+    STEWARD = IRiskSteward(steward);
   }
 
-  function capsUpdates() internal pure virtual returns (IAaveV3ConfigEngine.CapsUpdate[] memory);
+  function capsUpdates() internal pure virtual returns (IEngine.CapsUpdate[] memory);
+
+  function collateralsUpdates() public view virtual returns (IEngine.CollateralUpdate[] memory) {}
+
+  function rateStrategiesUpdates()
+    public
+    view
+    virtual
+    returns (IEngine.RateStrategyUpdate[] memory)
+  {}
+
+  function lstPriceCapsUpdates() public view virtual returns (IRiskSteward.PriceCapLstUpdate[] memory) {}
+
+  function stablePriceCapsUpdates() public view virtual returns (IRiskSteward.PriceCapStableUpdate[] memory) {}
 
   function name() internal pure virtual returns (string memory);
 
@@ -28,39 +38,98 @@ abstract contract RiskStewardBase is ProtocolV3TestBase {
    * @notice This script doesn't broadcast as it's intended to be used via safe
    */
   function run(bool broadcastToSafe) external {
-    // only needed as long as things are mocked
-    // IAaveV3ConfigEngine.CapsUpdate[] memory updates = capsUpdates();
     vm.startPrank(STEWARD.RISK_COUNCIL());
-    bytes memory callDatas = _simulateAndGenerateDiff();
+    bytes[] memory callDatas = _simulateAndGenerateDiff();
     vm.stopPrank();
+
+    if (callDatas.length > 1) emit log_string('** multiple calldatas emitted, please execute them all **');
     emit log_string('safe address');
     emit log_address(STEWARD.RISK_COUNCIL());
     emit log_string('steward address:');
     emit log_address(address(STEWARD));
-    emit log_string('calldata:');
-    emit log_bytes(callDatas);
 
-    if (broadcastToSafe) {
-      _sendToSafe(callDatas);
+    for (uint8 i = 0; i < callDatas.length; i++) {
+      emit log_string('calldata:');
+      emit log_bytes(callDatas[i]);
+
+      if (broadcastToSafe) {
+        _sendToSafe(callDatas[i]);
+      }
     }
   }
 
-  function _simulateAndGenerateDiff() internal returns (bytes memory) {
-    IAaveV3ConfigEngine.CapsUpdate[] memory capUpdates = capsUpdates();
+  function _simulateAndGenerateDiff() internal returns (bytes[] memory) {
+    bytes[] memory callDatas = new bytes[](MAX_TX);
+    uint8 txCount;
+
     string memory pre = string(abi.encodePacked('pre_', name()));
     string memory post = string(abi.encodePacked('post_', name()));
-    createConfigurationSnapshot(pre, POOL, true, false, false, false);
-    bytes memory callDatas = abi.encodeWithSelector(
-      CapsPlusRiskSteward.updateCaps.selector,
-      capUpdates
-    );
-    bool success;
-    bytes memory resultData;
-    (success, resultData) = address(STEWARD).call(callDatas);
-    _verifyCallResult(success, resultData);
-    createConfigurationSnapshot(post, POOL, true, false, false, false);
+
+    IEngine.CapsUpdate[] memory capUpdates = capsUpdates();
+    IEngine.CollateralUpdate[] memory collateralUpdates = collateralsUpdates();
+    IEngine.RateStrategyUpdate[] memory rateUpdates = rateStrategiesUpdates();
+    IRiskSteward.PriceCapLstUpdate[] memory lstPriceCapUpdates = lstPriceCapsUpdates();
+    IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
+
+    createConfigurationSnapshot(pre, POOL);
+
+    if (capUpdates.length != 0) {
+      callDatas[txCount] = abi.encodeWithSelector(
+        IRiskSteward.updateCaps.selector,
+        capUpdates
+      );
+      (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
+      _verifyCallResult(success, resultData);
+      txCount++;
+    }
+
+    if (collateralUpdates.length != 0) {
+      callDatas[txCount] = abi.encodeWithSelector(
+        IRiskSteward.updateCollateralSide.selector,
+        collateralUpdates
+      );
+      (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
+      _verifyCallResult(success, resultData);
+      txCount++;
+    }
+
+    if (rateUpdates.length != 0) {
+      callDatas[txCount] = abi.encodeWithSelector(
+        IRiskSteward.updateRates.selector,
+        rateUpdates
+      );
+      (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
+      _verifyCallResult(success, resultData);
+      txCount++;
+    }
+
+    if (lstPriceCapUpdates.length != 0) {
+      callDatas[txCount] = abi.encodeWithSelector(
+        IRiskSteward.updateLstPriceCaps.selector,
+        rateUpdates
+      );
+      (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
+      _verifyCallResult(success, resultData);
+      txCount++;
+    }
+
+    if (stablePriceCapUpdates.length != 0) {
+      callDatas[txCount] = abi.encodeWithSelector(
+        IRiskSteward.updateStablePriceCaps.selector,
+        stablePriceCapUpdates
+      );
+      (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
+      _verifyCallResult(success, resultData);
+      txCount++;
+    }
+
+    createConfigurationSnapshot(post, POOL);
     diffReports(pre, post);
 
+    // we defined the callDatas with MAX_TX size, we now squash it to the number of txs
+    assembly {
+      mstore(callDatas, txCount)
+    }
     return callDatas;
   }
 
