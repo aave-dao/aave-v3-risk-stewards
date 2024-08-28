@@ -36,6 +36,14 @@ function generateAddressBookImports(code: string) {
   if (imports.length > 0) return `import {${imports}} from 'aave-address-book/${root}.sol';\n`;
 }
 
+function generateRiskStewardImport(code: string) {
+  const match = code.match(/RiskStewards(\w+)/);
+
+  if (match) {
+    return `import {RiskStewards${match[1]}} from '../../../../scripts/networks/RiskStewards${match[1]}.s.sol';\n`;
+  }
+}
+
 function generateEngineImport(code: string) {
   const matches = [...code.matchAll(/Aave(V[2..3])Payload([A-Za-z]+)/g)].flat();
   if (matches.length > 0)
@@ -75,6 +83,10 @@ export function prefixWithImports(code: string) {
   const configEngineImport = generateEngineImport(code);
   if (configEngineImport) {
     imports += configEngineImport;
+  }
+  const riskStewardImport = generateRiskStewardImport(code);
+  if (riskStewardImport) {
+    imports += riskStewardImport;
   }
   // shared config engine imports
   if (findMatch(code, 'EngineFlags')) {

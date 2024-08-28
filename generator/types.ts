@@ -35,7 +35,6 @@ export interface Options {
   shortName: string;
   author: string;
   discussion: string;
-  snapshot: string;
   configFile?: string;
   date: string;
 }
