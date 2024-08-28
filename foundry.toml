@@ -9,15 +9,17 @@ remappings = [
 ]
 fs_permissions = [{ access = "write", path = "./reports" }]
 ffi = true
+evm_version = 'shanghai'
 
 [profile.zksync]
-src = 'zksync/src'
-test = 'zksync/tests'
+src = 'zksync'
+test = 'zksync'
+script = 'scripts'
 libs = ['lib']
-solc = '0.8.20'
+solc = '0.8.19'
 fs_permissions = [{ access = "write", path = "./reports" }]
 ffi = true
-evm_version = 'shanghai'
+evm_version = 'paris'
 
 [profile.zksync.zksync]
 compile = true
@@ -39,7 +41,7 @@ zkevm = "${RPC_ZKEVM}"
 gnosis = "${RPC_GNOSIS}"
 bnb = "${RPC_BNB}"
 scroll = "${RPC_SCROLL}"
-zksync = "${RPC_ZK_SYNC}"
+zksync = "${RPC_ZKSYNC}"
 
 [etherscan]
 mainnet = { key="${ETHERSCAN_API_KEY_MAINNET}", chainId=1 }
@@ -54,6 +56,6 @@ zkevm = { key="${ETHERSCAN_API_KEY_ZKEVM}", chainId=1101 }
 gnosis = { key="${ETHERSCAN_API_KEY_GNOSIS}", chainId=100 }
 bnb = { key="${ETHERSCAN_API_KEY_BNB}", chainId=56, url='https://api.bscscan.com/api' }
 scroll = { key="${ETHERSCAN_API_KEY_SCROLL}", chainId= 534352 }
-zksync = { key="${ETHERSCAN_API_KEY_ZK_SYNC}", chainId= 324 }
+zksync = { key="${ETHERSCAN_API_KEY_ZKSYNC}", chainId= 324 }
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config

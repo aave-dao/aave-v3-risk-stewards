@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import 'solidity-utils/contracts/utils/ScriptUtils.sol';
 import 'aave-address-book/AaveAddressBook.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
-import {RiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../src/contracts/RiskSteward.sol';
+import {RiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/RiskSteward.sol';
 
 library DeployRiskStewards {
   function _deployRiskStewards(

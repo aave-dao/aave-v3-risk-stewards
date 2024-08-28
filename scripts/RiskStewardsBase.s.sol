@@ -3,7 +3,9 @@ pragma solidity ^0.8.0;
 
 import {IAaveV3ConfigEngine as IEngine, IPool} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
-import {ProtocolV3TestBase} from 'aave-helpers/ProtocolV3TestBase.sol';
+import {ProtocolV3TestBase} from 'aave-helpers/src/ProtocolV3TestBase.sol';
+import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
+import {IACLManager} from 'aave-address-book/AaveV3.sol';
 
 abstract contract RiskStewardsBase is ProtocolV3TestBase {
   error FailedUpdate();
@@ -17,20 +19,20 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     STEWARD = IRiskSteward(steward);
   }
 
-  function capsUpdates() internal pure virtual returns (IEngine.CapsUpdate[] memory);
+  function capsUpdates() internal pure virtual returns (IEngine.CapsUpdate[] memory) {}
 
-  function collateralsUpdates() public view virtual returns (IEngine.CollateralUpdate[] memory) {}
+  function collateralsUpdates() internal pure virtual returns (IEngine.CollateralUpdate[] memory) {}
 
   function rateStrategiesUpdates()
-    public
-    view
+    internal
+    pure
     virtual
     returns (IEngine.RateStrategyUpdate[] memory)
   {}
 
-  function lstPriceCapsUpdates() public view virtual returns (IRiskSteward.PriceCapLstUpdate[] memory) {}
+  function lstPriceCapsUpdates() internal pure virtual returns (IRiskSteward.PriceCapLstUpdate[] memory) {}
 
-  function stablePriceCapsUpdates() public view virtual returns (IRiskSteward.PriceCapStableUpdate[] memory) {}
+  function stablePriceCapsUpdates() internal pure virtual returns (IRiskSteward.PriceCapStableUpdate[] memory) {}
 
   function name() internal pure virtual returns (string memory);
 
@@ -38,6 +40,12 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
    * @notice This script doesn't broadcast as it's intended to be used via safe
    */
   function run(bool broadcastToSafe) external {
+    // TODO: remove once risk stewards are activated via governance
+    vm.startPrank(IOwnable(address(STEWARD)).owner());
+    address aclManager = STEWARD.POOL_DATA_PROVIDER().ADDRESSES_PROVIDER().getACLManager();
+    IACLManager(aclManager).grantRole(IACLManager(aclManager).RISK_ADMIN_ROLE(), address(STEWARD));
+    vm.stopPrank();
+
     vm.startPrank(STEWARD.RISK_COUNCIL());
     bytes[] memory callDatas = _simulateAndGenerateDiff();
     vm.stopPrank();
@@ -106,7 +114,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     if (lstPriceCapUpdates.length != 0) {
       callDatas[txCount] = abi.encodeWithSelector(
         IRiskSteward.updateLstPriceCaps.selector,
-        rateUpdates
+        lstPriceCapUpdates
       );
       (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
       _verifyCallResult(success, resultData);

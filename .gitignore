@@ -2,6 +2,7 @@
 cache/
 out/
 reports/
+zkout/
 
 # general
 .env
