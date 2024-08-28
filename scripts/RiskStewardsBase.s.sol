@@ -19,22 +19,22 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     STEWARD = IRiskSteward(steward);
   }
 
-  function capsUpdates() internal pure virtual returns (IEngine.CapsUpdate[] memory) {}
+  function capsUpdates() public pure virtual returns (IEngine.CapsUpdate[] memory) {}
 
-  function collateralsUpdates() internal pure virtual returns (IEngine.CollateralUpdate[] memory) {}
+  function collateralsUpdates() public pure virtual returns (IEngine.CollateralUpdate[] memory) {}
 
   function rateStrategiesUpdates()
-    internal
+    public
     pure
     virtual
     returns (IEngine.RateStrategyUpdate[] memory)
   {}
 
-  function lstPriceCapsUpdates() internal pure virtual returns (IRiskSteward.PriceCapLstUpdate[] memory) {}
+  function lstPriceCapsUpdates() public pure virtual returns (IRiskSteward.PriceCapLstUpdate[] memory) {}
 
-  function stablePriceCapsUpdates() internal pure virtual returns (IRiskSteward.PriceCapStableUpdate[] memory) {}
+  function stablePriceCapsUpdates() public pure virtual returns (IRiskSteward.PriceCapStableUpdate[] memory) {}
 
-  function name() internal pure virtual returns (string memory);
+  function name() public pure virtual returns (string memory);
 
   /**
    * @notice This script doesn't broadcast as it's intended to be used via safe

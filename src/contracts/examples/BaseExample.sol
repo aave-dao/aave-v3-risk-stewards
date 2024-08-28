@@ -6,16 +6,16 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-con
 import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsBaseChain} from '../../../scripts/networks/RiskStewardsBaseChain.s.sol';
 
-// make run-script network=base contract_path=src/contracts/examples/BaseExample.s.sol:BaseExample broadcast=false
+// make run-script network=base contract_path=src/contracts/examples/BaseExample.sol:BaseExample broadcast=false
 contract BaseExample is RiskStewardsBaseChain {
   /**
    * @return string name identifier used for the diff
    */
-  function name() internal pure override returns (string memory) {
+  function name() public pure override returns (string memory) {
     return 'base_example';
   }
 
-  function collateralsUpdates() internal pure override returns (IEngine.CollateralUpdate[] memory) {
+  function collateralsUpdates() public pure override returns (IEngine.CollateralUpdate[] memory) {
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](2);
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3BaseAssets.USDC_UNDERLYING,

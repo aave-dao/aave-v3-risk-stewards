@@ -6,16 +6,16 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-con
 import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsPolygon} from '../../../scripts/networks/RiskStewardsPolygon.s.sol';
 
-// make run-script network=polygon contract_path=src/contracts/examples/PolygonExample.s.sol:PolygonExample broadcast=false
+// make run-script network=polygon contract_path=src/contracts/examples/PolygonExample.sol:PolygonExample broadcast=false
 contract PolygonExample is RiskStewardsPolygon {
   /**
    * @return string name identifier used for the diff
    */
-  function name() internal pure override returns (string memory) {
+  function name() public pure override returns (string memory) {
     return 'polygon_example';
   }
 
-  function capsUpdates() internal pure override returns (IEngine.CapsUpdate[] memory) {
+  function capsUpdates() public pure override returns (IEngine.CapsUpdate[] memory) {
     IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
     capUpdates[0] = IEngine.CapsUpdate(
       AaveV3PolygonAssets.wstETH_UNDERLYING,

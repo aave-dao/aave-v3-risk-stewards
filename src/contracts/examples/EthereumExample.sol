@@ -7,16 +7,16 @@ import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFl
 import {RiskStewardsEthereum} from '../../../scripts/networks/RiskStewardsEthereum.s.sol';
 import {IRiskSteward, IPriceCapAdapter} from '../../interfaces/IRiskSteward.sol';
 
-// make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.s.sol:EthereumExample broadcast=false
+// make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false
 contract EthereumExample is RiskStewardsEthereum {
   /**
    * @return string name identifier used for the diff
    */
-  function name() internal pure override returns (string memory) {
+  function name() public pure override returns (string memory) {
     return 'ethereum_example';
   }
 
-  function lstPriceCapsUpdates() internal pure override returns (IRiskSteward.PriceCapLstUpdate[] memory) {
+  function lstPriceCapsUpdates() public pure override returns (IRiskSteward.PriceCapLstUpdate[] memory) {
     IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({

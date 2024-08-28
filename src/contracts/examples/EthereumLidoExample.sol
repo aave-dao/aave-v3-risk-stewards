@@ -6,19 +6,19 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-con
 import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsEthereumLido} from '../../../scripts/networks/RiskStewardsEthereumLido.s.sol';
 
-// make run-script network=mainnet contract_path=src/contracts/examples/EthereumLidoExample.s.sol:EthereumLidoExample broadcast=false
+// make run-script network=mainnet contract_path=src/contracts/examples/EthereumLidoExample.sol:EthereumLidoExample broadcast=false
 contract EthereumLidoExample is RiskStewardsEthereumLido {
   /**
    * @return string name identifier used for the diff
    */
-  function name() internal pure override returns (string memory) {
+  function name() public pure override returns (string memory) {
     return 'ethereumlido_example';
   }
 
   /**
    * @return IEngine.CapsUpdate[] capUpdates to be performed
    */
-  function capsUpdates() internal pure override returns (IEngine.CapsUpdate[] memory) {
+  function capsUpdates() public pure override returns (IEngine.CapsUpdate[] memory) {
     IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
     capUpdates[0] = IEngine.CapsUpdate(
       AaveV3EthereumLidoAssets.wstETH_UNDERLYING,

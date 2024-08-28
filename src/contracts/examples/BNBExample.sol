@@ -6,16 +6,16 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-con
 import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsBNB} from '../../../scripts/networks/RiskStewardsBNB.s.sol';
 
-// make run-script network=bnb contract_path=src/contracts/examples/BNBExample.s.sol:BNBExample broadcast=false
+// make run-script network=bnb contract_path=src/contracts/examples/BNBExample.sol:BNBExample broadcast=false
 contract BNBExample is RiskStewardsBNB {
   /**
    * @return string name identifier used for the diff
    */
-  function name() internal pure override returns (string memory) {
+  function name() public pure override returns (string memory) {
     return 'bnb_example';
   }
 
-  function rateStrategiesUpdates() internal pure override returns (IEngine.RateStrategyUpdate[] memory) {
+  function rateStrategiesUpdates() public pure override returns (IEngine.RateStrategyUpdate[] memory) {
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3BNBAssets.ETH_UNDERLYING,
