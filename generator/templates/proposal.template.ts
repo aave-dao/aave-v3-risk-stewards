@@ -1,4 +1,4 @@
-import {generateContractName, getPoolChain, getVersion, generateFolderName, getChainAlias} from '../common';
+import {generateContractName, getPoolChain, generateFolderName, getChainAlias} from '../common';
 import {Options, PoolConfig, PoolIdentifier} from '../types';
 import {prefixWithImports} from '../utils/importsResolver';
 import {prefixWithPragma} from '../utils/constants';
