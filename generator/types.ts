@@ -2,7 +2,9 @@ import * as addressBook from '@bgd-labs/aave-address-book';
 import {
   CapsUpdate,
   CollateralUpdate,
+  LstPriceCapUpdate,
   RateStrategyUpdate,
+  StablePriceCapUpdate,
 } from './features/types';
 
 export const V3_POOLS = [
@@ -16,8 +18,7 @@ export const V3_POOLS = [
   'AaveV3Base',
   'AaveV3Gnosis',
   'AaveV3Scroll',
-  'AaveV3BNB',
-  'AaveV3ZkSync',
+  'AaveV3BNB'
 ] as const satisfies readonly (keyof typeof addressBook)[];
 
 export const POOLS = [
@@ -47,19 +48,14 @@ export type CodeArtifact = {
     fn?: string[];
     execute?: string[];
   };
-  test?: {
-    fn?: string[];
-  };
-  aip?: {
-    specification: string[];
-  };
 };
 
 export enum FEATURE {
   CAPS_UPDATE = 'CAPS_UPDATE',
   COLLATERALS_UPDATE = 'COLLATERALS_UPDATE',
   RATE_UPDATE_V3 = 'RATE_UPDATE_V3',
-  OTHERS = 'OTHERS',
+  LST_PRICE_CAP_UPDATE = 'LST_PRICE_CAP_UPDATE',
+  STABLE_PRICE_CAP_UPDATE = 'STABLE_PRICE_CAP_UPDATE',
 }
 
 export interface FeatureModule<T extends {} = {}> {
@@ -77,7 +73,7 @@ export const ENGINE_FLAGS = {
   DISABLED: 'DISABLED',
 } as const;
 
-export const AVAILABLE_VERSIONS = {V2: 'V2', V3: 'V3'} as const;
+export const AVAILABLE_VERSIONS = {V3: 'V3'} as const;
 
 export type ConfigFile = {
   rootOptions: Options;
@@ -92,12 +88,13 @@ export interface PoolConfig {
     [FEATURE.CAPS_UPDATE]?: CapsUpdate[];
     [FEATURE.COLLATERALS_UPDATE]?: CollateralUpdate[];
     [FEATURE.RATE_UPDATE_V3]?: RateStrategyUpdate[];
-    [FEATURE.OTHERS]?: {};
+    [FEATURE.LST_PRICE_CAP_UPDATE]?: LstPriceCapUpdate[];
+    [FEATURE.STABLE_PRICE_CAP_UPDATE]?: StablePriceCapUpdate[];
   };
   cache: PoolCache;
 }
 
 export type Files = {
   jsonConfig: string;
-  payloads: {pool: PoolIdentifier; payload: string; test: string; contractName: string}[];
+  payloads: {pool: PoolIdentifier; payload: string; contractName: string}[];
 };

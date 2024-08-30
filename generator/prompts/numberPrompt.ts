@@ -16,7 +16,7 @@ export async function numberPrompt({message, required}: GenericPrompt, opts?) {
   return await advancedInput(
     {
       message,
-      transformer: transformNumberToHumanReadable,
+      transformer: opts.skipTransform ? undefined : transformNumberToHumanReadable,
       validate: (v) => {
         if (required && v.length == 0) return false;
         return isNumber(v);

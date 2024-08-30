@@ -3,10 +3,7 @@ import {Command, Option} from 'commander';
 import {CHAIN_TO_CHAIN_ID, getDate, getPoolChain, pascalCase} from './common';
 import {input, checkbox} from '@inquirer/prompts';
 import {
-  CodeArtifact,
   ConfigFile,
-  FEATURE,
-  FeatureModule,
   Options,
   POOLS,
   PoolCache,
@@ -16,6 +13,8 @@ import {
 import {capsUpdates} from './features/capsUpdates';
 import {rateUpdatesV3} from './features/rateUpdates';
 import {collateralsUpdates} from './features/collateralsUpdates';
+import {lstPriceCapsUpdates} from './features/lstPriceCapsUpdates';
+import {stablePriceCapsUpdates} from './features/stablePriceCapsUpdates';
 import {generateFiles, writeFiles} from './generator';
 import {CHAIN_ID_CLIENT_MAP} from '@bgd-labs/js-utils';
 import {getBlockNumber} from 'viem/actions';
@@ -31,7 +30,6 @@ program
   .addOption(new Option('-t, --title <string>', 'aip title'))
   .addOption(new Option('-a, --author <string>', 'author'))
   .addOption(new Option('-d, --discussion <string>', 'forum link'))
-  .addOption(new Option('-s, --snapshot <string>', 'snapshot link'))
   .addOption(new Option('-c, --configFile <string>', 'path to config file'))
   .allowExcessArguments(false)
   .parse(process.argv);
@@ -43,6 +41,8 @@ const FEATURE_MODULES_V3 = [
   rateUpdatesV3,
   capsUpdates,
   collateralsUpdates,
+  lstPriceCapsUpdates,
+  stablePriceCapsUpdates
 ];
 
 async function generateDeterministicPoolCache(pool: PoolIdentifier): Promise<PoolCache> {

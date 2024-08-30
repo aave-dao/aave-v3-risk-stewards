@@ -1,3 +1,4 @@
+import {PoolIdentifier} from './../types';
 import {Hex, getAddress, isAddress} from 'viem';
 import {GenericPrompt} from './types';
 import {advancedInput} from './advancedInput';
@@ -21,4 +22,8 @@ export async function addressPrompt<T extends boolean>(
 export function translateJsAddressToSol(value?: string) {
   if (!value) return `EngineFlags.KEEP_CURRENT_ADDRESS`;
   return getAddress(value);
+}
+
+export function translateJsAssetOracleToSol(pool: PoolIdentifier, assetName: string) {
+  return `${pool}Assets.${assetName}_ORACLE`;
 }
