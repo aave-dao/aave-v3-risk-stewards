@@ -1,0 +1,103 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`feature: lstPriceCapUpdates > should properly generate files 1`] = `
+{
+  "jsonConfig": "import {ConfigFile} from '../../generator/types';
+export const config: ConfigFile = {
+  rootOptions: {
+    pools: ['AaveV3Ethereum'],
+    title: 'test',
+    shortName: 'Test',
+    date: '20231023',
+    author: 'test',
+    discussion: 'test',
+  },
+  poolOptions: {
+    AaveV3Ethereum: {
+      configs: {
+        LST_PRICE_CAP_UPDATE: [
+          {
+            asset: 'wstETH',
+            snapshotTimestamp: '1723621200',
+            snapshotRatio: '1177101458282319168',
+            maxYearlyRatioGrowthPercent: '10.64',
+          },
+        ],
+      },
+      cache: {blockNumber: 42},
+    },
+  },
+};
+",
+  "payloads": [
+    {
+      "contractName": "AaveV3Ethereum_Test_20231023",
+      "payload": "// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import {AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
+import {RiskStewardsEthereum} from '../../../../scripts/networks/RiskStewardsEthereum.s.sol';
+import {IRiskSteward, IPriceCapAdapter} from '../../../interfaces/IRiskSteward.sol';
+
+/**
+ * @title test
+ * @author test
+ * - discussion: test
+ * - deploy-command: make run-script contract=src/contracts/updates/20231023_AaveV3Ethereum_Test/AaveV3Ethereum_Test_20231023.sol:AaveV3Ethereum_Test_20231023 network=mainnet broadcast=false
+ */
+contract AaveV3Ethereum_Test_20231023 is RiskStewardsEthereum {
+  function name() public pure override returns (string memory) {
+    return 'AaveV3Ethereum_Test_20231023';
+  }
+
+  function lstPriceCapsUpdates()
+    public
+    pure
+    override
+    returns (IRiskSteward.PriceCapLstUpdate[] memory)
+  {
+    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](
+      1
+    );
+
+    priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
+      oracle: AaveV3EthereumAssets.wstETH_ORACLE,
+      priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
+        snapshotTimestamp: 1723621200,
+        snapshotRatio: 1177101458282319168,
+        maxYearlyRatioGrowthPercent: 10_64
+      })
+    });
+
+    return priceCapUpdates;
+  }
+}
+",
+      "pool": "AaveV3Ethereum",
+    },
+  ],
+}
+`;
+
+exports[`feature: lstPriceCapUpdates > should return reasonable code 1`] = `
+{
+  "code": {
+    "fn": [
+      "function lstPriceCapsUpdates() public pure override returns (IRiskSteward.PriceCapLstUpdate[] memory) {
+          IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](1);
+
+          priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
+               oracle: AaveV3EthereumAssets.wstETH_ORACLE,
+               priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
+                snapshotTimestamp: 1723621200,
+                snapshotRatio: 1177101458282319168,
+                maxYearlyRatioGrowthPercent: 10_64,
+              })
+             });
+
+          return priceCapUpdates;
+        }",
+    ],
+  },
+}
+`;

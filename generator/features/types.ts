@@ -26,15 +26,10 @@ export interface RateStrategyParams {
   baseVariableBorrowRate: string;
   variableRateSlope1: string;
   variableRateSlope2: string;
-  optimalStableToTotalDebtRatio?: string;
 }
 
 export interface RateStrategyUpdate extends AssetSelector {
   params: RateStrategyParams;
-}
-
-export interface OracleSelector {
-  oracle: string;
 }
 
 export interface LstPriceCapUpdatePartial {

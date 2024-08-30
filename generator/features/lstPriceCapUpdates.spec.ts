@@ -1,16 +1,16 @@
 // sum.test.js
 import {expect, describe, it} from 'vitest';
-import {MOCK_OPTIONS, rateUpdateV3, capUpdate} from './mocks/configs';
+import {MOCK_OPTIONS, lstPriceCapUpdate} from './mocks/configs';
 import {generateFiles} from '../generator';
 import {FEATURE, PoolConfigs} from '../types';
-import {rateUpdatesV3} from './rateUpdates';
+import {lstPriceCapsUpdates} from './lstPriceCapsUpdates';
 
-describe('feature: rateUpdatesV3', () => {
+describe('feature: lstPriceCapUpdates', () => {
   it('should return reasonable code', () => {
-    const output = rateUpdatesV3.build({
+    const output = lstPriceCapsUpdates.build({
       options: MOCK_OPTIONS,
       pool: 'AaveV3Ethereum',
-      cfg: rateUpdateV3,
+      cfg: lstPriceCapUpdate,
       cache: {blockNumber: 42},
     });
     expect(output).toMatchSnapshot();
@@ -20,14 +20,14 @@ describe('feature: rateUpdatesV3', () => {
     const poolConfigs: PoolConfigs = {
       ['AaveV3Ethereum']: {
         artifacts: [
-          rateUpdatesV3.build({
+          lstPriceCapsUpdates.build({
             options: {...MOCK_OPTIONS, pools: ['AaveV3Ethereum']},
             pool: 'AaveV3Ethereum',
-            cfg: rateUpdateV3,
+            cfg: lstPriceCapUpdate,
             cache: {blockNumber: 42},
           }),
         ],
-        configs: {[FEATURE.RATE_UPDATE_V3]: rateUpdateV3},
+        configs: {[FEATURE.LST_PRICE_CAP_UPDATE]: lstPriceCapUpdate},
         cache: {blockNumber: 42},
       },
     };

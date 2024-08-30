@@ -1,5 +1,5 @@
 import {Options} from '../../types';
-import {EModeCategoryUpdate, Listing, PriceFeedUpdate, RateStrategyUpdate} from '../types';
+import {CapsUpdate, CollateralUpdate, RateStrategyUpdate, LstPriceCapUpdate, StablePriceCapUpdate} from '../types';
 
 export const MOCK_OPTIONS: Options = {
   pools: ['AaveV3Ethereum'],
@@ -8,70 +8,28 @@ export const MOCK_OPTIONS: Options = {
   date: '20231023',
   author: 'test',
   discussion: 'test',
-  snapshot: 'test',
 };
 
-export const assetListingConfig: Listing[] = [
+export const capUpdate: CapsUpdate[] = [
   {
-    assetSymbol: 'PSP',
-    decimals: 18,
-    priceFeed: '0x72AFAECF99C9d9C8215fF44C77B94B99C28741e8',
-    ltv: '40',
-    liqThreshold: '50',
-    liqBonus: '5',
-    debtCeiling: '100000',
-    liqProtocolFee: '20',
-    enabledToBorrow: 'ENABLED',
-    flashloanable: 'ENABLED',
-    stableRateModeEnabled: 'DISABLED',
-    borrowableInIsolation: 'DISABLED',
-    withSiloedBorrowing: 'DISABLED',
-    reserveFactor: '20',
+    asset: 'WETH',
     supplyCap: '10000',
-    borrowCap: '5000',
-    rateStrategyParams: {
-      optimalUtilizationRate: '80',
-      baseVariableBorrowRate: '0',
-      variableRateSlope1: '10',
-      variableRateSlope2: '100',
-      stableRateSlope1: '10',
-      stableRateSlope2: '100',
-      baseStableRateOffset: '1',
-      stableRateExcessOffset: '0',
-      optimalStableToTotalDebtRatio: '10',
-    },
-    eModeCategory: 'AaveV3EthereumEModes.NONE',
-    asset: '0xcAfE001067cDEF266AfB7Eb5A286dCFD277f3dE5',
+    borrowCap: '5000'
   },
 ];
 
-export const priceFeedsUpdateConfig: PriceFeedUpdate[] = [
+export const collateralUpdate: CollateralUpdate[] = [
   {
     asset: 'DAI',
-    priceFeed: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+    ltv: '8500',
+    liqThreshold: '8800',
+    liqBonus: '600',
+    debtCeiling: '',
+    liqProtocolFee: '1200'
   },
 ];
 
-export const emodeUpdates: EModeCategoryUpdate[] = [
-  {
-    eModeCategory: 2,
-    ltv: '20_00',
-    liqThreshold: '30_00',
-    liqBonus: '5_00',
-    priceSource: '0x0000000000000000000000000000000000000000',
-    label: 'label',
-  },
-  {
-    eModeCategory: 'AaveV3EthereumEModes.ETH_CORRELATED',
-    ltv: 'EngineFlags.KEEP_CURRENT',
-    liqThreshold: '50_00',
-    liqBonus: 'EngineFlags.KEEP_CURRENT',
-    priceSource: '',
-    label: '',
-  },
-];
-
-export const rateUpdateV2: RateStrategyUpdate[] = [
+export const rateUpdateV3: RateStrategyUpdate[] = [
   {
     asset: 'WETH',
     params: {
@@ -79,8 +37,6 @@ export const rateUpdateV2: RateStrategyUpdate[] = [
       baseVariableBorrowRate: '6',
       variableRateSlope1: '',
       variableRateSlope2: '',
-      stableRateSlope1: '',
-      stableRateSlope2: '',
     },
   },
   {
@@ -90,8 +46,6 @@ export const rateUpdateV2: RateStrategyUpdate[] = [
       baseVariableBorrowRate: '4',
       variableRateSlope1: '10',
       variableRateSlope2: '',
-      stableRateSlope1: '',
-      stableRateSlope2: '',
     },
   },
   {
@@ -101,8 +55,6 @@ export const rateUpdateV2: RateStrategyUpdate[] = [
       baseVariableBorrowRate: '4',
       variableRateSlope1: '10',
       variableRateSlope2: '',
-      stableRateSlope1: '',
-      stableRateSlope2: '',
     },
   },
   {
@@ -112,8 +64,6 @@ export const rateUpdateV2: RateStrategyUpdate[] = [
       baseVariableBorrowRate: '6',
       variableRateSlope1: '10',
       variableRateSlope2: '',
-      stableRateSlope1: '',
-      stableRateSlope2: '',
     },
   },
   {
@@ -123,8 +73,22 @@ export const rateUpdateV2: RateStrategyUpdate[] = [
       baseVariableBorrowRate: '5',
       variableRateSlope1: '',
       variableRateSlope2: '',
-      stableRateSlope1: '',
-      stableRateSlope2: '',
     },
   },
+];
+
+export const lstPriceCapUpdate: LstPriceCapUpdate[] = [
+  {
+    asset: 'wstETH',
+    snapshotTimestamp: '1723621200',
+    snapshotRatio: '1177101458282319168',
+    maxYearlyRatioGrowthPercent: '10.64',
+  },
+];
+
+export const stablePriceCapUpdate: StablePriceCapUpdate[] = [
+  {
+    asset: 'USDT',
+    priceCap: '108000000'
+  }
 ];

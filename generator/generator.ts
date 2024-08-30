@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import {generateContractName, generateFolderName} from './common';
 import {proposalTemplate} from './templates/proposal.template';
-import {testTemplate} from './templates/test.template';
 import {confirm} from '@inquirer/prompts';
 import {ConfigFile, Options, PoolConfigs, PoolIdentifier, Files} from './types';
 import prettier from 'prettier';
@@ -31,15 +30,10 @@ export async function generateFiles(options: Options, poolConfigs: PoolConfigs):
 
   async function createPayload(options: Options, pool: PoolIdentifier) {
     const contractName = generateContractName(options, pool);
-    const testCode = testTemplate(options, poolConfigs[pool]!, pool);
 
     return {
       pool,
       payload: await prettier.format(proposalTemplate(options, poolConfigs[pool]!, pool), {
-        ...prettierSolCfg,
-        filepath: 'foo.sol',
-      }),
-      test: await prettier.format(testCode, {
         ...prettierSolCfg,
         filepath: 'foo.sol',
       }),
