@@ -48,10 +48,10 @@
   resolved "https://registry.npmjs.org/@bgd-labs/aave-address-book/-/aave-address-book-3.1.0.tgz"
   integrity sha512-1wy6m5asQhDG13xhm+ZAhwsTy1CBhow0/kyQIaVFcfar5PKJBnZr8ZVw7iA+AHD2LTRyoviVO5iSN24kWUHf2Q==
 
-"@bgd-labs/aave-address-book@^3.1.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@bgd-labs/aave-address-book/-/aave-address-book-3.1.1.tgz#46e528f5b86dff0a26b17fd7573e2abf4c2c1c44"
-  integrity sha512-H3oQFMCgnL0BsQuSTAaj9M3zBm1uK3Uk6qfPH29ktLxhipE4UVqglhC/ZQVMT2wlgf1bMBjmsvwgTDRDOwXuFQ==
+"@bgd-labs/aave-address-book@^3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@bgd-labs/aave-address-book/-/aave-address-book-3.2.1.tgz#9ecdb92303170e754e048d25f7d6cd27312c530b"
+  integrity sha512-IlXHWYAhcgbiteTU50I6v8Awl7PBAHfXGz2IyjR5MPXy4xvW4UXYKbCRUtOCFxY/sdLtu/Gb+GgypyF76sd4Qg==
 
 "@bgd-labs/aave-cli@^0.16.2":
   version "0.16.2"

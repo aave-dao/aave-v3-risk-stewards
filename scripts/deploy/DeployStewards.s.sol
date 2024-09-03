@@ -43,7 +43,7 @@ library DeployRiskStewards {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployEthereum chain=mainnet
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployEthereum chain=mainnet
 contract DeployEthereum is EthereumScript {
   function run() external {
     vm.startBroadcast();
@@ -57,7 +57,7 @@ contract DeployEthereum is EthereumScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployEthereumLido chain=mainnet
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployEthereumLido chain=mainnet
 contract DeployEthereumLido is EthereumScript {
   function run() external {
     vm.startBroadcast();
@@ -71,7 +71,21 @@ contract DeployEthereumLido is EthereumScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployPolygon chain=polygon
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployEthereumEtherFi chain=mainnet
+contract DeployEthereumEtherFi is EthereumScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3EthereumEtherFi.AAVE_PROTOCOL_DATA_PROVIDER),
+      AaveV3EthereumEtherFi.CONFIG_ENGINE,
+      0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8, // eth-risk-council
+      GovernanceV3Ethereum.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployPolygon chain=polygon
 contract DeployPolygon is PolygonScript {
   function run() external {
     vm.startBroadcast();
@@ -85,7 +99,7 @@ contract DeployPolygon is PolygonScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployArbitrum chain=arbitrum
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployArbitrum chain=arbitrum
 contract DeployArbitrum is ArbitrumScript {
   function run() external {
     vm.startBroadcast();
@@ -99,7 +113,7 @@ contract DeployArbitrum is ArbitrumScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployOptimism chain=optimism
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployOptimism chain=optimism
 contract DeployOptimism is OptimismScript {
   function run() external {
     vm.startBroadcast();
@@ -113,7 +127,7 @@ contract DeployOptimism is OptimismScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployAvalanche chain=avalanche
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployAvalanche chain=avalanche
 contract DeployAvalanche is AvalancheScript {
   function run() external {
     vm.startBroadcast();
@@ -127,7 +141,7 @@ contract DeployAvalanche is AvalancheScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployScroll chain=scroll
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployScroll chain=scroll
 contract DeployScroll is ScrollScript {
   function run() external {
     vm.startBroadcast();
@@ -141,7 +155,7 @@ contract DeployScroll is ScrollScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployGnosis chain=gnosis
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployGnosis chain=gnosis
 contract DeployGnosis is GnosisScript {
   function run() external {
     vm.startBroadcast();
@@ -155,7 +169,7 @@ contract DeployGnosis is GnosisScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployBNB chain=bnb
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployBNB chain=bnb
 contract DeployBNB is BNBScript {
   function run() external {
     vm.startBroadcast();
@@ -169,7 +183,7 @@ contract DeployBNB is BNBScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployBase chain=base
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployBase chain=base
 contract DeployBase is BaseScript {
   function run() external {
     vm.startBroadcast();
@@ -183,7 +197,7 @@ contract DeployBase is BaseScript {
   }
 }
 
-// make deploy-ledger contract=scripts/DeployStewards.s.sol:DeployMetis chain=metis
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployMetis chain=metis
 contract DeployMetis is MetisScript {
   function run() external {
     vm.startBroadcast();

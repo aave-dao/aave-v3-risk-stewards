@@ -10,6 +10,7 @@ import {
 export const V3_POOLS = [
   'AaveV3Ethereum',
   'AaveV3EthereumLido',
+  'AaveV3EthereumEtherFi',
   'AaveV3Polygon',
   'AaveV3Avalanche',
   'AaveV3Optimism',
