@@ -25,7 +25,7 @@ evm_version = 'paris'
 compile = true
 fallback_oz = true
 mode = '3'
-zksolc = '1.4.1'
+zksolc = '1.5.3'
 
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"
