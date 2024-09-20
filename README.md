@@ -68,7 +68,7 @@ Some assets/oracles can also be restricted on the RiskStewards by calling the `s
 
 ## Security
 
-- Certora security review: [TBA](./)
+- Certora security review: [2024-07-10](./audits/10-07-2024_Certora_AaveV3-Risk-Steward.pdf)
 
 <br>
 
