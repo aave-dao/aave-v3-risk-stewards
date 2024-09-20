@@ -1,0 +1,85 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`feature: capUpdates > should properly generate files 1`] = `
+{
+  "jsonConfig": "import {ConfigFile} from '../../generator/types';
+export const config: ConfigFile = {
+  rootOptions: {
+    pools: ['AaveV3Ethereum'],
+    title: 'test',
+    shortName: 'Test',
+    date: '20231023',
+    author: 'test',
+    discussion: 'test',
+  },
+  poolOptions: {
+    AaveV3Ethereum: {
+      configs: {STABLE_PRICE_CAP_UPDATE: [{asset: 'USDT', priceCap: '108000000'}]},
+      cache: {blockNumber: 42},
+    },
+  },
+};
+",
+  "payloads": [
+    {
+      "contractName": "AaveV3Ethereum_Test_20231023",
+      "payload": "// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import {AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
+import {RiskStewardsEthereum} from '../../../../scripts/networks/RiskStewardsEthereum.s.sol';
+import {IRiskSteward} from '../../../interfaces/IRiskSteward.sol';
+
+/**
+ * @title test
+ * @author test
+ * - discussion: test
+ * - deploy-command: make run-script contract=src/contracts/updates/20231023_AaveV3Ethereum_Test/AaveV3Ethereum_Test_20231023.sol:AaveV3Ethereum_Test_20231023 network=mainnet broadcast=false
+ */
+contract AaveV3Ethereum_Test_20231023 is RiskStewardsEthereum {
+  function name() public pure override returns (string memory) {
+    return 'AaveV3Ethereum_Test_20231023';
+  }
+
+  function stablePriceCapsUpdates()
+    public
+    pure
+    override
+    returns (IRiskSteward.PriceCapStableUpdate[] memory)
+  {
+    IRiskSteward.PriceCapStableUpdate[]
+      memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
+      oracle: AaveV3EthereumAssets.USDT_ORACLE,
+      priceCap: 108000000
+    });
+
+    return priceCapUpdates;
+  }
+}
+",
+      "pool": "AaveV3Ethereum",
+    },
+  ],
+}
+`;
+
+exports[`feature: capUpdates > should return reasonable code 1`] = `
+{
+  "code": {
+    "fn": [
+      "function stablePriceCapsUpdates() public pure override returns (IRiskSteward.PriceCapStableUpdate[] memory) {
+          IRiskSteward.PriceCapStableUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
+
+          priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
+               oracle: AaveV3EthereumAssets.USDT_ORACLE,
+               priceCap: 108000000
+              });
+
+          return priceCapUpdates;
+        }",
+    ],
+  },
+}
+`;

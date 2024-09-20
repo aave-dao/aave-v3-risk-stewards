@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {SafeCast} from 'solidity-utils/contracts/oz-common/SafeCast.sol';
-import {EngineFlags} from 'aave-helpers/v3-config-engine/EngineFlags.sol';
+import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';

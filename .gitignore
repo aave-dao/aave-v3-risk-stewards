@@ -1,6 +1,8 @@
 # build and cache
 cache/
 out/
+reports/
+zkout/
 
 # general
 .env
