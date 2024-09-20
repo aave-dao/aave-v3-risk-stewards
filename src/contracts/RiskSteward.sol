@@ -140,6 +140,8 @@ contract RiskSteward is Ownable, IRiskSteward {
       address asset = capsUpdate[i].asset;
 
       if (_restrictedAddresses[asset]) revert AssetIsRestricted();
+      if (capsUpdate[i].supplyCap == EngineFlags.KEEP_CURRENT && capsUpdate[i].borrowCap == EngineFlags.KEEP_CURRENT) revert NoAllKeepCurrent();
+
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
 
@@ -178,6 +180,12 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
       address asset = ratesUpdate[i].asset;
       if (_restrictedAddresses[asset]) revert AssetIsRestricted();
+      if (
+        ratesUpdate[i].params.optimalUsageRatio == EngineFlags.KEEP_CURRENT &&
+        ratesUpdate[i].params.baseVariableBorrowRate == EngineFlags.KEEP_CURRENT &&
+        ratesUpdate[i].params.variableRateSlope1 == EngineFlags.KEEP_CURRENT &&
+        ratesUpdate[i].params.variableRateSlope2 == EngineFlags.KEEP_CURRENT
+      ) revert NoAllKeepCurrent();
 
       (
         uint256 currentOptimalUsageRatio,
@@ -240,6 +248,14 @@ contract RiskSteward is Ownable, IRiskSteward {
       if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT)
         revert ParamChangeNotAllowed();
+
+      if (
+        collateralUpdates[i].ltv == EngineFlags.KEEP_CURRENT &&
+        collateralUpdates[i].liqThreshold == EngineFlags.KEEP_CURRENT &&
+        collateralUpdates[i].liqBonus == EngineFlags.KEEP_CURRENT &&
+        collateralUpdates[i].debtCeiling == EngineFlags.KEEP_CURRENT
+      ) revert NoAllKeepCurrent();
+
       if (
         collateralUpdates[i].ltv == 0 ||
         collateralUpdates[i].liqThreshold == 0 ||
@@ -374,6 +390,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    */
   function _validateParamUpdate(ParamUpdateValidationInput memory validationParam) internal view {
     if (validationParam.newValue == EngineFlags.KEEP_CURRENT) return;
+    if (validationParam.currentValue == validationParam.newValue) revert NoSameUpdates();
 
     if (block.timestamp - validationParam.lastUpdated < validationParam.riskConfig.minDelay)
       revert DebounceNotRespected();

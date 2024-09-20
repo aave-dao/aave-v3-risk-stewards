@@ -32,6 +32,16 @@ interface IRiskSteward {
   error NoZeroUpdates();
 
   /**
+   * @notice The risk param update must not be same as current risk param value on the protocol
+   */
+  error NoSameUpdates();
+
+  /**
+   * @notice The risk param update cannot have all updates as KEEP_CURRENT
+   */
+  error NoAllKeepCurrent();
+
+  /**
    * @notice The steward does not allow the risk param change for the param given
    */
   error ParamChangeNotAllowed();
