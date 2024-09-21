@@ -167,6 +167,15 @@ contract RiskSteward_Capo_Test is Test {
     vm.startPrank(riskCouncil);
     steward.updateLstPriceCaps(priceCapUpdates);
 
+    priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
+      oracle: AaveV3EthereumAssets.wstETH_ORACLE,
+      priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
+        snapshotTimestamp: uint48(block.timestamp - 1 * delay),
+        snapshotRatio: (currentRatio - 1),
+        maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore)).toUint16()
+      })
+    });
+
     // expect revert as minimum time has not passed for next update
     vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
     steward.updateLstPriceCaps(priceCapUpdates);
@@ -321,6 +330,40 @@ contract RiskSteward_Capo_Test is Test {
     steward.updateLstPriceCaps(priceCapUpdates);
   }
 
+  function test_updateLstPriceCap_noSameUpdate() public {
+    uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
+      .getMaxYearlyGrowthRatePercent();
+    uint256 snapshotTsBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
+      .getSnapshotTimestamp();
+
+    vm.startPrank(riskCouncil);
+    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](1);
+    priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
+      oracle: AaveV3EthereumAssets.wstETH_ORACLE,
+      priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
+        snapshotTimestamp: uint48(snapshotTsBefore),
+        snapshotRatio: currentRatio,
+        maxYearlyRatioGrowthPercent: maxYearlyGrowthPercentBefore.toUint16() + 1
+      })
+    });
+
+    // if same snapshot timestamp is used reverts
+    vm.expectRevert(abi.encodeWithSelector(IPriceCapAdapter.InvalidRatioTimestamp.selector, snapshotTsBefore));
+    steward.updateLstPriceCaps(priceCapUpdates);
+
+    priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
+      oracle: AaveV3EthereumAssets.wstETH_ORACLE,
+      priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
+        snapshotTimestamp: uint48(snapshotTsBefore) + 1,
+        snapshotRatio: currentRatio - 1,
+        maxYearlyRatioGrowthPercent: maxYearlyGrowthPercentBefore.toUint16()
+      })
+    });
+
+    // if same maxYearlyRatioGrowthPercent the steward should not revert
+    steward.updateLstPriceCaps(priceCapUpdates);
+  }
+
   /* ----------------------------- Stable Price Cap Tests ----------------------------- */
 
   function test_updateStablePriceCap() public {
@@ -386,6 +429,11 @@ contract RiskSteward_Capo_Test is Test {
     vm.startPrank(riskCouncil);
     steward.updateStablePriceCaps(priceCapUpdates);
 
+    priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
+      oracle: AaveV3EthereumAssets.USDT_ORACLE,
+      priceCap: ((priceCapBefore * 105) / 100)
+    });
+
     // expect revert as minimum time has not passed for next update
     vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
     steward.updateStablePriceCaps(priceCapUpdates);
@@ -416,10 +464,6 @@ contract RiskSteward_Capo_Test is Test {
   }
 
   function test_updateStablePriceCap_keepCurrent_revert() public {
-    uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
-      .getPriceCap()
-      .toUint256();
-
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
@@ -479,5 +523,23 @@ contract RiskSteward_Capo_Test is Test {
     steward.updateStablePriceCaps(priceCapUpdates);
 
     vm.stopPrank();
+  }
+
+  function test_updateStablePriceCap_noSameUpdates() public {
+    uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
+
+    IRiskSteward.PriceCapStableUpdate[]
+      memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
+      oracle: AaveV3EthereumAssets.USDT_ORACLE,
+      priceCap: priceCapBefore
+    });
+
+    vm.startPrank(riskCouncil);
+    vm.expectRevert(IRiskSteward.NoSameUpdates.selector);
+    steward.updateStablePriceCaps(priceCapUpdates);
   }
 }
