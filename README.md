@@ -1,4 +1,4 @@
-# Aave v3.1 Risk Stewards
+# Aave Generalized Risk Stewards (AGRS)
 
 Expanding from the scope of CapsPlusRiskSteward, we now introduce the new RiskSteward, allowing hardly constrained risk parameter updates by risk service providers and reducing governance overhead.
 
