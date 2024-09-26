@@ -67,13 +67,13 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateCaps(IEngine.CapsUpdate[] calldata capsUpdate) external onlyRiskCouncil {
+  function updateCaps(IEngine.CapsUpdate[] calldata capsUpdate) external virtual onlyRiskCouncil {
     _validateCapsUpdate(capsUpdate);
     _updateCaps(capsUpdate);
   }
 
   /// @inheritdoc IRiskSteward
-  function updateRates(IEngine.RateStrategyUpdate[] calldata ratesUpdate) external onlyRiskCouncil {
+  function updateRates(IEngine.RateStrategyUpdate[] calldata ratesUpdate) external virtual onlyRiskCouncil {
     _validateRatesUpdate(ratesUpdate);
     _updateRates(ratesUpdate);
   }
@@ -81,7 +81,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   /// @inheritdoc IRiskSteward
   function updateCollateralSide(
     IEngine.CollateralUpdate[] calldata collateralUpdates
-  ) external onlyRiskCouncil {
+  ) external virtual onlyRiskCouncil {
     _validateCollateralsUpdate(collateralUpdates);
     _updateCollateralSide(collateralUpdates);
   }
@@ -89,7 +89,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   /// @inheritdoc IRiskSteward
   function updateLstPriceCaps(
     PriceCapLstUpdate[] calldata priceCapUpdates
-  ) external onlyRiskCouncil {
+  ) external virtual onlyRiskCouncil {
     _validatePriceCapUpdate(priceCapUpdates);
     _updateLstPriceCaps(priceCapUpdates);
   }
@@ -97,7 +97,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   /// @inheritdoc IRiskSteward
   function updateStablePriceCaps(
     PriceCapStableUpdate[] calldata priceCapUpdates
-  ) external onlyRiskCouncil {
+  ) external virtual onlyRiskCouncil {
     _validatePriceCapStableUpdate(priceCapUpdates);
     _updateStablePriceCaps(priceCapUpdates);
   }

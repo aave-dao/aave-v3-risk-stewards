@@ -27,6 +27,11 @@ interface IRiskSteward {
   error UpdateNotInRange();
 
   /**
+   * @notice The risk param update is not allowed on the Risk Steward.
+   */
+  error UpdateNotAllowed();
+
+  /**
    * @notice There must be at least one risk param update per execution
    */
   error NoZeroUpdates();
