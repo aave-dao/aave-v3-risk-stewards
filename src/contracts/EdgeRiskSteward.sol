@@ -29,17 +29,23 @@ contract EdgeRiskSteward is RiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateCollateralSide(IEngine.CollateralUpdate[] calldata) external virtual override onlyRiskCouncil {
+  function updateCollateralSide(
+    IEngine.CollateralUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
 
   /// @inheritdoc IRiskSteward
-  function updateLstPriceCaps(PriceCapLstUpdate[] calldata) external virtual override onlyRiskCouncil {
+  function updateLstPriceCaps(
+    PriceCapLstUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
 
   /// @inheritdoc IRiskSteward
-  function updateStablePriceCaps(PriceCapStableUpdate[] calldata) external virtual override onlyRiskCouncil {
+  function updateStablePriceCaps(
+    PriceCapStableUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
 }

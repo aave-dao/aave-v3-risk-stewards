@@ -73,7 +73,9 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateRates(IEngine.RateStrategyUpdate[] calldata ratesUpdate) external virtual onlyRiskCouncil {
+  function updateRates(
+    IEngine.RateStrategyUpdate[] calldata ratesUpdate
+  ) external virtual onlyRiskCouncil {
     _validateRatesUpdate(ratesUpdate);
     _updateRates(ratesUpdate);
   }
@@ -140,7 +142,10 @@ contract RiskSteward is Ownable, IRiskSteward {
       address asset = capsUpdate[i].asset;
 
       if (_restrictedAddresses[asset]) revert AssetIsRestricted();
-      if (capsUpdate[i].supplyCap == EngineFlags.KEEP_CURRENT && capsUpdate[i].borrowCap == EngineFlags.KEEP_CURRENT) revert NoAllKeepCurrent();
+      if (
+        capsUpdate[i].supplyCap == EngineFlags.KEEP_CURRENT &&
+        capsUpdate[i].borrowCap == EngineFlags.KEEP_CURRENT
+      ) revert NoAllKeepCurrent();
 
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
@@ -149,7 +154,9 @@ contract RiskSteward is Ownable, IRiskSteward {
         capsUpdate[i].asset
       );
 
-      if (currentSupplyCap == capsUpdate[i].supplyCap || currentBorrowCap == capsUpdate[i].borrowCap) revert NoSameUpdates();
+      if (
+        currentSupplyCap == capsUpdate[i].supplyCap || currentBorrowCap == capsUpdate[i].borrowCap
+      ) revert NoSameUpdates();
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
