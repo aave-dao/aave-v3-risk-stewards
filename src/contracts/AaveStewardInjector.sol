@@ -79,6 +79,8 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
 
     IRiskOracle.RiskParameterUpdate memory riskParams = IRiskOracle(RISK_ORACLE).getUpdateById(updateIdToExecute);
     IRiskSteward(RISK_STEWARD).updateRates(_repackRateUpdate(riskParams));
+    _isUpdateIdExecuted[updateIdToExecute] = true;
+
     emit ActionSucceeded(updateIdToExecute);
   }
 
