@@ -209,6 +209,21 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     assertFalse(isAutomationPerformed);
   }
 
+  function test_expiredUpdate() public {
+    // add rate update to risk oracle
+    _addUpdateToRiskOracle();
+
+    uint256 initialTs = block.timestamp;
+    vm.warp(initialTs + _stewardInjector.EXPIRATION_PERIOD());
+
+    bool isAutomationPerformed = _checkAndPerformAutomation();
+    assertFalse(isAutomationPerformed);
+
+    vm.warp(initialTs);
+    isAutomationPerformed = _checkAndPerformAutomation();
+    assertTrue(isAutomationPerformed);
+  }
+
   function _addUpdateToRiskOracle() internal {
     vm.startPrank(_riskOracleOwner);
 
