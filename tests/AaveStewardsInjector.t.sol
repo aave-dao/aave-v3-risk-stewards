@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/RiskSteward.sol';
 import {TestnetProcedures} from 'aave-v3-origin/tests/utils/TestnetProcedures.sol';
 import {RiskOracle} from '../src/contracts/dependencies/RiskOracle.sol';
-import {AaveStewardInjector} from '../src/contracts/AaveStewardInjector.sol';
+import {AaveStewardInjector, IAaveStewardInjector} from '../src/contracts/AaveStewardInjector.sol';
 
 contract AaveStewardsInjector_Test is TestnetProcedures {
   RiskSteward _riskSteward;
@@ -222,6 +222,100 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     vm.warp(initialTs);
     isAutomationPerformed = _checkAndPerformAutomation();
     assertTrue(isAutomationPerformed);
+  }
+
+  function test_reverts_oldUpdateExecutedBeforeLatest() public {
+    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
+    _addUpdateToRiskOracle(50_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 50); // updateId 2
+
+    // the steward reverts if old updateId 1 is executed before new updateId 2
+    vm.expectRevert(IAaveStewardInjector.UpdateCannotBeInjected.selector);
+    _stewardInjector.performUpkeep(abi.encode(1));
+
+    vm.expectEmit(address(_stewardInjector));
+    emit ActionSucceeded(2);
+
+    bool isAutomationPerformed = _checkAndPerformAutomation();
+    assertTrue(isAutomationPerformed);
+
+    vm.expectEmit(address(_stewardInjector));
+    emit ActionSucceeded(1);
+
+    isAutomationPerformed = _checkAndPerformAutomation();
+    assertTrue(isAutomationPerformed);
+
+    // no updates to check so returns false
+    isAutomationPerformed = _checkAndPerformAutomation();
+    assertFalse(isAutomationPerformed);
+  }
+
+  function test_oldUpdateExecutedBeforeLatest_whenLatestDisabled() public {
+    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
+    _addUpdateToRiskOracle(50_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 50); // updateId 2
+
+    vm.prank(_stewardsInjectorOwner);
+    _stewardInjector.disableAutomationById(2, true);
+
+    vm.expectEmit(address(_stewardInjector));
+    emit ActionSucceeded(1);
+
+    // the steward does not reverts if old updateId 1 is executed before new updateId 2, as latest (updateId 2) is disabled
+    bool isAutomationPerformed = _checkAndPerformAutomation();
+    assertTrue(isAutomationPerformed);
+
+    isAutomationPerformed = _checkAndPerformAutomation();
+    assertFalse(isAutomationPerformed);
+  }
+
+  function test_reverts_sameUpdateInjectedTwice() public {
+    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
+
+    vm.expectEmit(address(_stewardInjector));
+    emit ActionSucceeded(1);
+
+    bool isAutomationPerformed = _checkAndPerformAutomation();
+    assertTrue(isAutomationPerformed);
+
+    vm.expectRevert(IAaveStewardInjector.UpdateCannotBeInjected.selector);
+    _stewardInjector.performUpkeep(abi.encode(1));
+  }
+
+  function test_reverts_ifUpdateIdDoesNotExist() public {
+    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
+
+    vm.expectRevert(bytes('Invalid update ID.'));
+    _stewardInjector.performUpkeep(abi.encode(0));
+
+    vm.expectRevert(bytes('Invalid update ID.'));
+    _stewardInjector.performUpkeep(abi.encode(2));
+  }
+
+  function _addUpdateToRiskOracle(
+    uint256 optimalUsageRatio,
+    uint256 baseVariableBorrowRate,
+    uint256 variableRateSlope1,
+    uint256 variableRateSlope2,
+    uint256 updateTimestamp
+  ) internal {
+    uint256 currentTs = block.timestamp;
+    vm.startPrank(_riskOracleOwner);
+    vm.warp(updateTimestamp);
+
+    IEngine.InterestRateInputData memory rate = IEngine.InterestRateInputData({
+      optimalUsageRatio: optimalUsageRatio,
+      baseVariableBorrowRate: baseVariableBorrowRate,
+      variableRateSlope1: variableRateSlope1,
+      variableRateSlope2: variableRateSlope2
+    });
+    _riskOracle.publishRiskParameterUpdate(
+      'referenceId',
+      abi.encode(rate),
+      'RateStrategyUpdate',
+      address(weth),
+      'additionalData'
+    );
+    vm.warp(currentTs);
+    vm.stopPrank();
   }
 
   function _addUpdateToRiskOracle() internal {
