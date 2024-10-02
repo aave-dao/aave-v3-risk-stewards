@@ -66,6 +66,30 @@ Some assets/oracles can also be restricted on the RiskStewards by calling the `s
 
 <br>
 
+## AGRS + Edge Infrastructure (Risk Oracles)
+
+With the introduction of Edge Risk Oracles by chaos labs, which leverages advanced off-chain infrastructure to deliver real-time risk updates to the Aave protocol via the Risk Oracle, the risk updates for the Aave protocol can be automated in a constrained manner. This can be done by combining the Edge Risk Oracle with the Risk Steward, using a middleware contract `AaveStewardsInjector`.
+
+The Risk Steward contract used for automated updates, called [EdgeRiskSteward](./src/contracts/EdgeRiskSteward.sol), has been slightly modified to only allow Interest Rates Updates on the protocol initially as a matter of extra security considerations.
+
+The following is a simple diagram on how the system works as a whole:
+
+<img src="./docs/agrs-edge.png" alt="AGRS and Risk Oracle Diagram Flow" width="100%" height="100%">
+
+### AaveStewardsInjector
+
+The [AaveStewardsInjector](./src/contracts//AaveStewardInjector.sol) is a chainlink automation compatible contract which checks if updates from the Edge Risk Oracle could be pushed to the Risk Steward, and if so it injects the update from the Edge Risk Oracle to the Risk Stewards. The `AaveStewardsInjector` should be set as the `riskCouncil` on the Risk Steward contract so it can inject updates.
+
+The `AaveStewardsInjector` has the following major functions:
+
+- `checkUpkeep()`: This method is called off-chain by chainlink nodes every block to check if any updates could be injected, and if so, calls `performUpKeep()`. It fetches the latest update counter on the Risk Oracle, and starting from the latest update, checks if the update can be injected into the Risk Steward if not already executed before. If the latest update is executed or disabled it checks the previous update and so on until `MAX_SKIP` iterations. If conditions for the injections are met, the method returns true with the encoded `payloadId`.
+
+- `performUpkeep()`: The `performUpkeep()` is the method called by the chainlink automation nodes when the `checkUpkeep()` method returns true, the method is called with the `payloadId` to be injected encoded in bytes. The `performUpkeep()` call ensures that the latest update gets executed first, unless that update has been disabled by the steward injector guardian and if all the conditions for injection are satisfied, it calls the EdgeRiskSteward with the params from the Risk Oracle. After an update has been injected on the Risk Steward, we mark the updateId as executed on storage mapping `_isUpdateIdExecuted[id]`. The `performUpkeep()` method is permissionless on purpose, so as to allow injections from the Risk Oracle to the Risk Steward even in case of some downtime on the automation infra via a manual trigger.
+
+The Stewards Injector Guardian is an entity, which is the owner of the `AaveStewardsInjector` contract and has access to whitelist / blacklist assets on which update can be performed upon using the `whitelistAddress()` method. In case of any emergencies, the `AaveStewardsInjector` also has access to disable updates for the specific `updateId` using the `disableUpdateById()` method. The guardian can also change / add update types using the `addUpdateType()` method, to whitelist the type of updates which can be injected via the Stewards Injector.
+
+The `AaveStewardsInjector` contract also introduces an `EXPIRATION_PERIOD` to disallow outdated risk param updates to be injected. The `EXPIRATION_PERIOD` is set to 6 hours, which means after an update pushed on the Edge Risk Oracle, the `AaveStewardsInjector` has a maximum of 6 hours to inject the update onto the Risk Steward otherwise the update expires.
+
 ## Security
 
 - Certora security review: [2024-07-10](./audits/10-07-2024_Certora_AaveV3-Risk-Steward.pdf)
