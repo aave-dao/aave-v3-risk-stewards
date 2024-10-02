@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {EdgeRiskSteward} from 'src/contracts/EdgeRiskSteward.sol';
+import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import './RiskSteward.t.sol';
 
 contract EdgeRiskSteward_Test is RiskSteward_Test {
@@ -94,4 +95,37 @@ contract EdgeRiskSteward_Test is RiskSteward_Test {
   function test_updateCollaterals_allKeepCurrent() public override {}
 
   function test_updateCollaterals_noSameUpdate() public override {}
+
+  /* ----------------------------- LST Price Cap Tests ----------------------------- */
+
+  function test_updateLstPriceCap() public {
+    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](1);
+    priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
+      oracle: AaveV3EthereumAssets.wstETH_ORACLE,
+      priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
+        snapshotTimestamp: uint48(block.timestamp - 2),
+        snapshotRatio: 1.1e18,
+        maxYearlyRatioGrowthPercent: 9_68
+      })
+    });
+
+    vm.startPrank(riskCouncil);
+    vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
+    steward.updateLstPriceCaps(priceCapUpdates);
+  }
+
+  /* ----------------------------- Stable Price Cap Test ----------------------------- */
+
+  function test_updateStablePriceCap() public {
+    IRiskSteward.PriceCapStableUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
+      oracle: AaveV3EthereumAssets.USDT_ORACLE,
+      priceCap: 1060000
+    });
+
+    vm.startPrank(riskCouncil);
+    vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
+    steward.updateStablePriceCaps(priceCapUpdates);
+  }
 }
