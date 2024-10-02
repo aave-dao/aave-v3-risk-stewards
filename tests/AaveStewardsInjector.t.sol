@@ -102,7 +102,7 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
 
     vm.prank(address(1));
     vm.expectRevert(bytes('Ownable: caller is not the owner'));
-    _stewardInjector.disableAutomationById(1, true);
+    _stewardInjector.disableUpdateById(1, true);
 
     assertFalse(_stewardInjector.isDisabled(1));
 
@@ -110,7 +110,7 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     emit UpdateDisabled(1, true);
 
     vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.disableAutomationById(1, true);
+    _stewardInjector.disableUpdateById(1, true);
 
     assertTrue(_stewardInjector.isDisabled(1));
 
@@ -121,7 +121,7 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     emit UpdateDisabled(1, false);
 
     vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.disableAutomationById(1, false);
+    _stewardInjector.disableUpdateById(1, false);
 
     assertFalse(_stewardInjector.isDisabled(1));
 
@@ -254,7 +254,7 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     _addUpdateToRiskOracle(50_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 50); // updateId 2
 
     vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.disableAutomationById(2, true);
+    _stewardInjector.disableUpdateById(2, true);
 
     vm.expectEmit(address(_stewardInjector));
     emit ActionSucceeded(1);

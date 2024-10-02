@@ -90,7 +90,7 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
   }
 
   /// @inheritdoc IAaveStewardInjector
-  function disableAutomationById(uint256 updateId, bool disabled) external onlyOwner {
+  function disableUpdateById(uint256 updateId, bool disabled) external onlyOwner {
     _disabledUpdates[updateId] = disabled;
     emit UpdateDisabled(updateId, disabled);
   }

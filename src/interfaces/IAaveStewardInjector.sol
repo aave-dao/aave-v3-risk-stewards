@@ -53,7 +53,7 @@ interface IAaveStewardInjector is AutomationCompatibleInterface {
    * @param updateId updateId from risk oracle for which we need to disable/enable injection.
    * @param disabled true if updateId should be disabled, false otherwise.
    */
-  function disableAutomationById(uint256 updateId, bool disabled) external;
+  function disableUpdateById(uint256 updateId, bool disabled) external;
 
   /**
    * @notice method called by owner to whitelist an update type on the steward injector.
