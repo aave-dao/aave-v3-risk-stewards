@@ -44,10 +44,12 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
   /**
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
+   * @param guardian address of the guardian / owner of the stewards injector.
    */
-  constructor(address riskOracle, address riskSteward) {
+  constructor(address riskOracle, address riskSteward, address guardian) {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
+    _transferOwnership(guardian);
   }
 
   /**

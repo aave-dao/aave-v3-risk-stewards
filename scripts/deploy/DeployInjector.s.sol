@@ -2,11 +2,13 @@
 pragma solidity ^0.8.0;
 
 import 'solidity-utils/contracts/utils/ScriptUtils.sol';
-import 'aave-address-book/AaveAddressBook.sol';
+import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
+import {AaveV3EthereumLido, AaveV3EthereumLidoAssets} from 'aave-address-book/AaveV3EthereumLido.sol';
+import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {EdgeRiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/EdgeRiskSteward.sol';
-import {AaveStewardInjector} from '../../src/contracts/AaveStewardInjector.sol';
+import {AaveStewardInjector, IAaveStewardInjector} from '../../src/contracts/AaveStewardInjector.sol';
 
 library DeployStewardContracts {
   address constant EDGE_RISK_ORACLE = address(32); // TODO
@@ -29,7 +31,8 @@ library DeployStewardContracts {
 
   function _deployStewardsInjector(
     bytes32 salt,
-    address riskSteward
+    address riskSteward,
+    address guardian
   ) internal returns (address) {
     address stewardInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY).create(
       salt,
@@ -37,7 +40,8 @@ library DeployStewardContracts {
         type(AaveStewardInjector).creationCode,
         abi.encode(
           EDGE_RISK_ORACLE,
-          riskSteward
+          riskSteward,
+          guardian
         )
       )
     );
@@ -76,7 +80,9 @@ contract DeployEthereumLido is EthereumScript {
       GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
 
-    DeployStewardContracts._deployStewardsInjector(salt, riskSteward);
+    address stewardsInjector = DeployStewardContracts._deployStewardsInjector(salt, riskSteward, msg.sender);
+    IAaveStewardInjector(stewardsInjector).whitelistAddress(AaveV3EthereumLidoAssets.WETH_UNDERLYING, true);
+    IAaveStewardInjector(stewardsInjector).addUpdateType('RateStrategyUpdate', true);
     vm.stopBroadcast();
   }
 }

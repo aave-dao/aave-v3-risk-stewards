@@ -62,7 +62,8 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     address computedRiskStewardAddress = vm.computeCreateAddress(_stewardsInjectorOwner, vm.getNonce(_stewardsInjectorOwner) + 1);
     _stewardInjector = new AaveStewardInjector(
       address(_riskOracle),
-      address(computedRiskStewardAddress)
+      address(computedRiskStewardAddress),
+      _stewardsInjectorOwner
     );
     _stewardInjector.addUpdateType('RateStrategyUpdate', true);
     _stewardInjector.whitelistAddress(address(weth), true);
