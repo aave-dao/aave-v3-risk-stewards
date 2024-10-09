@@ -23,20 +23,6 @@ interface IAaveStewardInjector is AutomationCompatibleInterface {
   event UpdateDisabled(uint256 indexed updateId, bool indexed disabled);
 
   /**
-   * @notice Emitted when the valid updateType on the steward injector is changed.
-   * @param updateType the updateType for which the valid status on the steward injector is changed.
-   * @param isValid true if the following updateType is valid, false otherwise.
-   */
-  event UpdateTypeChanged(string indexed updateType, bool indexed isValid);
-
-  /**
-   * @notice Emitted when the status of whitelisted for an asset on the steward injector is changed.
-   * @param contractAddress the contract address which for which the whitelisted status is changed.
-   * @param isWhitelisted true if the contract address is being whitelisted, false otherwise.
-   */
-  event AddressWhitelisted(address indexed contractAddress, bool indexed isWhitelisted);
-
-  /**
    * @notice The following update cannot be injected in the steward injector because the conditions are not met.
    */
   error UpdateCannotBeInjected();
@@ -56,45 +42,11 @@ interface IAaveStewardInjector is AutomationCompatibleInterface {
   function disableUpdateById(uint256 updateId, bool disabled) external;
 
   /**
-   * @notice method called by owner to whitelist an update type on the steward injector.
-   * @param updateType string from the risk oracle to be whitelisted on the steward injector.
-   * @param isValid true if updateType should be whitelisted, false otherwise.
-   */
-  function addUpdateType(string memory updateType, bool isValid) external;
-
-  /**
-   * @notice method to check if an update type on the steward injector is valid or not.
-   * @param updateType string from the risk oracle to check if valid.
-   * @return bool true if updateType is valid, false otherwise.
-   */
-  function isValidUpdateType(string memory updateType) external view returns (bool);
-
-  /**
-   * @notice method to whitelist an address on the steward injector.
-   * @param contractAddress the contract address which for which the whitelisted status is updated.
-   * @param isWhitelisted true if the contract address is being whitelisted, false otherwise.
-   */
-  function whitelistAddress(address contractAddress, bool isWhitelisted) external;
-
-  /**
-   * @notice method to check if the contract address is whitelisted on the steward injector.
-   * @param contractAddress the contract address to check for the whitelisted status.
-   * @return bool true if the contract address is whitelisted, false otherwise.
-   */
-  function isWhitelistedAddress(address contractAddress) external view returns (bool);
-
-  /**
    * @notice method to check if the updateId from the risk oracle has been executed/injected into the risk steward.
    * @param updateid the updateId from the risk oracle to check if already executed/injected.
    * @return bool true if the updateId is executed/injected, false otherwise.
    */
   function isUpdateIdExecuted(uint256 updateid) external view returns (bool);
-
-  /**
-   * @notice method to get maximum number of updateIds to check before the latest updateId, if an injection could be performed upon.
-   * @return max number of skips.
-   */
-  function MAX_SKIP() external view returns (uint256);
 
   /**
    * @notice method to get the address of the edge risk oracle contract.
@@ -113,4 +65,16 @@ interface IAaveStewardInjector is AutomationCompatibleInterface {
    * @return time in seconds of the expiration time.
    */
   function EXPIRATION_PERIOD() external view returns (uint256);
+
+  /**
+   * @notice method to get the whitelisted update type for which injection is allowed from the risk oracle into the stewards.
+   * @return string for the whitelisted update type - interest rate update.
+   */
+  function WHITELISTED_UPDATE_TYPE() external view returns (string memory);
+
+  /**
+   * @notice method to get the whitelisted asset for which injection is allowed from the risk oracle into the stewards.
+   * @return address for the whitelisted asset.
+   */
+  function WHITELISTED_ASSET() external view returns (address);
 }

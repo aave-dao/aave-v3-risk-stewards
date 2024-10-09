@@ -32,7 +32,8 @@ library DeployStewardContracts {
   function _deployStewardsInjector(
     bytes32 salt,
     address riskSteward,
-    address guardian
+    address guardian,
+    address whitelistedAsset
   ) internal returns (address) {
     address stewardInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY).create(
       salt,
@@ -41,7 +42,8 @@ library DeployStewardContracts {
         abi.encode(
           EDGE_RISK_ORACLE,
           riskSteward,
-          guardian
+          guardian,
+          whitelistedAsset
         )
       )
     );
@@ -80,9 +82,7 @@ contract DeployEthereumLido is EthereumScript {
       GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
 
-    address stewardsInjector = DeployStewardContracts._deployStewardsInjector(salt, riskSteward, msg.sender);
-    IAaveStewardInjector(stewardsInjector).whitelistAddress(AaveV3EthereumLidoAssets.WETH_UNDERLYING, true);
-    IAaveStewardInjector(stewardsInjector).addUpdateType('RateStrategyUpdate', true);
+    DeployStewardContracts._deployStewardsInjector(salt, riskSteward, msg.sender, AaveV3EthereumLidoAssets.WETH_UNDERLYING);
     vm.stopBroadcast();
   }
 }

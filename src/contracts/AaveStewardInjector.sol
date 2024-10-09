@@ -11,6 +11,7 @@ import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
  * @title AaveStewardInjector
  * @author BGD Labs
  * @notice Contract to perform automation on risk steward using the edge risk oracle.
+ *         The contract only permits for injecting rate updates for the whitelisted asset.
  * @dev Aave chainlink automation-keeper-compatible contract to:
  *      - check if updates from edge risk oracles can be injected into risk steward.
  *      - injectes risk updates on the risk steward if all conditions are met.
@@ -22,6 +23,12 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
   /// @inheritdoc IAaveStewardInjector
   address public immutable RISK_STEWARD;
 
+  /// @inheritdoc IAaveStewardInjector
+  address public immutable WHITELISTED_ASSET;
+
+  /// @inheritdoc IAaveStewardInjector
+  string public constant WHITELISTED_UPDATE_TYPE = 'RateStrategyUpdate';
+
   /**
    * @inheritdoc IAaveStewardInjector
    * @dev after an update is added on the risk oracle, the update is only valid from the timestamp it was added
@@ -29,61 +36,60 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
    */
   uint256 public constant EXPIRATION_PERIOD = 6 hours;
 
-  /**
-   * @inheritdoc IAaveStewardInjector
-   * @dev maximum number of updateIds to check before the latest updateCounter, if they could be injected.
-   *      from the latest updateId we check 10 more updateIds to be sure that no update is being unchecked.
-   */
-  uint256 public constant MAX_SKIP = 10;
-
   mapping(uint256 => bool) internal _isUpdateIdExecuted;
   mapping(uint256 => bool) internal _disabledUpdates;
-  mapping(address => bool) internal _isWhitelistedAddress;
-  mapping(string => bool) internal _isValidUpdateType;
 
   /**
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
    * @param guardian address of the guardian / owner of the stewards injector.
+   * @param whitelistedAsset address of the whitelisted asset for which update can be injected.
    */
-  constructor(address riskOracle, address riskSteward, address guardian) {
+  constructor(
+    address riskOracle,
+    address riskSteward,
+    address guardian,
+    address whitelistedAsset
+  ) {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
+    WHITELISTED_ASSET = whitelistedAsset;
     _transferOwnership(guardian);
   }
 
   /**
    * @inheritdoc AutomationCompatibleInterface
-   * @dev run off-chain, checks if updates from risk oracle should be injected on risk steward
+   * @dev run off-chain, checks if the latest update from risk oracle should be injected on risk steward
    */
   function checkUpkeep(bytes memory) public view virtual override returns (bool, bytes memory) {
-    uint256 latestUpdateId = IRiskOracle(RISK_ORACLE).updateCounter();
-    uint256 updateIdLowerBound = latestUpdateId <= MAX_SKIP ? 1 : latestUpdateId - MAX_SKIP;
+    IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE).getLatestUpdateByParameterAndMarket(
+      WHITELISTED_UPDATE_TYPE,
+      WHITELISTED_ASSET
+    );
 
-    for (uint256 i = latestUpdateId; i >= updateIdLowerBound; i--) {
-      if (_canUpdateBeInjected(i, false)) return (true, abi.encode(i));
-    }
+    if (_canUpdateBeInjected(updateRiskParams)) return (true, '');
 
     return (false, '');
   }
 
   /**
    * @inheritdoc AutomationCompatibleInterface
-   * @dev executes injection of an update from the risk oracle into the risk steward.
-   * @param performData encoded updateId to inject into the risk steward.
+   * @dev executes injection of the latest update from the risk oracle into the risk steward.
    */
-  function performUpkeep(bytes calldata performData) external override {
-    uint256 updateIdToExecute = abi.decode(performData, (uint256));
+  function performUpkeep(bytes calldata) external override {
+    IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE).getLatestUpdateByParameterAndMarket(
+      WHITELISTED_UPDATE_TYPE,
+      WHITELISTED_ASSET
+    );
 
-    if (!_canUpdateBeInjected(updateIdToExecute, true)) {
+    if (!_canUpdateBeInjected(updateRiskParams)) {
       revert UpdateCannotBeInjected();
     }
 
-    IRiskOracle.RiskParameterUpdate memory riskParams = IRiskOracle(RISK_ORACLE).getUpdateById(updateIdToExecute);
-    IRiskSteward(RISK_STEWARD).updateRates(_repackRateUpdate(riskParams));
-    _isUpdateIdExecuted[updateIdToExecute] = true;
+    IRiskSteward(RISK_STEWARD).updateRates(_repackRateUpdate(updateRiskParams));
+    _isUpdateIdExecuted[updateRiskParams.updateId] = true;
 
-    emit ActionSucceeded(updateIdToExecute);
+    emit ActionSucceeded(updateRiskParams.updateId);
   }
 
   /// @inheritdoc IAaveStewardInjector
@@ -98,64 +104,23 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
   }
 
   /// @inheritdoc IAaveStewardInjector
-  function addUpdateType(string memory updateType, bool isValid) external onlyOwner {
-    _isValidUpdateType[updateType] = isValid;
-    emit UpdateTypeChanged(updateType, isValid);
-  }
-
-  /// @inheritdoc IAaveStewardInjector
-  function isValidUpdateType(string memory updateType) public view returns (bool) {
-    return _isValidUpdateType[updateType];
-  }
-
-  /// @inheritdoc IAaveStewardInjector
-  function whitelistAddress(address contractAddress, bool isWhitelisted) external onlyOwner {
-    _isWhitelistedAddress[contractAddress] = isWhitelisted;
-    emit AddressWhitelisted(contractAddress, isWhitelisted);
-  }
-
-  /// @inheritdoc IAaveStewardInjector
-  function isWhitelistedAddress(address contractAddress) public view returns (bool) {
-    return _isWhitelistedAddress[contractAddress];
-  }
-
-  /// @inheritdoc IAaveStewardInjector
   function isUpdateIdExecuted(uint256 updateid) public view returns (bool) {
     return _isUpdateIdExecuted[updateid];
   }
 
   /**
-   * @notice method to check if the updateId from risk oracle could be injected into the risk steward.
-   * @param updateId the id from the risk oralce to check if it can be injected.
-   * @param validateIfNewUpdatesExecuted if true, we validate that all updates after current are executed, false otherwise.
+   * @notice method to check if the update from risk oracle could be injected into the risk steward.
+   * @dev only allow injecting interest rate updates for the whitelisted asset.
+   * @param updateRiskParams struct containing the risk param update from the risk oralce to check if it can be injected.
    * @return true if the update could be injected to the risk steward, false otherwise.
    */
-  function _canUpdateBeInjected(
-    uint256 updateId,
-    bool validateIfNewUpdatesExecuted
-  ) internal view returns (bool) {
-    IRiskOracle.RiskParameterUpdate memory riskParams = IRiskOracle(RISK_ORACLE).getUpdateById(
-      updateId
-    );
-
-    if (validateIfNewUpdatesExecuted) {
-      uint256 latestUpdateId = IRiskOracle(RISK_ORACLE).updateCounter();
-      if (updateId > latestUpdateId) return false;
-
-      // validate that the latest updates are executed before exeucting the current update
-      if (updateId != latestUpdateId) {
-        for (uint256 i = updateId + 1; i <= latestUpdateId; i++) {
-          if (!isUpdateIdExecuted(i) && !isDisabled(i)) return false;
-        }
-      }
-    }
-
+  function _canUpdateBeInjected(IRiskOracle.RiskParameterUpdate memory updateRiskParams) internal view returns (bool) {
     return (
-      !isUpdateIdExecuted(updateId) &&
-      (riskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
-      isWhitelistedAddress(riskParams.market) &&
-      isValidUpdateType(riskParams.updateType) &&
-      !isDisabled(updateId)
+      !isUpdateIdExecuted(updateRiskParams.updateId) &&
+      (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
+      updateRiskParams.market == WHITELISTED_ASSET &&
+      keccak256(bytes(updateRiskParams.updateType)) == keccak256(bytes(WHITELISTED_UPDATE_TYPE)) &&
+      !isDisabled(updateRiskParams.updateId)
     );
   }
 

@@ -5,6 +5,7 @@ import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/Ris
 import {TestnetProcedures} from 'aave-v3-origin/tests/utils/TestnetProcedures.sol';
 import {RiskOracle} from '../src/contracts/dependencies/RiskOracle.sol';
 import {AaveStewardInjector, IAaveStewardInjector} from '../src/contracts/AaveStewardInjector.sol';
+import {AaveV3EthereumLidoAssets} from 'aave-address-book/AaveV3EthereumLido.sol';
 
 contract AaveStewardsInjector_Test is TestnetProcedures {
   RiskSteward _riskSteward;
@@ -63,10 +64,9 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     _stewardInjector = new AaveStewardInjector(
       address(_riskOracle),
       address(computedRiskStewardAddress),
-      _stewardsInjectorOwner
+      _stewardsInjectorOwner,
+      address(weth)
     );
-    _stewardInjector.addUpdateType('RateStrategyUpdate', true);
-    _stewardInjector.whitelistAddress(address(weth), true);
 
     // setup risk steward
     _riskSteward = new RiskSteward(
@@ -130,72 +130,6 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     assertTrue(isAutomationPerformed);
   }
 
-  function test_whitelistAddress() public {
-    // add rate update to risk oracle
-    _addUpdateToRiskOracle();
-
-    vm.prank(address(1));
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
-    _stewardInjector.whitelistAddress(address(weth), true);
-
-    assertTrue(_stewardInjector.isWhitelistedAddress(address(weth)));
-
-    vm.expectEmit(address(_stewardInjector));
-    emit AddressWhitelisted(address(weth), false);
-
-    vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.whitelistAddress(address(weth), false);
-
-    assertFalse(_stewardInjector.isWhitelistedAddress(address(weth)));
-
-    bool isAutomationPerformed = _checkAndPerformAutomation();
-    assertFalse(isAutomationPerformed);
-
-    vm.expectEmit(address(_stewardInjector));
-    emit AddressWhitelisted(address(weth), true);
-
-    vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.whitelistAddress(address(weth), true);
-
-    assertTrue(_stewardInjector.isWhitelistedAddress(address(weth)));
-
-    isAutomationPerformed = _checkAndPerformAutomation();
-    assertTrue(isAutomationPerformed);
-  }
-
-  function test_validUpdateType() public {
-    // add rate update to risk oracle
-    _addUpdateToRiskOracle();
-
-    vm.prank(address(1));
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
-    _stewardInjector.addUpdateType('Random', true);
-
-    assertTrue(_stewardInjector.isValidUpdateType('RateStrategyUpdate'));
-
-    vm.expectEmit(address(_stewardInjector));
-    emit UpdateTypeChanged('RateStrategyUpdate', false);
-
-    vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.addUpdateType('RateStrategyUpdate', false);
-
-    assertFalse(_stewardInjector.isValidUpdateType('RateStrategyUpdate'));
-
-    bool isAutomationPerformed = _checkAndPerformAutomation();
-    assertFalse(isAutomationPerformed);
-
-    vm.expectEmit(address(_stewardInjector));
-    emit UpdateTypeChanged('RateStrategyUpdate', true);
-
-    vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.addUpdateType('RateStrategyUpdate', true);
-
-    assertTrue(_stewardInjector.isValidUpdateType('RateStrategyUpdate'));
-
-    isAutomationPerformed = _checkAndPerformAutomation();
-    assertTrue(isAutomationPerformed);
-  }
-
   function test_isUpdatedIdExecuted() public {
      // add rate update to risk oracle
     _addUpdateToRiskOracle();
@@ -225,49 +159,6 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     assertTrue(isAutomationPerformed);
   }
 
-  function test_reverts_oldUpdateExecutedBeforeLatest() public {
-    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
-    _addUpdateToRiskOracle(50_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 50); // updateId 2
-
-    // the steward reverts if old updateId 1 is executed before new updateId 2
-    vm.expectRevert(IAaveStewardInjector.UpdateCannotBeInjected.selector);
-    _stewardInjector.performUpkeep(abi.encode(1));
-
-    vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(2);
-
-    bool isAutomationPerformed = _checkAndPerformAutomation();
-    assertTrue(isAutomationPerformed);
-
-    vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
-
-    isAutomationPerformed = _checkAndPerformAutomation();
-    assertTrue(isAutomationPerformed);
-
-    // no updates to check so returns false
-    isAutomationPerformed = _checkAndPerformAutomation();
-    assertFalse(isAutomationPerformed);
-  }
-
-  function test_oldUpdateExecutedBeforeLatest_whenLatestDisabled() public {
-    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
-    _addUpdateToRiskOracle(50_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 50); // updateId 2
-
-    vm.prank(_stewardsInjectorOwner);
-    _stewardInjector.disableUpdateById(2, true);
-
-    vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
-
-    // the steward does not reverts if old updateId 1 is executed before new updateId 2, as latest (updateId 2) is disabled
-    bool isAutomationPerformed = _checkAndPerformAutomation();
-    assertTrue(isAutomationPerformed);
-
-    isAutomationPerformed = _checkAndPerformAutomation();
-    assertFalse(isAutomationPerformed);
-  }
-
   function test_reverts_sameUpdateInjectedTwice() public {
     _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
 
@@ -278,17 +169,15 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     assertTrue(isAutomationPerformed);
 
     vm.expectRevert(IAaveStewardInjector.UpdateCannotBeInjected.selector);
-    _stewardInjector.performUpkeep(abi.encode(1));
+    _stewardInjector.performUpkeep('');
   }
 
-  function test_reverts_ifUpdateIdDoesNotExist() public {
-    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
+  function test_reverts_ifUpdateDoesNotExist() public {
+    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
+    _stewardInjector.checkUpkeep('');
 
-    vm.expectRevert(bytes('Invalid update ID.'));
-    _stewardInjector.performUpkeep(abi.encode(0));
-
-    vm.expectRevert(bytes('Invalid update ID.'));
-    _stewardInjector.performUpkeep(abi.encode(2));
+    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
+    _stewardInjector.performUpkeep('');
   }
 
   function _addUpdateToRiskOracle(
