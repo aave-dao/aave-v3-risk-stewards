@@ -17,7 +17,7 @@ describe('prefixWithImports', () => {
 
   it('should detect v3 Engine imports', () => {
     expect(prefixWithImports(`EngineFlags.KEEP_CURRENT`)).toContain(
-      `import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';`,
+      `import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';`,
     );
 
     expect(prefixWithImports('IAaveV3ConfigEngine.CapsUpdate')).toContain(

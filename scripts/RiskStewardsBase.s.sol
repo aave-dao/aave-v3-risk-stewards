@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAaveV3ConfigEngine as IEngine, IPool} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine, IPool} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
 import {ProtocolV3TestBase} from 'aave-helpers/src/ProtocolV3TestBase.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';

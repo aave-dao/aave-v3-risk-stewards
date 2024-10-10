@@ -95,7 +95,7 @@ export function prefixWithImports(code: string) {
   }
   // shared config engine imports
   if (findMatch(code, 'EngineFlags')) {
-    imports += `import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';\n`;
+    imports += `import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';\n`;
   }
   // v3 config engine imports
   if (findMatch(code, 'IAaveV3ConfigEngine')) {
