@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {AaveV3EthereumLidoAssets} from 'aave-address-book/AaveV3EthereumLido.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
-import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsEthereumLido} from '../../../scripts/networks/RiskStewardsEthereumLido.s.sol';
 
 // make run-script network=mainnet contract_path=src/contracts/examples/EthereumLidoExample.sol:EthereumLidoExample broadcast=false

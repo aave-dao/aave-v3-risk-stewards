@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {SafeCast} from 'solidity-utils/contracts/oz-common/SafeCast.sol';
-import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
+import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
-import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/src/core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
+import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/src/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 

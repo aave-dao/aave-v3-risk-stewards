@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
 /**
