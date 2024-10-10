@@ -27,18 +27,18 @@ library DeployRiskStewards {
 
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
     return IRiskSteward.Config({
-      ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00}),
-      liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00}),
-      liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 2_00}),
+      ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 25}),
+      liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 25}),
+      liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
       supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
       borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
-      debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
-      baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 2_00}),
-      variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 2_00}),
-      variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
-      optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 10_00}),
-      priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 15_00}),
-      priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 2_00})
+      debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
+      baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+      variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+      variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
+      optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00}),
+      priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
+      priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
     });
   }
 }

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
 /**
@@ -27,9 +27,24 @@ interface IRiskSteward {
   error UpdateNotInRange();
 
   /**
+   * @notice The risk param update is not allowed on the Risk Steward.
+   */
+  error UpdateNotAllowed();
+
+  /**
    * @notice There must be at least one risk param update per execution
    */
   error NoZeroUpdates();
+
+  /**
+   * @notice The risk param update must not be same as current risk param value on the protocol
+   */
+  error NoSameUpdates();
+
+  /**
+   * @notice The risk param update cannot have all updates as KEEP_CURRENT
+   */
+  error NoAllKeepCurrent();
 
   /**
    * @notice The steward does not allow the risk param change for the param given

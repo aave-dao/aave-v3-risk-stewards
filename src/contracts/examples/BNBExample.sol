@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {AaveV3BNBAssets} from 'aave-address-book/AaveV3BNB.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
-import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsBNB} from '../../../scripts/networks/RiskStewardsBNB.s.sol';
 
 // make run-script network=bnb contract_path=src/contracts/examples/BNBExample.sol:BNBExample broadcast=false
