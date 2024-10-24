@@ -78,7 +78,7 @@ The following is a simple diagram on how the system works as a whole:
 
 ### AaveStewardsInjector
 
-The [AaveStewardsInjector](./src/contracts//AaveStewardInjector.sol) is a chainlink automation compatible contract which checks if the latest update from the Edge Risk Oracle could be pushed to the Risk Steward, and if so it injects the latest update from the Edge Risk Oracle to the Risk Stewards. The `AaveStewardsInjector` should be set as the `riskCouncil` on the Risk Steward contract so it can inject updates.
+The [AaveStewardsInjector](./src/contracts//AaveStewardInjector.sol) is a chainlink automation compatible contract which checks if the latest update from the Edge Risk Oracle could be pushed to the Risk Steward, and if so, injects it to the Aave Risk Stewards. The `AaveStewardsInjector` should be set as the `riskCouncil` on the Aave Risk Steward contract so it can inject updates.
 
 The `AaveStewardsInjector` has the following major functions:
 
