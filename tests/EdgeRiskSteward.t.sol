@@ -45,7 +45,7 @@ contract EdgeRiskSteward_Test is RiskSteward_Test {
 
   function test_updateCaps_allKeepCurrent() public override {}
 
-  function test_updateCaps_noSameUpdate() public override {}
+  function test_updateCaps_sameUpdate() public override {}
 
   function test_updateCaps_assetUnlisted() public override {}
 
@@ -94,7 +94,7 @@ contract EdgeRiskSteward_Test is RiskSteward_Test {
 
   function test_updateCollaterals_allKeepCurrent() public override {}
 
-  function test_updateCollaterals_noSameUpdate() public override {}
+  function test_updateCollaterals_sameUpdate() public override {}
 
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
 

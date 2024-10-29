@@ -525,7 +525,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateStablePriceCap_noSameUpdates() public {
+  function test_updateStablePriceCap_sameUpdates() public {
     uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
       .getPriceCap()
       .toUint256();
@@ -539,7 +539,12 @@ contract RiskSteward_Capo_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.NoSameUpdates.selector);
     steward.updateStablePriceCaps(priceCapUpdates);
+
+    uint256 priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
+      .getPriceCap()
+      .toUint256();
+
+    assertEq(priceCapBefore, priceCapAfter);
   }
 }

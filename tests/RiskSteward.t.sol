@@ -173,6 +173,10 @@ contract RiskSteward_Test is Test {
   }
 
   function test_updateCaps_allKeepCurrent() public virtual {
+    (uint256 daiBorrowCapBefore, uint256 daiSupplyCapBefore) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveCaps(AaveV3EthereumAssets.DAI_UNDERLYING);
+
     IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
     capUpdates[0] = IEngine.CapsUpdate(
       AaveV3EthereumAssets.DAI_UNDERLYING,
@@ -181,11 +185,17 @@ contract RiskSteward_Test is Test {
     );
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.NoAllKeepCurrent.selector);
     steward.updateCaps(capUpdates);
+
+    (uint256 daiBorrowCapAfter, uint256 daiSupplyCapAfter) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveCaps(AaveV3EthereumAssets.DAI_UNDERLYING);
+
+    assertEq(daiBorrowCapBefore, daiBorrowCapAfter);
+    assertEq(daiSupplyCapBefore, daiSupplyCapAfter);
   }
 
-  function test_updateCaps_noSameUpdate() public virtual {
+  function test_updateCaps_sameUpdate() public virtual {
     (uint256 daiBorrowCapBefore, uint256 daiSupplyCapBefore) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
       .getReserveCaps(AaveV3EthereumAssets.DAI_UNDERLYING);
@@ -198,8 +208,14 @@ contract RiskSteward_Test is Test {
     );
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.NoSameUpdates.selector);
     steward.updateCaps(capUpdates);
+
+    (uint256 daiBorrowCapAfter, uint256 daiSupplyCapAfter) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveCaps(AaveV3EthereumAssets.DAI_UNDERLYING);
+
+    assertEq(daiBorrowCapBefore, daiBorrowCapAfter);
+    assertEq(daiSupplyCapBefore, daiSupplyCapAfter);
   }
 
   function test_updateCaps_assetUnlisted() public virtual {
@@ -447,6 +463,13 @@ contract RiskSteward_Test is Test {
   }
 
   function test_updateRates_allKeepCurrent() public {
+    (
+      uint256 beforeOptimalUsageRatio,
+      uint256 beforeBaseVariableBorrowRate,
+      uint256 beforeVariableRateSlope1,
+      uint256 beforeVariableRateSlope2
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
+
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.WETH_UNDERLYING,
@@ -459,11 +482,22 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.NoAllKeepCurrent.selector);
     steward.updateRates(rateUpdates);
+
+    (
+      uint256 afterOptimalUsageRatio,
+      uint256 afterBaseVariableBorrowRate,
+      uint256 afterVariableRateSlope1,
+      uint256 afterVariableRateSlope2
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
+
+    assertEq(beforeOptimalUsageRatio, afterOptimalUsageRatio);
+    assertEq(beforeBaseVariableBorrowRate, afterBaseVariableBorrowRate);
+    assertEq(beforeVariableRateSlope1, afterVariableRateSlope1);
+    assertEq(beforeVariableRateSlope2, afterVariableRateSlope2);
   }
 
-  function test_updateRate_noSameUpdate() public {
+  function test_updateRate_sameUpdate() public {
     (
       uint256 beforeOptimalUsageRatio,
       uint256 beforeBaseVariableBorrowRate,
@@ -483,8 +517,19 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.NoSameUpdates.selector);
     steward.updateRates(rateUpdates);
+
+    (
+      uint256 afterOptimalUsageRatio,
+      uint256 afterBaseVariableBorrowRate,
+      uint256 afterVariableRateSlope1,
+      uint256 afterVariableRateSlope2
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
+
+    assertEq(beforeOptimalUsageRatio, afterOptimalUsageRatio);
+    assertEq(beforeBaseVariableBorrowRate, afterBaseVariableBorrowRate);
+    assertEq(beforeVariableRateSlope1, afterVariableRateSlope1);
+    assertEq(beforeVariableRateSlope2, afterVariableRateSlope2);
   }
 
   /* ----------------------------- Collateral Tests ----------------------------- */
@@ -743,6 +788,14 @@ contract RiskSteward_Test is Test {
   }
 
   function test_updateCollaterals_allKeepCurrent() public virtual {
+    (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+
+    uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
+      AaveV3EthereumAssets.UNI_UNDERLYING
+    ) / 100;
+
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,
@@ -754,14 +807,27 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.NoAllKeepCurrent.selector);
     steward.updateCollateralSide(collateralUpdates);
+
+    (, uint256 ltvAfter, uint256 ltAfter, uint256 lbAfter, , , , , , ) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+
+    uint256 debtCeilingAfter = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
+      AaveV3EthereumAssets.UNI_UNDERLYING
+    ) / 100;
+
+    assertEq(ltvBefore, ltvAfter);
+    assertEq(ltBefore, ltAfter);
+    assertEq(lbBefore, lbAfter);
+    assertEq(debtCeilingBefore, debtCeilingAfter);
   }
 
-  function test_updateCollaterals_noSameUpdate() public virtual {
+  function test_updateCollaterals_sameUpdate() public virtual {
     (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
       .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+    lbBefore = lbBefore - 100_00;
 
     uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
       AaveV3EthereumAssets.UNI_UNDERLYING
@@ -778,8 +844,21 @@ contract RiskSteward_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.NoSameUpdates.selector);
     steward.updateCollateralSide(collateralUpdates);
+
+    (, uint256 ltvAfter, uint256 ltAfter, uint256 lbAfter, , , , , , ) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+    lbAfter = lbAfter - 100_00;
+
+    uint256 debtCeilingAfter = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
+      AaveV3EthereumAssets.UNI_UNDERLYING
+    ) / 100;
+
+    assertEq(ltvBefore, ltvAfter);
+    assertEq(ltBefore, ltAfter);
+    assertEq(lbBefore, lbAfter);
+    assertEq(debtCeilingBefore, debtCeilingAfter);
   }
 
   /* ----------------------------- MISC ----------------------------- */

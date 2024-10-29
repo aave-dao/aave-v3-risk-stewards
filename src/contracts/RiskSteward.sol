@@ -142,21 +142,12 @@ contract RiskSteward is Ownable, IRiskSteward {
       address asset = capsUpdate[i].asset;
 
       if (_restrictedAddresses[asset]) revert AssetIsRestricted();
-      if (
-        capsUpdate[i].supplyCap == EngineFlags.KEEP_CURRENT &&
-        capsUpdate[i].borrowCap == EngineFlags.KEEP_CURRENT
-      ) revert NoAllKeepCurrent();
-
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
 
       (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL_DATA_PROVIDER.getReserveCaps(
         capsUpdate[i].asset
       );
-
-      if (
-        currentSupplyCap == capsUpdate[i].supplyCap || currentBorrowCap == capsUpdate[i].borrowCap
-      ) revert NoSameUpdates();
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -189,12 +180,6 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
       address asset = ratesUpdate[i].asset;
       if (_restrictedAddresses[asset]) revert AssetIsRestricted();
-      if (
-        ratesUpdate[i].params.optimalUsageRatio == EngineFlags.KEEP_CURRENT &&
-        ratesUpdate[i].params.baseVariableBorrowRate == EngineFlags.KEEP_CURRENT &&
-        ratesUpdate[i].params.variableRateSlope1 == EngineFlags.KEEP_CURRENT &&
-        ratesUpdate[i].params.variableRateSlope2 == EngineFlags.KEEP_CURRENT
-      ) revert NoAllKeepCurrent();
 
       (
         uint256 currentOptimalUsageRatio,
@@ -202,13 +187,6 @@ contract RiskSteward is Ownable, IRiskSteward {
         uint256 currentVariableRateSlope1,
         uint256 currentVariableRateSlope2
       ) = _getInterestRatesForAsset(asset);
-
-      if (
-        currentOptimalUsageRatio == ratesUpdate[i].params.optimalUsageRatio ||
-        currentBaseVariableBorrowRate == ratesUpdate[i].params.baseVariableBorrowRate ||
-        currentVariableRateSlope1 == ratesUpdate[i].params.variableRateSlope1 ||
-        currentVariableRateSlope2 == ratesUpdate[i].params.variableRateSlope2
-      ) revert NoSameUpdates();
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -266,13 +244,6 @@ contract RiskSteward is Ownable, IRiskSteward {
         revert ParamChangeNotAllowed();
 
       if (
-        collateralUpdates[i].ltv == EngineFlags.KEEP_CURRENT &&
-        collateralUpdates[i].liqThreshold == EngineFlags.KEEP_CURRENT &&
-        collateralUpdates[i].liqBonus == EngineFlags.KEEP_CURRENT &&
-        collateralUpdates[i].debtCeiling == EngineFlags.KEEP_CURRENT
-      ) revert NoAllKeepCurrent();
-
-      if (
         collateralUpdates[i].ltv == 0 ||
         collateralUpdates[i].liqThreshold == 0 ||
         collateralUpdates[i].liqBonus == 0 ||
@@ -292,16 +263,6 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       ) = POOL_DATA_PROVIDER.getReserveConfigurationData(asset);
       uint256 currentDebtCeiling = POOL_DATA_PROVIDER.getDebtCeiling(asset);
-
-      currentLiquidationBonus = currentLiquidationBonus - 100_00; // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
-      currentDebtCeiling = currentDebtCeiling / 100; // as the definition is with 2 decimals, and config engine does not take the decimals into account.
-
-      if (
-        currentLtv == collateralUpdates[i].ltv ||
-        currentLiquidationThreshold == collateralUpdates[i].liqThreshold ||
-        currentLiquidationBonus == collateralUpdates[i].liqBonus ||
-        currentDebtCeiling == collateralUpdates[i].debtCeiling
-      ) revert NoSameUpdates();
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -323,7 +284,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       );
       _validateParamUpdate(
         ParamUpdateValidationInput({
-          currentValue: currentLiquidationBonus,
+          currentValue: currentLiquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
           newValue: collateralUpdates[i].liqBonus,
           lastUpdated: _timelocks[asset].liquidationBonusLastUpdated,
           riskConfig: _riskConfig.liquidationBonus,
@@ -332,7 +293,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       );
       _validateParamUpdate(
         ParamUpdateValidationInput({
-          currentValue: currentDebtCeiling,
+          currentValue: currentDebtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
           newValue: collateralUpdates[i].debtCeiling,
           lastUpdated: _timelocks[asset].debtCeilingLastUpdated,
           riskConfig: _riskConfig.debtCeiling,
@@ -397,8 +358,6 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       // get current rate
       int256 currentPriceCap = IPriceCapAdapterStable(oracle).getPriceCap();
-
-      if (currentPriceCap.toUint256() == priceCapsUpdate[i].priceCap) revert NoSameUpdates();
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
