@@ -45,12 +45,7 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
    * @param guardian address of the guardian / owner of the stewards injector.
    * @param whitelistedAsset address of the whitelisted asset for which update can be injected.
    */
-  constructor(
-    address riskOracle,
-    address riskSteward,
-    address guardian,
-    address whitelistedAsset
-  ) {
+  constructor(address riskOracle, address riskSteward, address guardian, address whitelistedAsset) {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
     WHITELISTED_ASSET = whitelistedAsset;
@@ -62,10 +57,8 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
    * @dev run off-chain, checks if the latest update from risk oracle should be injected on risk steward
    */
   function checkUpkeep(bytes memory) public view virtual override returns (bool, bytes memory) {
-    IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE).getLatestUpdateByParameterAndMarket(
-      WHITELISTED_UPDATE_TYPE,
-      WHITELISTED_ASSET
-    );
+    IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE)
+      .getLatestUpdateByParameterAndMarket(WHITELISTED_UPDATE_TYPE, WHITELISTED_ASSET);
 
     if (_canUpdateBeInjected(updateRiskParams)) return (true, '');
 
@@ -77,10 +70,8 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
    * @dev executes injection of the latest update from the risk oracle into the risk steward.
    */
   function performUpkeep(bytes calldata) external override {
-    IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE).getLatestUpdateByParameterAndMarket(
-      WHITELISTED_UPDATE_TYPE,
-      WHITELISTED_ASSET
-    );
+    IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE)
+      .getLatestUpdateByParameterAndMarket(WHITELISTED_UPDATE_TYPE, WHITELISTED_ASSET);
 
     if (!_canUpdateBeInjected(updateRiskParams)) {
       revert UpdateCannotBeInjected();
@@ -114,7 +105,9 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
    * @param updateRiskParams struct containing the risk param update from the risk oralce to check if it can be injected.
    * @return true if the update could be injected to the risk steward, false otherwise.
    */
-  function _canUpdateBeInjected(IRiskOracle.RiskParameterUpdate memory updateRiskParams) internal view returns (bool) {
+  function _canUpdateBeInjected(
+    IRiskOracle.RiskParameterUpdate memory updateRiskParams
+  ) internal view returns (bool) {
     return (
       !isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&

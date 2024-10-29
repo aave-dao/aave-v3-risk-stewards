@@ -685,9 +685,11 @@ contract RiskSteward_Test is Test {
 
     vm.warp(block.timestamp + 1 days);
 
-    debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
-    ) / 100;
+    debtCeilingBefore =
+      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
+        AaveV3EthereumAssets.UNI_UNDERLYING
+      ) /
+      100;
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,

@@ -99,7 +99,9 @@ contract EdgeRiskSteward_Test is RiskSteward_Test {
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
 
   function test_updateLstPriceCap() public {
-    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](1);
+    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](
+      1
+    );
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
@@ -117,7 +119,8 @@ contract EdgeRiskSteward_Test is RiskSteward_Test {
   /* ----------------------------- Stable Price Cap Test ----------------------------- */
 
   function test_updateStablePriceCap() public {
-    IRiskSteward.PriceCapStableUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
+    IRiskSteward.PriceCapStableUpdate[]
+      memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,

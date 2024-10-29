@@ -242,7 +242,6 @@ contract RiskSteward is Ownable, IRiskSteward {
       if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT)
         revert ParamChangeNotAllowed();
-
       if (
         collateralUpdates[i].ltv == 0 ||
         collateralUpdates[i].liqThreshold == 0 ||

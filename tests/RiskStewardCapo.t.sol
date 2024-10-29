@@ -337,7 +337,9 @@ contract RiskSteward_Capo_Test is Test {
       .getSnapshotTimestamp();
 
     vm.startPrank(riskCouncil);
-    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](1);
+    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](
+      1
+    );
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
@@ -348,7 +350,9 @@ contract RiskSteward_Capo_Test is Test {
     });
 
     // if same snapshot timestamp is used reverts
-    vm.expectRevert(abi.encodeWithSelector(IPriceCapAdapter.InvalidRatioTimestamp.selector, snapshotTsBefore));
+    vm.expectRevert(
+      abi.encodeWithSelector(IPriceCapAdapter.InvalidRatioTimestamp.selector, snapshotTsBefore)
+    );
     steward.updateLstPriceCaps(priceCapUpdates);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
