@@ -40,12 +40,6 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
    * @notice This script doesn't broadcast as it's intended to be used via safe
    */
   function run(bool broadcastToSafe) external {
-    // TODO: remove once risk stewards are activated via governance
-    vm.startPrank(IOwnable(address(STEWARD)).owner());
-    address aclManager = STEWARD.POOL_DATA_PROVIDER().ADDRESSES_PROVIDER().getACLManager();
-    IACLManager(aclManager).grantRole(IACLManager(aclManager).RISK_ADMIN_ROLE(), address(STEWARD));
-    vm.stopPrank();
-
     vm.startPrank(STEWARD.RISK_COUNCIL());
     bytes[] memory callDatas = _simulateAndGenerateDiff();
     vm.stopPrank();
