@@ -99,7 +99,7 @@ export function prefixWithImports(code: string) {
   }
   // v3 config engine imports
   if (findMatch(code, 'IAaveV3ConfigEngine')) {
-    imports += `import {IAaveV3ConfigEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';\n`;
+    imports += `import {IAaveV3ConfigEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';\n`;
   }
   // v2 config engine imports
   if (findMatch(code, 'IAaveV2ConfigEngine')) {

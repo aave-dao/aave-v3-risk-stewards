@@ -19,7 +19,7 @@ libs = ['lib']
 solc = '0.8.20'
 fs_permissions = [{ access = "write", path = "./reports" }]
 ffi = true
-evm_version = 'paris'
+evm_version = 'shanghai'
 
 [profile.zksync.zksync]
 compile = true
