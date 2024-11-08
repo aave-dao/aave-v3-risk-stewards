@@ -11,7 +11,7 @@ import {EdgeRiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../s
 import {AaveStewardInjector, IAaveStewardInjector} from '../../src/contracts/AaveStewardInjector.sol';
 
 library DeployStewardContracts {
-  address constant EDGE_RISK_ORACLE = address(32); // TODO
+  address constant EDGE_RISK_ORACLE = 0x7ABB46C690C52E919687D19ebF89C81A6136C1F2;
 
   function _deployRiskStewards(
     address poolDataProvider,
@@ -70,6 +70,8 @@ library DeployStewardContracts {
 
 // make deploy-ledger contract=scripts/deploy/DeployInjector.s.sol:DeployEthereumLido chain=mainnet
 contract DeployEthereumLido is EthereumScript {
+  address constant GUARDIAN = 0xff37939808EcF199A2D599ef91D699Fb13dab7F7;
+
   function run() external {
     vm.startBroadcast();
     bytes32 salt = 'StewardInjector';
@@ -82,7 +84,7 @@ contract DeployEthereumLido is EthereumScript {
       GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
 
-    DeployStewardContracts._deployStewardsInjector(salt, riskSteward, msg.sender, AaveV3EthereumLidoAssets.WETH_UNDERLYING);
+    DeployStewardContracts._deployStewardsInjector(salt, riskSteward, GUARDIAN, AaveV3EthereumLidoAssets.WETH_UNDERLYING);
     vm.stopBroadcast();
   }
 }
