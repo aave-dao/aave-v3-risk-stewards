@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {AaveV3ArbitrumAssets} from 'aave-address-book/AaveV3Arbitrum.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
-import {EngineFlags} from 'aave-v3-periphery/contracts/v3-config-engine/EngineFlags.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsArbitrum} from '../../../scripts/networks/RiskStewardsArbitrum.s.sol';
 
 // make run-script network=arbitrum contract_path=src/contracts/examples/ArbitrumExample.sol:ArbitrumExample broadcast=false

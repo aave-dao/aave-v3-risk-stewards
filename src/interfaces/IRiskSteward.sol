@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
-import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/periphery/contracts/v3-config-engine/AaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
 /**
@@ -25,6 +25,11 @@ interface IRiskSteward {
    * @notice A single risk param update must not be increased / decreased by maxPercentChange configured
    */
   error UpdateNotInRange();
+
+  /**
+   * @notice The risk param update is not allowed on the Risk Steward.
+   */
+  error UpdateNotAllowed();
 
   /**
    * @notice There must be at least one risk param update per execution

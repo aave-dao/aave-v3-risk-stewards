@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAaveV3ConfigEngine as IEngine, IPool} from 'aave-v3-periphery/contracts/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {IAaveV3ConfigEngine as IEngine, IPool} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
 import {ProtocolV3TestBase} from 'aave-helpers/src/ProtocolV3TestBase.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
@@ -40,12 +40,6 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
    * @notice This script doesn't broadcast as it's intended to be used via safe
    */
   function run(bool broadcastToSafe) external {
-    // TODO: remove once risk stewards are activated via governance
-    vm.startPrank(IOwnable(address(STEWARD)).owner());
-    address aclManager = STEWARD.POOL_DATA_PROVIDER().ADDRESSES_PROVIDER().getACLManager();
-    IACLManager(aclManager).grantRole(IACLManager(aclManager).RISK_ADMIN_ROLE(), address(STEWARD));
-    vm.stopPrank();
-
     vm.startPrank(STEWARD.RISK_COUNCIL());
     bytes[] memory callDatas = _simulateAndGenerateDiff();
     vm.stopPrank();
