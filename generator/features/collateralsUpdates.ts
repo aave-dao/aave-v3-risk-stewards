@@ -9,7 +9,7 @@ import {percentPrompt, translateJsPercentToSol} from '../prompts/percentPrompt';
 
 export async function fetchCollateralUpdate(
   pool: PoolIdentifier,
-  required?: boolean,
+  required?: boolean
 ): Promise<CollateralUpdatePartial> {
   return {
     ltv: await percentPrompt({
@@ -24,10 +24,15 @@ export async function fetchCollateralUpdate(
       message: 'Liquidation bonus',
       required,
     }),
-    debtCeiling: await numberPrompt({
-      message: 'Debt ceiling',
-      required,
-    }),
+    debtCeiling: await numberPrompt(
+      {
+        message: 'Debt ceiling',
+        required,
+      },
+      {
+        skipTransform: false,
+      }
+    ),
     liqProtocolFee: await percentPrompt({
       message: 'Liquidation protocol fee',
       required,
@@ -73,7 +78,7 @@ export const collateralsUpdates: FeatureModule<CollateralUpdates> = {
                liqBonus: ${translateJsPercentToSol(cfg.liqBonus)},
                debtCeiling: ${translateJsNumberToSol(cfg.debtCeiling)},
                liqProtocolFee: ${translateJsPercentToSol(cfg.liqProtocolFee)}
-             });`,
+             });`
             )
             .join('\n')}
 

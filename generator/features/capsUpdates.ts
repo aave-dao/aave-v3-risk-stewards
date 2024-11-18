@@ -8,14 +8,24 @@ import {numberPrompt, translateJsNumberToSol} from '../prompts/numberPrompt';
 
 export async function fetchCapsUpdate(required?: boolean): Promise<CapsUpdatePartial> {
   return {
-    supplyCap: await numberPrompt({
-      message: 'New supply cap',
-      required,
-    }),
-    borrowCap: await numberPrompt({
-      message: 'New borrow cap',
-      required,
-    }),
+    supplyCap: await numberPrompt(
+      {
+        message: 'New supply cap',
+        required,
+      },
+      {
+        skipTransform: false,
+      }
+    ),
+    borrowCap: await numberPrompt(
+      {
+        message: 'New borrow cap',
+        required,
+      },
+      {
+        skipTransform: false,
+      }
+    ),
   };
 }
 
@@ -34,7 +44,7 @@ export const capsUpdates: FeatureModule<CapsUpdates> = {
     const response: CapsUpdates = [];
     for (const asset of assets) {
       console.log(`collecting info for ${asset}`);
-      response.push({asset, ...(await fetchCapsUpdate())});
+      response.push({asset, ...(await fetchCapsUpdate(true))});
     }
     return response;
   },
@@ -53,7 +63,7 @@ export const capsUpdates: FeatureModule<CapsUpdates> = {
                asset: ${translateAssetToAssetLibUnderlying(cfg.asset, pool)},
                supplyCap: ${translateJsNumberToSol(cfg.supplyCap)},
                borrowCap: ${translateJsNumberToSol(cfg.borrowCap)}
-             });`,
+             });`
             )
             .join('\n')}
 
