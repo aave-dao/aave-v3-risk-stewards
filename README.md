@@ -100,6 +100,7 @@ The `AaveStewardsInjector` contract also introduces an `EXPIRATION_PERIOD` to di
 
 ```sh
 cp .env.example .env
+yarn
 forge install
 ```
 
@@ -112,6 +113,76 @@ forge test
 ```
 
 <br>
+
+## Instructions and FAQ's
+
+### How to I use the generator tooling to bootstrap the update?
+
+Run `yarn generate` on your terminal in order to start the generator. The generator is a CLI tool which will generate the required helper contract which can be then run to submit updates to the risk steward. The generator will generate the helper contract in the `src/contracts/updates` directory.
+
+To get a full list of available commands run `yarn generate --help`
+
+```sh
+yarn generate --help
+yarn run v1.22.19
+$ tsx generator/cli --help
+Usage: proposal-generator [options]
+
+CLI to generate aave proposals
+
+Options:
+  -V, --version              output the version number
+  -f, --force                force creation (might overwrite existing files)
+  -p, --pools <pools...>      (choices: "AaveV3Ethereum", "AaveV3EthereumLido", "AaveV3EthereumEtherFi", "AaveV3Polygon",
+                             "AaveV3Avalanche", "AaveV3Optimism", "AaveV3Arbitrum", "AaveV3Metis", "AaveV3Base", "AaveV3Gnosis",
+                             "AaveV3Scroll", "AaveV3BNB")
+  -t, --title <string>       aip title
+  -a, --author <string>      author
+  -d, --discussion <string>  forum link
+  -c, --configFile <string>  path to config file
+  -h, --help                 display help for command
+```
+
+Running `yarn generate` you should be able to do the risk updates:
+
+```bash
+yarn generate
+yarn run v1.22.19
+$ tsx generator/cli
+? Chains this proposal targets AaveV3Ethereum
+? Short title of your steward update that will be used as contract name (please refrain from including author or date) TestRateUpdate
+? Author of your proposal BGD Labs
+? Link to forum discussion (Link to forum)
+
+? What do you want to do on AaveV3Ethereum? (Press <space> to select, <a> to toggle all, <i> to invert selection, and <enter> to proceed)
+❯◉ RateStrategiesUpdates
+ ◯ CapsUpdates (supplyCap, borrowCap)
+ ◯ CollateralsUpdates (ltv,lt,lb,debtCeiling,liqProtocolFee,eModeCategory)
+ ◯ LstPriceCapUpdates (snapshotTimestamp,snapshotRatio,maxYearlyRatioGrowthPercent)
+ ◯ StablePriceCapUpdates (priceCap)
+
+? Select the assets you want to amend WETH
+  Fetching info for WETH
+? optimalUtilizationRate 90 %
+? baseVariableBorrowRate 0 %
+? variableRateSlope1 2.5 %
+? variableRateSlope2 78 %
+✨  Done in 38.32s.
+```
+
+The generator generates the scripts for doing the updates in `src/contracts/updates` directory.
+
+The script can be executed by running: `make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false` where the bool inside the `broadcast=` determines if the calldata should be sent to safe. The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
+
+### Before I will submit anything to sign, how do I test out the update, or get visibility from what will happen?
+
+Running the script generated on the contracts in `src/contracts/updates` directory with `broadcast=false`, there will files written into the diffs directory, which will show the params changed for the asset by the update, with before and after values which can be validated with what update is expected.
+
+### Once I have full assurance it looks correct, how do I submit to Safe?
+
+Once the script on the comments of the generated contract has been run with `broadcast=false`, there will be calldata emitted on the console with the contract to call. Please copy the calldata and the contract to execute it on (i.e RiskSteward) from the console and input it on the [gnosis safe UI](https://app.safe.global/) transaction builder.
+
+If you wish to not use the UI and send the update directly please put `broadcast=true` when running the script to directly broadcast the tx using the gnosis safe.
 
 ## License
 
