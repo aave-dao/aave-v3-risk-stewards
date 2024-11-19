@@ -44,7 +44,7 @@ export const capsUpdates: FeatureModule<CapsUpdates> = {
     const response: CapsUpdates = [];
     for (const asset of assets) {
       console.log(`collecting info for ${asset}`);
-      response.push({asset, ...(await fetchCapsUpdate(true))});
+      response.push({asset, ...(await fetchCapsUpdate(false))});
     }
     return response;
   },
