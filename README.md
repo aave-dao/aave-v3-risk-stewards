@@ -100,7 +100,7 @@ The `AaveStewardsInjector` contract also introduces an `EXPIRATION_PERIOD` to di
 
 ```sh
 cp .env.example .env
-yarn
+npm install
 forge install
 ```
 
@@ -118,13 +118,12 @@ forge test
 
 ### How to I use the generator tooling to bootstrap the update?
 
-Run `yarn generate` on your terminal in order to start the generator. The generator is a CLI tool which will generate the required helper contract which can be then run to submit updates to the risk steward. The generator will generate the helper contract in the `src/contracts/updates` directory.
+Run `npm run generate` on your terminal in order to start the generator. The generator is a CLI tool which will generate the required helper contract which can be then run to submit updates to the risk steward. The generator will generate the helper contract in the `src/contracts/updates` directory.
 
-To get a full list of available commands run `yarn generate --help`
+To get a full list of available commands run `npm run generate --help`
 
 ```sh
-yarn generate --help
-yarn run v1.22.19
+npm run generate --help
 $ tsx generator/cli --help
 Usage: proposal-generator [options]
 
@@ -143,11 +142,11 @@ Options:
   -h, --help                 display help for command
 ```
 
-Running `yarn generate` you should be able to do the risk updates:
+Running `npm run generate` you should be able to do the risk updates:
 
 ```bash
-yarn generate
-yarn run v1.22.19
+npm run generate
+
 $ tsx generator/cli
 ? Chains this proposal targets AaveV3Ethereum
 ? Short title of your steward update that will be used as contract name (please refrain from including author or date) TestRateUpdate
