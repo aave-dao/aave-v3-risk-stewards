@@ -8,44 +8,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Foundry build n test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - uses: bgd-labs/action-rpc-env@main
-        with:
-          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
-
-      - name: Run Foundry setup
-        uses: bgd-labs/github-workflows/.github/actions/foundry-setup@main
-
-      - name: Run Forge tests
-        uses: bgd-labs/github-workflows/.github/actions/foundry-test@main
-
-      - name: Run Gas report
-        uses: bgd-labs/github-workflows/.github/actions/foundry-gas-report@main
-
-      - name: Save PR number
-        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          mkdir -p ./pr
-          echo $PR_NUMBER > /tmp/content/pr_number.txt
-
-      - uses: actions/upload-artifact@v4
-        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
-        with:
-          name: content
-          path: /tmp/content
-
-      # we let failing tests pass so we can log them in the comment, still we want the ci to fail
-      - name: Post test
-        if: ${{ env.testStatus != 0 }}
-        run: |
-          echo "tests failed"
-          exit 1
+  test-solidity:
+    uses: bgd-labs/github-workflows/.github/workflows/foundry-test.yml@main
+    secrets: inherit
+  test-js:
+    uses: bgd-labs/github-workflows/.github/workflows/test-node.yml@main
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    secrets: inherit
