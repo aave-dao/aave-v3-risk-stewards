@@ -100,7 +100,7 @@ The `AaveStewardsInjector` contract also introduces an `EXPIRATION_PERIOD` to di
 
 ```sh
 cp .env.example .env
-yarn
+npm install
 forge install
 ```
 
@@ -118,13 +118,12 @@ forge test
 
 ### How to I use the generator tooling to bootstrap the update?
 
-Run `yarn generate` on your terminal in order to start the generator. The generator is a CLI tool which will generate the required helper contract which can be then run to submit updates to the risk steward. The generator will generate the helper contract in the `src/contracts/updates` directory.
+Run `npm run generate` on your terminal in order to start the generator. The generator is a CLI tool which will generate the required helper contract which can be then run to submit updates to the risk steward. The generator will generate the helper contract in the `src/contracts/updates` directory.
 
-To get a full list of available commands run `yarn generate --help`
+To get a full list of available commands run `npm run generate --help`
 
 ```sh
-yarn generate --help
-yarn run v1.22.19
+npm run generate --help
 $ tsx generator/cli --help
 Usage: proposal-generator [options]
 
@@ -143,11 +142,11 @@ Options:
   -h, --help                 display help for command
 ```
 
-Running `yarn generate` you should be able to do the risk updates:
+Running `npm run generate` you should be able to do the risk updates:
 
 ```bash
-yarn generate
-yarn run v1.22.19
+npm run generate
+
 $ tsx generator/cli
 ? Chains this proposal targets AaveV3Ethereum
 ? Short title of your steward update that will be used as contract name (please refrain from including author or date) TestRateUpdate
@@ -172,11 +171,11 @@ $ tsx generator/cli
 
 The generator generates the scripts for doing the updates in `src/contracts/updates` directory.
 
-The script can be executed by running: `make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false` where the bool inside the `broadcast=` determines if the calldata should be sent to safe. The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
+The script can be executed by running: `make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false generate_diff=true` where the bool inside the `broadcast=` determines if the calldata should be sent to safe and `generate_diff=` determines if diff report should be generated. The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
 
 ### Before I will submit anything to sign, how do I test out the update, or get visibility from what will happen?
 
-Running the script generated on the contracts in `src/contracts/updates` directory with `broadcast=false`, there will files written into the diffs directory, which will show the params changed for the asset by the update, with before and after values which can be validated with what update is expected.
+Running the script generated on the contracts in `src/contracts/updates` directory with `generate_diff=true`, there will files written into the diffs directory, which will show the params changed for the asset by the update, with before and after values which can be validated with what update is expected.
 
 ### Once I have full assurance it looks correct, how do I submit to Safe?
 

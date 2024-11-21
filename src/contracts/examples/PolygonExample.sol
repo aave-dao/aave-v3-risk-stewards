@@ -6,7 +6,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsPolygon} from '../../../scripts/networks/RiskStewardsPolygon.s.sol';
 
-// make run-script network=polygon contract_path=src/contracts/examples/PolygonExample.sol:PolygonExample broadcast=false
+// make run-script network=polygon contract=src/contracts/examples/PolygonExample.sol:PolygonExample broadcast=false generate_diff=true
 contract PolygonExample is RiskStewardsPolygon {
   /**
    * @return string name identifier used for the diff
