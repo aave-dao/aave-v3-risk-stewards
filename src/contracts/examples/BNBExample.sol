@@ -6,7 +6,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsBNB} from '../../../scripts/networks/RiskStewardsBNB.s.sol';
 
-// make run-script network=bnb contract_path=src/contracts/examples/BNBExample.sol:BNBExample broadcast=false
+// make run-script network=bnb contract=src/contracts/examples/BNBExample.sol:BNBExample broadcast=false generate_diff=true
 contract BNBExample is RiskStewardsBNB {
   /**
    * @return string name identifier used for the diff

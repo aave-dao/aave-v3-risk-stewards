@@ -39,9 +39,9 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
   /**
    * @notice This script doesn't broadcast as it's intended to be used via safe
    */
-  function run(bool broadcastToSafe) external {
+  function run(bool broadcastToSafe, bool generateDiffReport) external {
     vm.startPrank(STEWARD.RISK_COUNCIL());
-    bytes[] memory callDatas = _simulateAndGenerateDiff();
+    bytes[] memory callDatas = _simulateAndGenerateDiff(generateDiffReport);
     vm.stopPrank();
 
     if (callDatas.length > 1) emit log_string('** multiple calldatas emitted, please execute them all **');
@@ -60,7 +60,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     }
   }
 
-  function _simulateAndGenerateDiff() internal returns (bytes[] memory) {
+  function _simulateAndGenerateDiff(bool generateDiffReport) internal returns (bytes[] memory) {
     bytes[] memory callDatas = new bytes[](MAX_TX);
     uint8 txCount;
 
@@ -73,7 +73,8 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     IRiskSteward.PriceCapLstUpdate[] memory lstPriceCapUpdates = lstPriceCapsUpdates();
     IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
 
-    createConfigurationSnapshot(pre, POOL);
+    bool rateUpdatesPresent = rateUpdates.length != 0;
+    if (generateDiffReport) createConfigurationSnapshot(pre, POOL, true, rateUpdatesPresent, false, false);
 
     if (capUpdates.length != 0) {
       callDatas[txCount] = abi.encodeWithSelector(
@@ -125,8 +126,10 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
       txCount++;
     }
 
-    createConfigurationSnapshot(post, POOL);
-    diffReports(pre, post);
+    if (generateDiffReport) {
+      createConfigurationSnapshot(post, POOL, true, rateUpdatesPresent, false, false);
+      diffReports(pre, post);
+    }
 
     // we defined the callDatas with MAX_TX size, we now squash it to the number of txs
     assembly {

@@ -6,7 +6,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsEthereumLido} from '../../../scripts/networks/RiskStewardsEthereumLido.s.sol';
 
-// make run-script network=mainnet contract_path=src/contracts/examples/EthereumLidoExample.sol:EthereumLidoExample broadcast=false
+// make run-script network=mainnet contract=src/contracts/examples/EthereumLidoExample.sol:EthereumLidoExample broadcast=false generate_diff=true
 contract EthereumLidoExample is RiskStewardsEthereumLido {
   /**
    * @return string name identifier used for the diff
