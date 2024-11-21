@@ -172,11 +172,11 @@ $ tsx generator/cli
 
 The generator generates the scripts for doing the updates in `src/contracts/updates` directory.
 
-The script can be executed by running: `make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false` where the bool inside the `broadcast=` determines if the calldata should be sent to safe. The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
+The script can be executed by running: `make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false generate_diff=true` where the bool inside the `broadcast=` determines if the calldata should be sent to safe and `generate_diff=` determines if diff report should be generated. The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
 
 ### Before I will submit anything to sign, how do I test out the update, or get visibility from what will happen?
 
-Running the script generated on the contracts in `src/contracts/updates` directory with `broadcast=false`, there will files written into the diffs directory, which will show the params changed for the asset by the update, with before and after values which can be validated with what update is expected.
+Running the script generated on the contracts in `src/contracts/updates` directory with `generate_diff=true`, there will files written into the diffs directory, which will show the params changed for the asset by the update, with before and after values which can be validated with what update is expected.
 
 ### Once I have full assurance it looks correct, how do I submit to Safe?
 
