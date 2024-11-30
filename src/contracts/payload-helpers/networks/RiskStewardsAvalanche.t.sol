@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {AaveV3Avalanche} from 'aave-address-book/AaveV3Avalanche.sol';
-import {RiskStewardsBase} from '../RiskStewardsBase.s.sol';
+import {RiskStewardsBase} from '../RiskStewardsBase.t.sol';
 
 abstract contract RiskStewardsAvalanche is RiskStewardsBase {
   constructor()

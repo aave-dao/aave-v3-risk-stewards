@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
-import {RiskStewardsEthereum} from '../../../scripts/networks/RiskStewardsEthereum.s.sol';
+import {RiskStewardsEthereum} from '../payload-helpers/networks/RiskStewardsEthereum.t.sol';
 import {IRiskSteward, IPriceCapAdapter} from '../../interfaces/IRiskSteward.sol';
 
 // make run-script network=mainnet contract=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false generate_diff=true

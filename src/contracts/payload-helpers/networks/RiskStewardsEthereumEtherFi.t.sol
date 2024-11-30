@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {AaveV3EthereumEtherFi} from 'aave-address-book/AaveV3EthereumEtherFi.sol';
-import {RiskStewardsBase} from '../RiskStewardsBase.s.sol';
+import {RiskStewardsBase} from '../RiskStewardsBase.t.sol';
 
 abstract contract RiskStewardsEthereumEtherFi is RiskStewardsBase {
   constructor()
