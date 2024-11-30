@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {AaveV3OptimismAssets} from 'aave-address-book/AaveV3Optimism.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
-import {RiskStewardsOptimism} from '../../../scripts/networks/RiskStewardsOptimism.s.sol';
+import {RiskStewardsOptimism} from '../payload-helpers/networks/RiskStewardsOptimism.t.sol';
 
 // make run-script network=optimism contract=src/contracts/examples/OptimismExample.sol:OptimismExample broadcast=false generate_diff=true
 contract OptimismExample is RiskStewardsOptimism {

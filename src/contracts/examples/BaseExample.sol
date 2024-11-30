@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {AaveV3BaseAssets} from 'aave-address-book/AaveV3Base.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
-import {RiskStewardsBaseChain} from '../../../scripts/networks/RiskStewardsBaseChain.s.sol';
+import {RiskStewardsBaseChain} from '../payload-helpers/networks/RiskStewardsBaseChain.t.sol';
 
 // make run-script network=base contract=src/contracts/examples/BaseExample.sol:BaseExample broadcast=false generate_diff=true
 contract BaseExample is RiskStewardsBaseChain {

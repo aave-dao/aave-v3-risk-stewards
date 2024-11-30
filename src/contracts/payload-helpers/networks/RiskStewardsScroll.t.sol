@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {AaveV3Scroll} from 'aave-address-book/AaveV3Scroll.sol';
-import {RiskStewardsBase} from '../RiskStewardsBase.s.sol';
+import {RiskStewardsBase} from '../RiskStewardsBase.t.sol';
 
 abstract contract RiskStewardsScroll is RiskStewardsBase {
   constructor()

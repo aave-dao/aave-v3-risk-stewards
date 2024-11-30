@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {AaveV3Polygon} from 'aave-address-book/AaveV3Polygon.sol';
-import {RiskStewardsBase} from '../RiskStewardsBase.s.sol';
+import {RiskStewardsBase} from '../RiskStewardsBase.t.sol';
 
 abstract contract RiskStewardsPolygon is RiskStewardsBase {
   constructor()

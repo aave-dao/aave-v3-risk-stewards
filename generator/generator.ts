@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import {generateContractName, generateFolderName} from './common';
+import {generateContractName, generateScriptName, generateFolderName} from './common';
 import {proposalTemplate} from './templates/proposal.template';
+import {scriptTemplate} from './templates/script.template';
 import {confirm} from '@inquirer/prompts';
 import {ConfigFile, Options, PoolConfigs, PoolIdentifier, Files} from './types';
 import prettier from 'prettier';
@@ -41,9 +42,23 @@ export async function generateFiles(options: Options, poolConfigs: PoolConfigs):
     };
   }
 
+  async function createScript(options: Options, pool: PoolIdentifier) {
+    const contractName = generateScriptName(options, pool);
+
+    return {
+      pool,
+      script: await prettier.format(scriptTemplate(options, pool), {
+        ...prettierSolCfg,
+        filepath: 'foo.sol',
+      }),
+      contractName: contractName,
+    };
+  }
+
   return {
     jsonConfig,
     payloads: await Promise.all(options.pools.map((pool) => createPayload(options, pool))),
+    scripts: await Promise.all(options.pools.map((pool) => createScript(options, pool))),
   };
 }
 
@@ -66,14 +81,14 @@ async function askBeforeWrite(options: Options, path: string, content: string) {
  * @param options
  * @param param1
  */
-export async function writeFiles(options: Options, {jsonConfig, payloads}: Files) {
+export async function writeFiles(options: Options, {jsonConfig, payloads, scripts}: Files) {
   const baseName = generateFolderName(options);
   const baseFolder = path.join(process.cwd(), 'src/contracts/updates/', baseName);
 
   if (fs.existsSync(baseFolder)) {
     if (!options.force && fs.existsSync(baseFolder)) {
       const force = await confirm({
-        message: 'A proposal already exists at that location, do you want to continue?',
+        message: 'A update already exists at that location, do you want to continue?',
         default: false,
       });
       if (!force) return;
@@ -88,8 +103,15 @@ export async function writeFiles(options: Options, {jsonConfig, payloads}: Files
   for (const {payload, contractName} of payloads) {
     await askBeforeWrite(
       options,
-      path.join(baseFolder, `${contractName}.sol`),
+      path.join(baseFolder, `${contractName}.t.sol`),
       payload,
+    );
+  }
+  for (const {script, contractName} of scripts) {
+    await askBeforeWrite(
+      options,
+      path.join(baseFolder, `${contractName}.s.sol`),
+      script,
     );
   }
 }
