@@ -31,4 +31,4 @@ git-diff :
 deploy-ledger :; FOUNDRY_PROFILE=${chain} forge script $(if $(filter zksync,${chain}),--zksync) ${contract} --rpc-url ${chain} $(if ${dry},--sender 0x25F2226B597E8F9514B3F68F00f494cF4f286491 -vvvv, --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv --slow --broadcast)
 deploy-pk :; FOUNDRY_PROFILE=${chain} forge script $(if $(filter zksync,${chain}),--zksync) ${contract} --rpc-url ${chain} $(if ${dry},--sender 0x25F2226B597E8F9514B3F68F00f494cF4f286491 -vvvv, --private-key ${PRIVATE_KEY} --verify -vvvv --slow --broadcast)
 
-run-script:; FOUNDRY_PROFILE=${network} forge script ${contract} --rpc-url ${network} --sig "run(bool, bool)" ${broadcast} ${generate_diff} -vv
+run-test:; FOUNDRY_PROFILE=${network} GENERATE_DIFF=${generate_diff} forge test --mc ${contract} -vv

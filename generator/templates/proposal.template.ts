@@ -1,4 +1,4 @@
-import {generateContractName, getPoolChain, generateFolderName, getChainAlias} from '../common';
+import {generateContractName, getPoolChain, getChainAlias} from '../common';
 import {Options, PoolConfig, PoolIdentifier} from '../types';
 import {prefixWithImports} from '../utils/importsResolver';
 import {prefixWithPragma} from '../utils/constants';
@@ -10,7 +10,6 @@ export const proposalTemplate = (
 ) => {
   const {title, author, discussion} = options;
   const chain = getPoolChain(pool);
-  const folderName = generateFolderName(options);
   const contractName = generateContractName(options, pool);
 
   const functions = poolConfig.artifacts
@@ -23,10 +22,15 @@ export const proposalTemplate = (
   * @title ${title || 'TODO'}
   * @author ${author || 'TODO'}
   * - discussion: ${discussion || 'TODO'}
-  * - deploy-command: make run-script contract=src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(chain)} broadcast=false generate_diff=true
+  * - test-command: make run-test contract=${contractName} network=${getChainAlias(chain)} generate_diff=true
   */
  contract ${contractName} is ${`RiskStewards${chain}`
  } {
+  function setUp() public override {
+    vm.createSelectFork(vm.rpcUrl('${getChainAlias(chain)}'), ${poolConfig.cache.blockNumber});
+    super.setUp(); // TODO: remove once deployed
+  }
+
   function name() public pure override returns (string memory) {
     return '${contractName}';
   }
