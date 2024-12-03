@@ -6,6 +6,7 @@ import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
 import {ProtocolV3TestBase} from 'aave-helpers/src/ProtocolV3TestBase.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {IACLManager} from 'aave-address-book/AaveV3.sol';
+import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
 
 abstract contract RiskStewardsBase is ProtocolV3TestBase {
   error FailedUpdate();
@@ -30,21 +31,32 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     returns (IEngine.RateStrategyUpdate[] memory)
   {}
 
-  function lstPriceCapsUpdates() public pure virtual returns (IRiskSteward.PriceCapLstUpdate[] memory) {}
+  function lstPriceCapsUpdates()
+    public
+    pure
+    virtual
+    returns (IRiskSteward.PriceCapLstUpdate[] memory)
+  {}
 
-  function stablePriceCapsUpdates() public pure virtual returns (IRiskSteward.PriceCapStableUpdate[] memory) {}
+  function stablePriceCapsUpdates()
+    public
+    pure
+    virtual
+    returns (IRiskSteward.PriceCapStableUpdate[] memory)
+  {}
 
   function name() public pure virtual returns (string memory);
 
   /**
    * @notice This script doesn't broadcast as it's intended to be used via safe
    */
-  function run(bool broadcastToSafe, bool generateDiffReport) external {
+  function run(bool broadcastToSafe, bool generateDiffReport, bool skipTimelock) external {
     vm.startPrank(STEWARD.RISK_COUNCIL());
-    bytes[] memory callDatas = _simulateAndGenerateDiff(generateDiffReport);
+    bytes[] memory callDatas = _simulateAndGenerateDiff(generateDiffReport, skipTimelock);
     vm.stopPrank();
 
-    if (callDatas.length > 1) emit log_string('** multiple calldatas emitted, please execute them all **');
+    if (callDatas.length > 1)
+      emit log_string('** multiple calldatas emitted, please execute them all **');
     emit log_string('safe address');
     emit log_address(STEWARD.RISK_COUNCIL());
     emit log_string('steward address:');
@@ -60,7 +72,10 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     }
   }
 
-  function _simulateAndGenerateDiff(bool generateDiffReport) internal returns (bytes[] memory) {
+  function _simulateAndGenerateDiff(
+    bool generateDiffReport,
+    bool skipTimelock
+  ) internal returns (bytes[] memory) {
     bytes[] memory callDatas = new bytes[](MAX_TX);
     uint8 txCount;
 
@@ -74,15 +89,17 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
 
     bool rateUpdatesPresent = rateUpdates.length != 0;
-    if (generateDiffReport) createConfigurationSnapshot(pre, POOL, true, rateUpdatesPresent, false, false);
+    if (generateDiffReport)
+      createConfigurationSnapshot(pre, POOL, true, rateUpdatesPresent, false, false);
 
     if (capUpdates.length != 0) {
-      callDatas[txCount] = abi.encodeWithSelector(
-        IRiskSteward.updateCaps.selector,
-        capUpdates
-      );
+      callDatas[txCount] = abi.encodeWithSelector(IRiskSteward.updateCaps.selector, capUpdates);
       (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
-      _verifyCallResult(success, resultData);
+
+      if (!(skipTimelock && bytes4(resultData) == IRiskSteward.DebounceNotRespected.selector)) {
+        _verifyCallResult(success, resultData);
+      }
+
       txCount++;
     }
 
@@ -97,10 +114,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     }
 
     if (rateUpdates.length != 0) {
-      callDatas[txCount] = abi.encodeWithSelector(
-        IRiskSteward.updateRates.selector,
-        rateUpdates
-      );
+      callDatas[txCount] = abi.encodeWithSelector(IRiskSteward.updateRates.selector, rateUpdates);
       (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
       _verifyCallResult(success, resultData);
       txCount++;
