@@ -11,9 +11,6 @@ export const proposalTemplate = (
   const {title, author, discussion} = options;
   const chain = getPoolChain(pool);
 
-  // Edge case: use BaseChain instead of Base for RiskStewards network
-  const riskStewardChain = chain === 'Base' ? 'BaseChain' : chain;
-
   const folderName = generateFolderName(options);
   const contractName = generateContractName(options, pool);
 
@@ -31,7 +28,7 @@ export const proposalTemplate = (
     chain
   )} broadcast=false generate_diff=true
   */
- contract ${contractName} is ${`RiskStewards${riskStewardChain}`} {
+ contract ${contractName} is ${`RiskStewards${chain === 'Base' ? 'BaseChain' : chain}`} {
   function name() public pure override returns (string memory) {
     return '${contractName}';
   }
