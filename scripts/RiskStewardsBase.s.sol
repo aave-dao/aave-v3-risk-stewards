@@ -6,7 +6,6 @@ import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
 import {ProtocolV3TestBase} from 'aave-helpers/src/ProtocolV3TestBase.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {IACLManager} from 'aave-address-book/AaveV3.sol';
-import {IRiskSteward} from '../src/interfaces/IRiskSteward.sol';
 
 abstract contract RiskStewardsBase is ProtocolV3TestBase {
   error FailedUpdate();
