@@ -19,12 +19,11 @@ export const V3_POOLS = [
   'AaveV3Base',
   'AaveV3Gnosis',
   'AaveV3Scroll',
-  'AaveV3BNB'
+  'AaveV3BNB',
+  'AaveV3ZkSync',
 ] as const satisfies readonly (keyof typeof addressBook)[];
 
-export const POOLS = [
-  ...V3_POOLS,
-] as const satisfies readonly (keyof typeof addressBook)[];
+export const POOLS = [...V3_POOLS] as const satisfies readonly (keyof typeof addressBook)[];
 
 export type PoolIdentifier = (typeof POOLS)[number];
 export type PoolIdentifierV3 = (typeof V3_POOLS)[number];
