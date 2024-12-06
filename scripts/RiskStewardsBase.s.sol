@@ -87,6 +87,44 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     IRiskSteward.PriceCapLstUpdate[] memory lstPriceCapUpdates = lstPriceCapsUpdates();
     IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
 
+    if (skipTimelock) {
+      // warp to the max timelock
+
+      uint40[] memory timelocks = new uint40[](12);
+      uint256 index = 0; // Track the current index for adding elements
+
+      IRiskSteward.Config memory riskConfig = STEWARD.getRiskConfig();
+      if (capUpdates.length != 0) {
+        timelocks[index++] = riskConfig.supplyCap.minDelay;
+        timelocks[index++] = riskConfig.borrowCap.minDelay;
+      }
+      if (collateralUpdates.length != 0) {
+        timelocks[index++] = riskConfig.ltv.minDelay;
+        timelocks[index++] = riskConfig.liquidationThreshold.minDelay;
+        timelocks[index++] = riskConfig.liquidationBonus.minDelay;
+        timelocks[index++] = riskConfig.debtCeiling.minDelay;
+      }
+      if (rateUpdates.length != 0) {
+        timelocks[index++] = riskConfig.baseVariableBorrowRate.minDelay;
+        timelocks[index++] = riskConfig.optimalUsageRatio.minDelay;
+        timelocks[index++] = riskConfig.variableRateSlope1.minDelay;
+        timelocks[index++] = riskConfig.variableRateSlope2.minDelay;
+      }
+      if (lstPriceCapUpdates.length != 0) {
+        timelocks[index++] = riskConfig.priceCapLst.minDelay;
+      }
+      if (stablePriceCapUpdates.length != 0) {
+        timelocks[index++] = riskConfig.priceCapStable.minDelay;
+      }
+      uint40 maxTimelock = 0;
+      for (uint256 i = 0; i < timelocks.length; i++) {
+        if (timelocks[i] > maxTimelock) {
+          maxTimelock = timelocks[i];
+        }
+      }
+      vm.warp(block.timestamp + uint256(maxTimelock) + 1);
+    }
+
     bool rateUpdatesPresent = rateUpdates.length != 0;
     if (generateDiffReport)
       createConfigurationSnapshot(pre, POOL, true, rateUpdatesPresent, false, false);
@@ -94,10 +132,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     if (capUpdates.length != 0) {
       callDatas[txCount] = abi.encodeWithSelector(IRiskSteward.updateCaps.selector, capUpdates);
       (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
-
-      if (!(skipTimelock && bytes4(resultData) == IRiskSteward.DebounceNotRespected.selector)) {
-        _verifyCallResult(success, resultData);
-      }
+      _verifyCallResult(success, resultData);
 
       txCount++;
     }
