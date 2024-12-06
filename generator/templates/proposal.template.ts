@@ -10,6 +10,7 @@ export const proposalTemplate = (
 ) => {
   const {title, author, discussion} = options;
   const chain = getPoolChain(pool);
+
   const folderName = generateFolderName(options);
   const contractName = generateContractName(options, pool);
 
@@ -27,7 +28,7 @@ export const proposalTemplate = (
     chain
   )} broadcast=false generate_diff=true skip_timelock=false
   */
- contract ${contractName} is ${`RiskStewards${chain}`} {
+ contract ${contractName} is ${`RiskStewards${chain === 'Base' ? 'BaseChain' : chain}`} {
   function name() public pure override returns (string memory) {
     return '${contractName}';
   }
