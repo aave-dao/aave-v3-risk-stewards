@@ -6,7 +6,7 @@ import {prefixWithPragma} from '../utils/constants';
 export const proposalTemplate = (
   options: Options,
   poolConfig: PoolConfig,
-  pool: PoolIdentifier,
+  pool: PoolIdentifier
 ) => {
   const {title, author, discussion} = options;
   const chain = getPoolChain(pool);
@@ -23,10 +23,11 @@ export const proposalTemplate = (
   * @title ${title || 'TODO'}
   * @author ${author || 'TODO'}
   * - discussion: ${discussion || 'TODO'}
-  * - deploy-command: make run-script contract=src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(chain)} broadcast=false generate_diff=true
+  * - deploy-command: make run-script contract=src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(
+    chain
+  )} broadcast=false generate_diff=true skip_timelock=false
   */
- contract ${contractName} is ${`RiskStewards${chain}`
- } {
+ contract ${contractName} is ${`RiskStewards${chain}`} {
   function name() public pure override returns (string memory) {
     return '${contractName}';
   }

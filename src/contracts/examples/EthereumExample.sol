@@ -7,7 +7,7 @@ import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-eng
 import {RiskStewardsEthereum} from '../../../scripts/networks/RiskStewardsEthereum.s.sol';
 import {IRiskSteward, IPriceCapAdapter} from '../../interfaces/IRiskSteward.sol';
 
-// make run-script network=mainnet contract=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false generate_diff=true
+// make run-script network=mainnet contract=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false generate_diff=true skip_timelock=false
 contract EthereumExample is RiskStewardsEthereum {
   /**
    * @return string name identifier used for the diff
@@ -16,8 +16,15 @@ contract EthereumExample is RiskStewardsEthereum {
     return 'ethereum_example';
   }
 
-  function lstPriceCapsUpdates() public pure override returns (IRiskSteward.PriceCapLstUpdate[] memory) {
-    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](1);
+  function lstPriceCapsUpdates()
+    public
+    pure
+    override
+    returns (IRiskSteward.PriceCapLstUpdate[] memory)
+  {
+    IRiskSteward.PriceCapLstUpdate[] memory priceCapUpdates = new IRiskSteward.PriceCapLstUpdate[](
+      1
+    );
 
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: AaveV3EthereumAssets.wstETH_ORACLE,
