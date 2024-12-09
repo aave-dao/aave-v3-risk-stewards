@@ -6,7 +6,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsArbitrum} from '../../../scripts/networks/RiskStewardsArbitrum.s.sol';
 
-// make run-script network=arbitrum contract=src/contracts/examples/ArbitrumExample.sol:ArbitrumExample broadcast=false generate_diff=true
+// make run-script network=arbitrum contract=src/contracts/examples/ArbitrumExample.sol:ArbitrumExample broadcast=false generate_diff=true skip_timelock=false
 contract ArbitrumExample is RiskStewardsArbitrum {
   /**
    * @return string name identifier used for the diff
