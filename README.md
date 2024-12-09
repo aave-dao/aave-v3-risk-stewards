@@ -175,7 +175,7 @@ The script can be executed by running: `make run-script network=mainnet contrac
 
 - `broadcast=` determines if the calldata should be sent to safe
 - `generate_diff=` determines if diff report should be generated
-- `skip_timelock=` determines if caps update timelock errors should revert the script
+- `skip_timelock=` determines if timelock errors should revert the script, helpful in generating diff report / calldata when the current timelock has not ended.
 
 The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
 
