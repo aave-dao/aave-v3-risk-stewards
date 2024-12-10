@@ -171,7 +171,13 @@ $ tsx generator/cli
 
 The generator generates the scripts for doing the updates in `src/contracts/updates` directory.
 
-The script can be executed by running: `make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false generate_diff=true` where the bool inside the `broadcast=` determines if the calldata should be sent to safe and `generate_diff=` determines if diff report should be generated. The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
+The script can be executed by running: `make run-script network=mainnet contract_path=src/contracts/examples/EthereumExample.sol:EthereumExample broadcast=false generate_diff=true skip_timelock=false` where:
+
+- `broadcast=` determines if the calldata should be sent to safe
+- `generate_diff=` determines if diff report should be generated
+- `skip_timelock=` determines if timelock errors should revert the script, helpful in generating diff report / calldata when the current timelock has not ended.
+
+The script also emits the calldata for doing the update in the console which can be used on the safe manually as well.
 
 ### Before I will submit anything to sign, how do I test out the update, or get visibility from what will happen?
 

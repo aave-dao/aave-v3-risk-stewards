@@ -26,7 +26,7 @@ export const proposalTemplate = (
   * - discussion: ${discussion || 'TODO'}
   * - deploy-command: make run-script contract=${chain == 'ZkSync' ? 'zksync/' : ''}src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(
     chain
-  )} broadcast=false generate_diff=true
+  )} broadcast=false generate_diff=true skip_timelock=false
   */
  contract ${contractName} is ${`RiskStewards${chain === 'Base' ? 'BaseChain' : chain}`} {
   function name() public pure override returns (string memory) {
