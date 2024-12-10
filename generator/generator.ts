@@ -69,8 +69,10 @@ async function askBeforeWrite(options: Options, path: string, content: string) {
 export async function writeFiles(options: Options, {jsonConfig, payloads}: Files) {
   const baseName = generateFolderName(options);
   const baseFolder = path.join(process.cwd(), 'src/contracts/updates/', baseName);
+  const zkSyncBaseFolder = path.join(process.cwd(), 'zksync/src/contracts/updates', baseName);
+  const isZkSync = options.pools.includes('AaveV3ZkSync');
 
-  if (fs.existsSync(baseFolder)) {
+  if (fs.existsSync(baseFolder) || (isZkSync && fs.existsSync(zkSyncBaseFolder))) {
     if (!options.force && fs.existsSync(baseFolder)) {
       const force = await confirm({
         message: 'A proposal already exists at that location, do you want to continue?',
@@ -79,16 +81,25 @@ export async function writeFiles(options: Options, {jsonConfig, payloads}: Files
       if (!force) return;
     }
   } else {
-    fs.mkdirSync(baseFolder, {recursive: true});
+    if (isZkSync) {
+      fs.mkdirSync(zkSyncBaseFolder, {recursive: true});
+    }
+    if (!isZkSync || options.pools.length > 1) {
+      fs.mkdirSync(baseFolder, {recursive: true});
+    }
   }
 
   // write config
-  await askBeforeWrite(options, path.join(baseFolder, 'config.ts'), jsonConfig);
+  await askBeforeWrite(
+    options,
+    path.join(isZkSync ? zkSyncBaseFolder : baseFolder, 'config.ts'),
+    jsonConfig
+  );
 
-  for (const {payload, contractName} of payloads) {
+  for (const {pool, payload, contractName} of payloads) {
     await askBeforeWrite(
       options,
-      path.join(baseFolder, `${contractName}.sol`),
+      path.join(pool === 'AaveV3ZkSync' ? zkSyncBaseFolder : baseFolder, `${contractName}.sol`),
       payload,
     );
   }

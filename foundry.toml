@@ -24,8 +24,8 @@ evm_version = 'shanghai'
 [profile.zksync.zksync]
 compile = true
 fallback_oz = true
-mode = '3'
-zksolc = '1.5.3'
+optimizer_mode = 'z'
+zksolc = '1.5.7'
 
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"

@@ -73,8 +73,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     IRiskSteward.PriceCapLstUpdate[] memory lstPriceCapUpdates = lstPriceCapsUpdates();
     IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
 
-    bool rateUpdatesPresent = rateUpdates.length != 0;
-    if (generateDiffReport) createConfigurationSnapshot(pre, POOL, true, rateUpdatesPresent, false, false);
+    if (generateDiffReport) createConfigurationSnapshot(pre, POOL, true, true, false, false);
 
     if (capUpdates.length != 0) {
       callDatas[txCount] = abi.encodeWithSelector(
@@ -127,7 +126,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     }
 
     if (generateDiffReport) {
-      createConfigurationSnapshot(post, POOL, true, rateUpdatesPresent, false, false);
+      createConfigurationSnapshot(post, POOL, true, true, false, false);
       diffReports(pre, post);
     }
 
