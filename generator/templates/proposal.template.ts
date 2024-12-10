@@ -24,7 +24,7 @@ export const proposalTemplate = (
   * @title ${title || 'TODO'}
   * @author ${author || 'TODO'}
   * - discussion: ${discussion || 'TODO'}
-  * - deploy-command: make run-script contract=src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(
+  * - deploy-command: make run-script contract=${chain == 'ZkSync' ? 'zksync/' : ''}src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(
     chain
   )} broadcast=false generate_diff=true skip_timelock=false
   */

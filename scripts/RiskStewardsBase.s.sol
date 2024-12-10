@@ -125,9 +125,8 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
       vm.warp(block.timestamp + uint256(maxTimelock) + 1);
     }
 
-    bool rateUpdatesPresent = rateUpdates.length != 0;
     if (generateDiffReport)
-      createConfigurationSnapshot(pre, POOL, true, rateUpdatesPresent, false, false);
+      createConfigurationSnapshot(pre, POOL, true, true, false, false);
 
     if (capUpdates.length != 0) {
       callDatas[txCount] = abi.encodeWithSelector(IRiskSteward.updateCaps.selector, capUpdates);
@@ -175,7 +174,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     }
 
     if (generateDiffReport) {
-      createConfigurationSnapshot(post, POOL, true, rateUpdatesPresent, false, false);
+      createConfigurationSnapshot(post, POOL, true, true, false, false);
       diffReports(pre, post);
     }
 
