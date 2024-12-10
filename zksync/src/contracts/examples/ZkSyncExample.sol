@@ -6,7 +6,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsZkSync} from '../../../../scripts/networks/RiskStewardsZkSync.s.sol';
 
-// make run-script network=zksync contract=zksync/src/contracts/examples/ZkSyncExample.sol broadcast=false generate_diff=true
+// make run-script network=zksync contract=zksync/src/contracts/examples/ZkSyncExample.sol broadcast=false generate_diff=true skip_timelock=false
 contract ZkSyncExample is RiskStewardsZkSync {
   /**
    * @return string name identifier used for the diff
