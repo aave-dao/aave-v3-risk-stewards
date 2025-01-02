@@ -2,7 +2,17 @@
 pragma solidity ^0.8.0;
 
 import 'solidity-utils/contracts/utils/ScriptUtils.sol';
-import 'aave-address-book/AaveAddressBook.sol';
+import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
+import {AaveV3EthereumLido} from 'aave-address-book/AaveV3EthereumLido.sol';
+import {AaveV3EthereumEtherFi} from 'aave-address-book/AaveV3EthereumEtherFi.sol';
+import {AaveV3Polygon} from 'aave-address-book/AaveV3Polygon.sol';
+import {AaveV3Arbitrum} from 'aave-address-book/AaveV3Arbitrum.sol';
+import {AaveV3Avalanche} from 'aave-address-book/AaveV3Avalanche.sol';
+import {AaveV3Scroll} from 'aave-address-book/AaveV3Scroll.sol';
+import {AaveV3Gnosis} from 'aave-address-book/AaveV3Gnosis.sol';
+import {AaveV3BNB} from 'aave-address-book/AaveV3BNB.sol';
+import {AaveV3Base} from 'aave-address-book/AaveV3Base.sol';
+import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {RiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/RiskSteward.sol';
 
@@ -26,20 +36,30 @@ library DeployRiskStewards {
   }
 
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
-    return IRiskSteward.Config({
-      ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 25}),
-      liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 25}),
-      liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-      supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
-      borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
-      debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
-      baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-      variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-      variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
-      optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00}),
-      priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
-      priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
-    });
+    return
+      IRiskSteward.Config({
+        ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 25}),
+        liquidationThreshold: IRiskSteward.RiskParamConfig({
+          minDelay: 3 days,
+          maxPercentChange: 25
+        }),
+        liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+        supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
+        borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
+        debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
+        baseVariableBorrowRate: IRiskSteward.RiskParamConfig({
+          minDelay: 3 days,
+          maxPercentChange: 50
+        }),
+        variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+        variableRateSlope2: IRiskSteward.RiskParamConfig({
+          minDelay: 3 days,
+          maxPercentChange: 5_00
+        }),
+        optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00}),
+        priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
+        priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
+      });
   }
 }
 
