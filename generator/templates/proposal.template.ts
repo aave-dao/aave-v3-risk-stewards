@@ -1,4 +1,10 @@
-import {generateContractName, getPoolChain, generateFolderName, getChainAlias} from '../common';
+import {
+  generateContractName,
+  getPoolChain,
+  generateFolderName,
+  getChainAlias,
+  getPoolSuffix,
+} from '../common';
 import {Options, PoolConfig, PoolIdentifier} from '../types';
 import {prefixWithImports} from '../utils/importsResolver';
 import {prefixWithPragma} from '../utils/constants';
@@ -10,6 +16,7 @@ export const proposalTemplate = (
 ) => {
   const {title, author, discussion} = options;
   const chain = getPoolChain(pool);
+  const poolSuffix = getPoolSuffix(pool);
 
   const folderName = generateFolderName(options);
   const contractName = generateContractName(options, pool);
@@ -24,11 +31,13 @@ export const proposalTemplate = (
   * @title ${title || 'TODO'}
   * @author ${author || 'TODO'}
   * - discussion: ${discussion || 'TODO'}
-  * - deploy-command: make run-script contract=${chain == 'ZkSync' ? 'zksync/' : ''}src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(
+  * - deploy-command: make run-script contract=${
+    chain == 'ZkSync' ? 'zksync/' : ''
+  }src/contracts/updates/${folderName}/${contractName}.sol:${contractName} network=${getChainAlias(
     chain
   )} broadcast=false generate_diff=true skip_timelock=false
   */
- contract ${contractName} is ${`RiskStewards${chain === 'Base' ? 'BaseChain' : chain}`} {
+ contract ${contractName} is ${`RiskStewards${poolSuffix === 'Base' ? 'BaseChain' : poolSuffix}`} {
   function name() public pure override returns (string memory) {
     return '${contractName}';
   }
