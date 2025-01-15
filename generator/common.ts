@@ -50,6 +50,10 @@ export function getPoolChain(pool: PoolIdentifier) {
   return chain;
 }
 
+export function getPoolSuffix(pool: PoolIdentifier) {
+  return pool.replace('AaveV3', '');
+}
+
 export function getDate() {
   const date = new Date();
   const years = date.getFullYear();
