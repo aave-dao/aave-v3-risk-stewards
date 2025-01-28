@@ -83,7 +83,7 @@ import {IAaveV3ConfigEngine} from 'aave-v3-origin/src/contracts/extensions/v3-co
  * @title test
  * @author test
  * - discussion: test
- * - deploy-command: make run-script contract=src/contracts/updates/20231023_AaveV3Ethereum_Test/AaveV3Ethereum_Test_20231023.sol:AaveV3Ethereum_Test_20231023 network=mainnet broadcast=false generate_diff=true
+ * - deploy-command: make run-script contract=src/contracts/updates/20231023_AaveV3Ethereum_Test/AaveV3Ethereum_Test_20231023.sol:AaveV3Ethereum_Test_20231023 network=mainnet broadcast=false generate_diff=true skip_timelock=false
  */
 contract AaveV3Ethereum_Test_20231023 is RiskStewardsEthereum {
   function name() public pure override returns (string memory) {
