@@ -24,6 +24,8 @@ import {AaveV3Base} from 'aave-address-book/AaveV3Base.sol';
 import {GovernanceV3Base} from 'aave-address-book/GovernanceV3Base.sol';
 import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
 import {GovernanceV3Metis} from 'aave-address-book/GovernanceV3Metis.sol';
+import {AaveV3Linea} from 'aave-address-book/AaveV3Linea.sol';
+import {GovernanceV3Linea} from 'aave-address-book/GovernanceV3Linea.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {RiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/RiskSteward.sol';
 
@@ -237,6 +239,20 @@ contract DeployMetis is MetisScript {
       AaveV3Metis.CONFIG_ENGINE,
       0x0f547846920C34E70FBE4F3d87E46452a3FeAFfa, // metis-risk-council
       GovernanceV3Metis.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployLinea chain=linea
+contract DeployLinea is LineaScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3Linea.AAVE_PROTOCOL_DATA_PROVIDER),
+      AaveV3Linea.CONFIG_ENGINE,
+      0xF092A5aC5E284E7c433dAFE5b8B138bFcA53a4Ee, // linea-risk-council
+      GovernanceV3Linea.EXECUTOR_LVL_1
     );
     vm.stopBroadcast();
   }

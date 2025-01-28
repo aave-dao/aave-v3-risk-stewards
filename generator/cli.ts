@@ -16,7 +16,7 @@ import {collateralsUpdates} from './features/collateralsUpdates';
 import {lstPriceCapsUpdates} from './features/lstPriceCapsUpdates';
 import {stablePriceCapsUpdates} from './features/stablePriceCapsUpdates';
 import {generateFiles, writeFiles} from './generator';
-import {CHAIN_ID_CLIENT_MAP} from '@bgd-labs/js-utils';
+import {getClient} from '@bgd-labs/rpc-env';
 import {getBlockNumber} from 'viem/actions';
 
 const program = new Command();
@@ -47,7 +47,7 @@ const FEATURE_MODULES_V3 = [
 
 async function generateDeterministicPoolCache(pool: PoolIdentifier): Promise<PoolCache> {
   const chain = getPoolChain(pool);
-  const client = CHAIN_ID_CLIENT_MAP[CHAIN_TO_CHAIN_ID[chain]];
+  const client = getClient(CHAIN_TO_CHAIN_ID[chain], {});
   return {blockNumber: Number(await getBlockNumber(client))};
 }
 
