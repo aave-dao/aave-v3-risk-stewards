@@ -20,7 +20,8 @@ export const V3_POOLS = [
   'AaveV3Gnosis',
   'AaveV3Scroll',
   'AaveV3BNB',
-  'AaveV3ZkSync'
+  'AaveV3ZkSync',
+  'AaveV3Linea',
 ] as const satisfies readonly (keyof typeof addressBook)[];
 
 export const POOLS = [

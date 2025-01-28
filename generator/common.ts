@@ -12,6 +12,7 @@ import {
   gnosis,
   scroll,
   zkSync,
+  linea
 } from 'viem/chains';
 
 export const AVAILABLE_CHAINS = [
@@ -28,6 +29,7 @@ export const AVAILABLE_CHAINS = [
   'Gnosis',
   'Scroll',
   'ZkSync',
+  'Linea'
 ] as const;
 
 export function getAssets(pool: PoolIdentifier): string[] {
@@ -111,6 +113,7 @@ export const CHAIN_TO_CHAIN_ID = {
   Gnosis: gnosis.id,
   Scroll: scroll.id,
   ZkSync: zkSync.id,
+  Linea: linea.id,
 };
 
 export function flagAsRequired(message: string, required?: boolean) {
