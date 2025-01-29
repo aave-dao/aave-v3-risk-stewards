@@ -4,18 +4,14 @@ pragma solidity ^0.8.0;
 import {IRiskOracle} from './dependencies/IRiskOracle.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IAaveStewardInjectorRates} from '../interfaces/IAaveStewardInjectorRates.sol';
-import {AutomationCompatibleInterface} from './dependencies/AutomationCompatibleInterface.sol';
 import {AaveStewardInjectorBase} from './AaveStewardInjectorBase.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 
 /**
  * @title AaveStewardInjectorRates
  * @author BGD Labs
- * @notice Contract to perform automation on risk steward using the edge risk oracle.
- *         The contract only permits for injecting rate updates for the whitelisted asset.
- * @dev Aave chainlink automation-keeper-compatible contract to:
- *      - check if updates from edge risk oracles can be injected into risk steward.
- *      - injects risk updates on the risk steward if all conditions are met.
+ * @notice Aave chainlink automation-keeper-compatible contract to perform interest rate update automation
+ *         on risk steward using the edge risk oracle.
  */
 contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInjectorRates {
   /// @inheritdoc IAaveStewardInjectorRates
@@ -34,10 +30,7 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
     WHITELISTED_ASSET = whitelistedAsset;
   }
 
-  /**
-   * @inheritdoc AutomationCompatibleInterface
-   * @dev run off-chain, checks if the latest update from risk oracle should be injected on risk steward
-   */
+  /// @inheritdoc AaveStewardInjectorBase
   function checkUpkeep(bytes memory) public view virtual override returns (bool, bytes memory) {
     IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE)
       .getLatestUpdateByParameterAndMarket(WHITELISTED_UPDATE_TYPE, WHITELISTED_ASSET);
@@ -47,10 +40,7 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
     return (false, '');
   }
 
-  /**
-   * @inheritdoc AutomationCompatibleInterface
-   * @dev executes injection of the latest update from the risk oracle into the risk steward.
-   */
+  /// @inheritdoc AaveStewardInjectorBase
   function performUpkeep(bytes calldata) external override {
     IRiskOracle.RiskParameterUpdate memory updateRiskParams = IRiskOracle(RISK_ORACLE)
       .getLatestUpdateByParameterAndMarket(WHITELISTED_UPDATE_TYPE, WHITELISTED_ASSET);
