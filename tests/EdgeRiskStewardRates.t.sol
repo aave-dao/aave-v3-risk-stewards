@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {EdgeRiskSteward} from 'src/contracts/EdgeRiskSteward.sol';
+import {EdgeRiskStewardRates} from 'src/contracts/EdgeRiskStewardRates.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import './RiskSteward.t.sol';
 
-contract EdgeRiskSteward_Test is RiskSteward_Test {
+contract EdgeRiskStewardRates_Test is RiskSteward_Test {
   function setUp() public override {
     super.setUp();
 
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward = new EdgeRiskSteward(
+    steward = new EdgeRiskStewardRates(
       AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
       IEngine(configEngine),
       riskCouncil,

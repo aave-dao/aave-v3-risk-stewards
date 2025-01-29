@@ -7,7 +7,7 @@ import {AaveV3EthereumLido, AaveV3EthereumLidoAssets} from 'aave-address-book/Aa
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
-import {EdgeRiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/EdgeRiskSteward.sol';
+import {EdgeRiskStewardRates, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/EdgeRiskStewardRates.sol';
 import {AaveStewardInjector, IAaveStewardInjector} from '../../src/contracts/AaveStewardInjector.sol';
 
 library DeployStewardContracts {
@@ -19,7 +19,7 @@ library DeployStewardContracts {
     address riskCouncil,
     address governance
   ) internal returns (address) {
-    address riskSteward = address(new EdgeRiskSteward(
+    address riskSteward = address(new EdgeRiskStewardRates(
       IPoolDataProvider(poolDataProvider),
       IEngine(configEngine),
       riskCouncil,
