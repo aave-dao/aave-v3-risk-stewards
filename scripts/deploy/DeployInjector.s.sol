@@ -8,7 +8,7 @@ import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {EdgeRiskStewardRates, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/EdgeRiskStewardRates.sol';
-import {AaveStewardInjector, IAaveStewardInjector} from '../../src/contracts/AaveStewardInjector.sol';
+import {AaveStewardInjectorRates} from '../../src/contracts/AaveStewardInjectorRates.sol';
 
 library DeployStewardContracts {
   address constant EDGE_RISK_ORACLE = 0x7ABB46C690C52E919687D19ebF89C81A6136C1F2;
@@ -38,7 +38,7 @@ library DeployStewardContracts {
     address stewardInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY).create(
       salt,
       abi.encodePacked(
-        type(AaveStewardInjector).creationCode,
+        type(AaveStewardInjectorRates).creationCode,
         abi.encode(
           EDGE_RISK_ORACLE,
           riskSteward,

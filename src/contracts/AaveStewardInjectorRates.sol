@@ -3,41 +3,26 @@ pragma solidity ^0.8.0;
 
 import {IRiskOracle} from './dependencies/IRiskOracle.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
-import {IAaveStewardInjector, AutomationCompatibleInterface} from '../interfaces/IAaveStewardInjector.sol';
+import {IAaveStewardInjectorRates} from '../interfaces/IAaveStewardInjectorRates.sol';
+import {AutomationCompatibleInterface} from './dependencies/AutomationCompatibleInterface.sol';
+import {AaveStewardInjectorBase} from './AaveStewardInjectorBase.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 
 /**
- * @title AaveStewardInjector
+ * @title AaveStewardInjectorRates
  * @author BGD Labs
  * @notice Contract to perform automation on risk steward using the edge risk oracle.
  *         The contract only permits for injecting rate updates for the whitelisted asset.
  * @dev Aave chainlink automation-keeper-compatible contract to:
  *      - check if updates from edge risk oracles can be injected into risk steward.
- *      - injectes risk updates on the risk steward if all conditions are met.
+ *      - injects risk updates on the risk steward if all conditions are met.
  */
-contract AaveStewardInjector is Ownable, IAaveStewardInjector {
-  /// @inheritdoc IAaveStewardInjector
-  address public immutable RISK_ORACLE;
-
-  /// @inheritdoc IAaveStewardInjector
-  address public immutable RISK_STEWARD;
-
-  /// @inheritdoc IAaveStewardInjector
+contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInjectorRates {
+  /// @inheritdoc IAaveStewardInjectorRates
   address public immutable WHITELISTED_ASSET;
 
-  /// @inheritdoc IAaveStewardInjector
+  /// @inheritdoc IAaveStewardInjectorRates
   string public constant WHITELISTED_UPDATE_TYPE = 'RateStrategyUpdate';
-
-  /**
-   * @inheritdoc IAaveStewardInjector
-   * @dev after an update is added on the risk oracle, the update is only valid from the timestamp it was added
-   *      on the risk oracle plus the expiration time, after which the update cannot be injected into the risk steward.
-   */
-  uint256 public constant EXPIRATION_PERIOD = 6 hours;
-
-  mapping(uint256 => bool) internal _isUpdateIdExecuted;
-  mapping(uint256 => bool) internal _disabledUpdates;
 
   /**
    * @param riskOracle address of the edge risk oracle contract.
@@ -45,11 +30,8 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
    * @param guardian address of the guardian / owner of the stewards injector.
    * @param whitelistedAsset address of the whitelisted asset for which update can be injected.
    */
-  constructor(address riskOracle, address riskSteward, address guardian, address whitelistedAsset) {
-    RISK_ORACLE = riskOracle;
-    RISK_STEWARD = riskSteward;
+  constructor(address riskOracle, address riskSteward, address guardian, address whitelistedAsset) AaveStewardInjectorBase (riskOracle, riskSteward, guardian) {
     WHITELISTED_ASSET = whitelistedAsset;
-    _transferOwnership(guardian);
   }
 
   /**
@@ -83,26 +65,10 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
     emit ActionSucceeded(updateRiskParams.updateId);
   }
 
-  /// @inheritdoc IAaveStewardInjector
-  function isDisabled(uint256 updateId) public view returns (bool) {
-    return _disabledUpdates[updateId];
-  }
-
-  /// @inheritdoc IAaveStewardInjector
-  function disableUpdateById(uint256 updateId, bool disabled) external onlyOwner {
-    _disabledUpdates[updateId] = disabled;
-    emit UpdateDisabled(updateId, disabled);
-  }
-
-  /// @inheritdoc IAaveStewardInjector
-  function isUpdateIdExecuted(uint256 updateid) public view returns (bool) {
-    return _isUpdateIdExecuted[updateid];
-  }
-
   /**
    * @notice method to check if the update from risk oracle could be injected into the risk steward.
    * @dev only allow injecting interest rate updates for the whitelisted asset.
-   * @param updateRiskParams struct containing the risk param update from the risk oralce to check if it can be injected.
+   * @param updateRiskParams struct containing the risk param update from the risk oracle to check if it can be injected.
    * @return true if the update could be injected to the risk steward, false otherwise.
    */
   function _canUpdateBeInjected(
