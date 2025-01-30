@@ -10,7 +10,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 /**
  * @title AaveStewardInjectorRates
  * @author BGD Labs
- * @notice Aave chainlink automation-keeper-compatible contract to perform interest rate update automation
+ * @notice Aave chainlink automation-keeper-compatible contract to perform interest rate update injection
  *         on risk steward using the edge risk oracle.
  */
 contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInjectorRates {
