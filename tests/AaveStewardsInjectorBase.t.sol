@@ -104,19 +104,11 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     vm.expectEmit(address(_stewardInjector));
     emit ActionSucceeded(1);
 
-    bool isAutomationPerformed = _checkAndPerformAutomation();
-    assertTrue(isAutomationPerformed);
-
-    (, bytes memory performData) = _stewardInjector.checkUpkeep('');
-    vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
+    (bool shouldRunKeeper, bytes memory performData) = _stewardInjector.checkUpkeep('');
     _stewardInjector.performUpkeep(performData);
-  }
+    assertTrue(shouldRunKeeper);
 
-  function test_reverts_ifUpdateDoesNotExist() public {
-    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
-    (, bytes memory performData) = _stewardInjector.checkUpkeep('');
-
-    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
+    vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
     _stewardInjector.performUpkeep(performData);
   }
 

@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {AaveStewardInjectorRates} from '../src/contracts/AaveStewardInjectorRates.sol';
+import {AaveStewardInjectorCaps} from '../src/contracts/AaveStewardInjectorCaps.sol';
 import './AaveStewardsInjectorBase.t.sol';
 
-contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
+contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
   function setUp() public override {
     super.setUp();
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
       minDelay: 3 days,
-      maxPercentChange: 5_00 // 5%
+      maxPercentChange: 100_00
     });
     IRiskSteward.Config memory riskConfig = IRiskSteward.Config({
       ltv: defaultRiskParamConfig,
@@ -31,8 +31,9 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
     vm.startPrank(_riskOracleOwner);
     address[] memory initialSenders = new address[](1);
     initialSenders[0] = _riskOracleOwner;
-    string[] memory initialUpdateTypes = new string[](1);
-    initialUpdateTypes[0] = 'RateStrategyUpdate';
+    string[] memory initialUpdateTypes = new string[](2);
+    initialUpdateTypes[0] = 'supplyCap';
+    initialUpdateTypes[1] = 'borrowCap';
 
     _riskOracle = new RiskOracle(
       'RiskOracle',
@@ -45,12 +46,14 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
     vm.startPrank(_stewardsInjectorOwner);
 
     address computedRiskStewardAddress = vm.computeCreateAddress(_stewardsInjectorOwner, vm.getNonce(_stewardsInjectorOwner) + 1);
-    _stewardInjector = new AaveStewardInjectorRates(
+    _stewardInjector = new AaveStewardInjectorCaps(
       address(_riskOracle),
       address(computedRiskStewardAddress),
-      _stewardsInjectorOwner,
-      address(weth)
+      _stewardsInjectorOwner
     );
+    address[] memory whitelistedMarkets = new address[](1);
+    whitelistedMarkets[0] = address(weth);
+    AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(whitelistedMarkets);
 
     // setup risk steward
     _riskSteward = new RiskSteward(
@@ -65,30 +68,24 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
 
     vm.startPrank(poolAdmin);
     contracts.aclManager.addRiskAdmin(address(_riskSteward));
+
+    // as initial caps are at 0, which the steward cannot update from
+    contracts.poolConfiguratorProxy.setSupplyCap(address(weth), 100);
+    contracts.poolConfiguratorProxy.setBorrowCap(address(weth), 50);
     vm.stopPrank();
   }
 
-  function test_reverts_ifUpdateDoesNotExist() public {
-    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
-    (, bytes memory performData) = _stewardInjector.checkUpkeep('');
-
-    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
-    _stewardInjector.performUpkeep(performData);
+  function test_noInjection_ifUpdateDoesNotExist() public {
+    assertFalse(_checkAndPerformAutomation());
   }
 
   function _addUpdateToRiskOracle() internal override {
     vm.startPrank(_riskOracleOwner);
 
-    IEngine.InterestRateInputData memory rate = IEngine.InterestRateInputData({
-      optimalUsageRatio: EngineFlags.KEEP_CURRENT,
-      baseVariableBorrowRate: 5_00,
-      variableRateSlope1: EngineFlags.KEEP_CURRENT,
-      variableRateSlope2: EngineFlags.KEEP_CURRENT
-    });
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      abi.encode(rate),
-      'RateStrategyUpdate',
+      abi.encode(105),
+      'supplyCap',
       address(weth),
       'additionalData'
     );
