@@ -115,13 +115,14 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (
+      !isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       _markets.contains(updateRiskParams.market) &&
-      (updateRiskParams.updateType.equal('supplyCap') ||
-        updateRiskParams.updateType.equal('borrowCap')) &&
+      (updateRiskParams.updateType.equal('supplyCap') || updateRiskParams.updateType.equal('borrowCap')) &&
       !isDisabled(updateRiskParams.updateId) &&
-      !isInjectorPaused());
+      !isInjectorPaused()
+    );
   }
 
   /**

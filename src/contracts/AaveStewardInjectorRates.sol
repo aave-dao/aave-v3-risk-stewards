@@ -6,6 +6,7 @@ import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IAaveStewardInjectorRates} from '../interfaces/IAaveStewardInjectorRates.sol';
 import {AaveStewardInjectorBase} from './AaveStewardInjectorBase.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
 
 /**
  * @title AaveStewardInjectorRates
@@ -14,6 +15,8 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
  *         on risk steward using the edge risk oracle.
  */
 contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInjectorRates {
+  using Strings for string;
+
   /// @inheritdoc IAaveStewardInjectorRates
   address public immutable WHITELISTED_ASSET;
 
@@ -69,12 +72,14 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (
+      !isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       updateRiskParams.market == WHITELISTED_ASSET &&
-      keccak256(bytes(updateRiskParams.updateType)) == keccak256(bytes(WHITELISTED_UPDATE_TYPE)) &&
+      updateRiskParams.updateType.equal(WHITELISTED_UPDATE_TYPE) &&
       !isDisabled(updateRiskParams.updateId) &&
-      !isInjectorPaused());
+      !isInjectorPaused()
+    );
   }
 
   /**
