@@ -124,7 +124,8 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       _markets.contains(updateRiskParams.market) &&
       (updateRiskParams.updateType.equal('supplyCap') || updateRiskParams.updateType.equal('borrowCap')) &&
-      !isDisabled(updateRiskParams.updateId)
+      !isDisabled(updateRiskParams.updateId) &&
+      !isInjectorPaused()
     );
   }
 

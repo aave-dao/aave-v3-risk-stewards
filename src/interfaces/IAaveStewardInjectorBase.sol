@@ -21,6 +21,12 @@ interface IAaveStewardInjectorBase {
   event UpdateDisabled(uint256 indexed updateId, bool indexed disabled);
 
   /**
+   * @notice Emitted when the injector is paused/unpaused.
+   * @param isPaused true if the injector is being paused, false otherwise.
+   */
+  event InjectorPaused(bool indexed isPaused);
+
+  /**
    * @notice The following update cannot be injected in the steward injector because the conditions are not met.
    */
   error UpdateCannotBeInjected();
@@ -45,6 +51,18 @@ interface IAaveStewardInjectorBase {
    * @return bool true if the updateId is executed/injected, false otherwise.
    */
   function isUpdateIdExecuted(uint256 updateId) external view returns (bool);
+
+  /**
+   * @notice method called by owner to pause/unpause the injector.
+   * @param isPaused true if the injector is being paused, false otherwise.
+   */
+  function pauseInjector(bool isPaused) external;
+
+  /**
+   * @notice method to check if the injector is paused.
+   * @return true if the injector is paused, false otherwise.
+   */
+  function isInjectorPaused() external view returns (bool);
 
   /**
    * @notice method to get the address of the edge risk oracle contract.

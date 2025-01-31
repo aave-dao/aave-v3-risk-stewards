@@ -31,6 +31,7 @@ abstract contract AaveStewardInjectorBase is Ownable, AutomationCompatibleInterf
 
   mapping(uint256 => bool) internal _isUpdateIdExecuted;
   mapping(uint256 => bool) internal _disabledUpdates;
+  bool internal _isPaused;
 
   /**
    * @param riskOracle address of the edge risk oracle contract.
@@ -64,6 +65,17 @@ abstract contract AaveStewardInjectorBase is Ownable, AutomationCompatibleInterf
   function disableUpdateById(uint256 updateId, bool disabled) external onlyOwner {
     _disabledUpdates[updateId] = disabled;
     emit UpdateDisabled(updateId, disabled);
+  }
+
+  /// @inheritdoc IAaveStewardInjectorBase
+  function pauseInjector(bool isPaused) external onlyOwner {
+    _isPaused = isPaused;
+    emit InjectorPaused(isPaused);
+  }
+
+  /// @inheritdoc IAaveStewardInjectorBase
+  function isInjectorPaused() public view returns (bool) {
+    return _isPaused;
   }
 
   /// @inheritdoc IAaveStewardInjectorBase

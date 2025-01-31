@@ -18,6 +18,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
   event AddressWhitelisted(address indexed contractAddress, bool indexed isWhitelisted);
   event UpdateDisabled(uint256 indexed updateId, bool indexed disabled);
   event UpdateTypeChanged(string indexed updateType, bool indexed isValid);
+  event InjectorPaused(bool indexed isPaused);
 
   function setUp() public virtual {
     initTestEnvironment();
@@ -64,6 +65,39 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _stewardInjector.disableUpdateById(1, false);
 
     assertFalse(_stewardInjector.isDisabled(1));
+
+    isAutomationPerformed = _checkAndPerformAutomation();
+    assertTrue(isAutomationPerformed);
+  }
+
+  function test_injectorPaused() public {
+    // add rate update to risk oracle
+    _addUpdateToRiskOracle();
+
+    vm.prank(address(1));
+    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    _stewardInjector.pauseInjector(true);
+
+    assertFalse(_stewardInjector.isInjectorPaused());
+
+    vm.expectEmit(address(_stewardInjector));
+    emit InjectorPaused(true);
+
+    vm.prank(_stewardsInjectorOwner);
+    _stewardInjector.pauseInjector(true);
+
+    assertTrue(_stewardInjector.isInjectorPaused());
+
+    bool isAutomationPerformed = _checkAndPerformAutomation();
+    assertFalse(isAutomationPerformed);
+
+    vm.expectEmit(address(_stewardInjector));
+    emit InjectorPaused(false);
+
+    vm.prank(_stewardsInjectorOwner);
+    _stewardInjector.pauseInjector(false);
+
+    assertFalse(_stewardInjector.isInjectorPaused());
 
     isAutomationPerformed = _checkAndPerformAutomation();
     assertTrue(isAutomationPerformed);

@@ -69,7 +69,8 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       updateRiskParams.market == WHITELISTED_ASSET &&
       keccak256(bytes(updateRiskParams.updateType)) == keccak256(bytes(WHITELISTED_UPDATE_TYPE)) &&
-      !isDisabled(updateRiskParams.updateId)
+      !isDisabled(updateRiskParams.updateId) &&
+      !isInjectorPaused()
     );
   }
 
