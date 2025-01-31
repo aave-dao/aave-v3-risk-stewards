@@ -26,7 +26,12 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
    * @param guardian address of the guardian / owner of the stewards injector.
    * @param whitelistedAsset address of the whitelisted asset for which update can be injected.
    */
-  constructor(address riskOracle, address riskSteward, address guardian, address whitelistedAsset) AaveStewardInjectorBase (riskOracle, riskSteward, guardian) {
+  constructor(
+    address riskOracle,
+    address riskSteward,
+    address guardian,
+    address whitelistedAsset
+  ) AaveStewardInjectorBase(riskOracle, riskSteward, guardian) {
     WHITELISTED_ASSET = whitelistedAsset;
   }
 
@@ -64,14 +69,12 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (
-      !isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       updateRiskParams.market == WHITELISTED_ASSET &&
       keccak256(bytes(updateRiskParams.updateType)) == keccak256(bytes(WHITELISTED_UPDATE_TYPE)) &&
       !isDisabled(updateRiskParams.updateId) &&
-      !isInjectorPaused()
-    );
+      !isInjectorPaused());
   }
 
   /**

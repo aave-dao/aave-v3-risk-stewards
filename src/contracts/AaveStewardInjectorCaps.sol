@@ -31,7 +31,7 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
     address riskOracle,
     address riskSteward,
     address guardian
-  ) AaveStewardInjectorBase (riskOracle, riskSteward, guardian) {}
+  ) AaveStewardInjectorBase(riskOracle, riskSteward, guardian) {}
 
   /// @inheritdoc AaveStewardInjectorBase
   function checkUpkeep(bytes memory) public view virtual override returns (bool, bytes memory) {
@@ -46,12 +46,11 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
         address market = markets[i];
         string memory updateType = updateTypes[j];
 
-        try IRiskOracle(RISK_ORACLE).getLatestUpdateByParameterAndMarket(updateType, market) returns (IRiskOracle.RiskParameterUpdate memory updateRiskParams) {
+        try
+          IRiskOracle(RISK_ORACLE).getLatestUpdateByParameterAndMarket(updateType, market)
+        returns (IRiskOracle.RiskParameterUpdate memory updateRiskParams) {
           if (_canUpdateBeInjected(updateRiskParams)) {
-            actions[actionCount] = ActionData({
-              market: market,
-              updateType: updateType
-            });
+            actions[actionCount] = ActionData({market: market, updateType: updateType});
             actionCount++;
           }
         } catch {}
@@ -116,14 +115,13 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (
-      !isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       _markets.contains(updateRiskParams.market) &&
-      (updateRiskParams.updateType.equal('supplyCap') || updateRiskParams.updateType.equal('borrowCap')) &&
+      (updateRiskParams.updateType.equal('supplyCap') ||
+        updateRiskParams.updateType.equal('borrowCap')) &&
       !isDisabled(updateRiskParams.updateId) &&
-      !isInjectorPaused()
-    );
+      !isInjectorPaused());
   }
 
   /**
@@ -161,7 +159,9 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
     ActionData[] memory actions,
     uint256 actionCount
   ) internal view returns (ActionData memory action) {
-    uint256 randomNumber = uint256(keccak256(abi.encodePacked(blockhash(block.number - 1), block.timestamp)));
+    uint256 randomNumber = uint256(
+      keccak256(abi.encodePacked(blockhash(block.number - 1), block.timestamp))
+    );
     action = actions[randomNumber % actionCount];
   }
 }

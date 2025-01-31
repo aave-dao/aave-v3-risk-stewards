@@ -24,7 +24,9 @@ contract EdgeRiskStewardCaps is RiskSteward {
   ) RiskSteward(poolDataProvider, engine, riskCouncil, riskConfig) {}
 
   /// @inheritdoc IRiskSteward
-  function updateRates(IEngine.RateStrategyUpdate[] calldata) external virtual override onlyRiskCouncil {
+  function updateRates(
+    IEngine.RateStrategyUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
 

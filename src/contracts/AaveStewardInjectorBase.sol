@@ -15,7 +15,11 @@ import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
  *      - check if updates from edge risk oracles can be injected into risk steward.
  *      - injects updates on the risk steward if all conditions are met.
  */
-abstract contract AaveStewardInjectorBase is Ownable, AutomationCompatibleInterface, IAaveStewardInjectorBase {
+abstract contract AaveStewardInjectorBase is
+  Ownable,
+  AutomationCompatibleInterface,
+  IAaveStewardInjectorBase
+{
   /// @inheritdoc IAaveStewardInjectorBase
   address public immutable RISK_ORACLE;
 

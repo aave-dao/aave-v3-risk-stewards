@@ -39,17 +39,16 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     initialUpdateTypes[1] = 'borrowCap';
     initialUpdateTypes[2] = 'wrongUpdateType';
 
-    _riskOracle = new RiskOracle(
-      'RiskOracle',
-      initialSenders,
-      initialUpdateTypes
-    );
+    _riskOracle = new RiskOracle('RiskOracle', initialSenders, initialUpdateTypes);
     vm.stopPrank();
 
     // setup steward injector
     vm.startPrank(_stewardsInjectorOwner);
 
-    address computedRiskStewardAddress = vm.computeCreateAddress(_stewardsInjectorOwner, vm.getNonce(_stewardsInjectorOwner) + 1);
+    address computedRiskStewardAddress = vm.computeCreateAddress(
+      _stewardsInjectorOwner,
+      vm.getNonce(_stewardsInjectorOwner) + 1
+    );
     _stewardInjector = new AaveStewardInjectorCaps(
       address(_riskOracle),
       address(computedRiskStewardAddress),
@@ -158,10 +157,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     _stewardInjector.performUpkeep(abi.encode(action));
 
     _addUpdateToRiskOracle(address(weth), 'supplyCap', 105);
-    action = IAaveStewardInjectorCaps.ActionData({
-      market: address(weth),
-      updateType: 'supplyCap'
-    });
+    action = IAaveStewardInjectorCaps.ActionData({market: address(weth), updateType: 'supplyCap'});
     vm.expectEmit(address(_stewardInjector));
     emit ActionSucceeded(2);
     _stewardInjector.performUpkeep(abi.encode(action));
@@ -259,7 +255,11 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     assertLt(gasUsed, 5_000_000);
   }
 
-  function _addUpdateToRiskOracle(address market, string memory updateType, uint256 value) internal {
+  function _addUpdateToRiskOracle(
+    address market,
+    string memory updateType,
+    uint256 value
+  ) internal {
     vm.startPrank(_riskOracleOwner);
 
     _riskOracle.publishRiskParameterUpdate(

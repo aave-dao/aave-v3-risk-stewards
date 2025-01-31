@@ -19,12 +19,14 @@ library DeployStewardContracts {
     address riskCouncil,
     address governance
   ) internal returns (address) {
-    address riskSteward = address(new EdgeRiskStewardRates(
-      IPoolDataProvider(poolDataProvider),
-      IEngine(configEngine),
-      riskCouncil,
-      _getRiskConfig()
-    ));
+    address riskSteward = address(
+      new EdgeRiskStewardRates(
+        IPoolDataProvider(poolDataProvider),
+        IEngine(configEngine),
+        riskCouncil,
+        _getRiskConfig()
+      )
+    );
     IOwnable(riskSteward).transferOwnership(governance);
     return riskSteward;
   }
@@ -39,32 +41,37 @@ library DeployStewardContracts {
       salt,
       abi.encodePacked(
         type(AaveStewardInjectorRates).creationCode,
-        abi.encode(
-          EDGE_RISK_ORACLE,
-          riskSteward,
-          guardian,
-          whitelistedAsset
-        )
+        abi.encode(EDGE_RISK_ORACLE, riskSteward, guardian, whitelistedAsset)
       )
     );
     return stewardInjector;
   }
 
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
-    return IRiskSteward.Config({
-      ltv: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 25}),
-      liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 25}),
-      liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
-      supplyCap: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 100_00}),
-      borrowCap: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 100_00}),
-      debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 20_00}),
-      baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
-      variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
-      variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00}),
-      optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 3_00}),
-      priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00}),
-      priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50})
-    });
+    return
+      IRiskSteward.Config({
+        ltv: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 25}),
+        liquidationThreshold: IRiskSteward.RiskParamConfig({
+          minDelay: 1 days,
+          maxPercentChange: 25
+        }),
+        liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+        supplyCap: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 100_00}),
+        borrowCap: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 100_00}),
+        debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 20_00}),
+        baseVariableBorrowRate: IRiskSteward.RiskParamConfig({
+          minDelay: 1 days,
+          maxPercentChange: 50
+        }),
+        variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+        variableRateSlope2: IRiskSteward.RiskParamConfig({
+          minDelay: 1 days,
+          maxPercentChange: 5_00
+        }),
+        optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 3_00}),
+        priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00}),
+        priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50})
+      });
   }
 }
 
@@ -75,7 +82,8 @@ contract DeployEthereumLido is EthereumScript {
   function run() external {
     vm.startBroadcast();
     bytes32 salt = 'StewardInjector';
-    address predictedStewardsInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY).predictAddress(msg.sender, salt);
+    address predictedStewardsInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY)
+      .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
       address(AaveV3EthereumLido.AAVE_PROTOCOL_DATA_PROVIDER),
@@ -84,7 +92,12 @@ contract DeployEthereumLido is EthereumScript {
       GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
 
-    DeployStewardContracts._deployStewardsInjector(salt, riskSteward, GUARDIAN, AaveV3EthereumLidoAssets.WETH_UNDERLYING);
+    DeployStewardContracts._deployStewardsInjector(
+      salt,
+      riskSteward,
+      GUARDIAN,
+      AaveV3EthereumLidoAssets.WETH_UNDERLYING
+    );
     vm.stopBroadcast();
   }
 }

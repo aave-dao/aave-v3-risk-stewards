@@ -34,17 +34,16 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
     string[] memory initialUpdateTypes = new string[](1);
     initialUpdateTypes[0] = 'RateStrategyUpdate';
 
-    _riskOracle = new RiskOracle(
-      'RiskOracle',
-      initialSenders,
-      initialUpdateTypes
-    );
+    _riskOracle = new RiskOracle('RiskOracle', initialSenders, initialUpdateTypes);
     vm.stopPrank();
 
     // setup steward injector
     vm.startPrank(_stewardsInjectorOwner);
 
-    address computedRiskStewardAddress = vm.computeCreateAddress(_stewardsInjectorOwner, vm.getNonce(_stewardsInjectorOwner) + 1);
+    address computedRiskStewardAddress = vm.computeCreateAddress(
+      _stewardsInjectorOwner,
+      vm.getNonce(_stewardsInjectorOwner) + 1
+    );
     _stewardInjector = new AaveStewardInjectorRates(
       address(_riskOracle),
       address(computedRiskStewardAddress),
