@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {EdgeRiskSteward} from 'src/contracts/EdgeRiskSteward.sol';
+import {EdgeRiskStewardCaps} from 'src/contracts/EdgeRiskStewardCaps.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import './RiskSteward.t.sol';
 
-contract EdgeRiskSteward_Test is RiskSteward_Test {
+contract EdgeRiskStewardCaps_Test is RiskSteward_Test {
   function setUp() public override {
     super.setUp();
 
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-    steward = new EdgeRiskSteward(
+    steward = new EdgeRiskStewardCaps(
       AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
       IEngine(configEngine),
       riskCouncil,
@@ -20,38 +20,43 @@ contract EdgeRiskSteward_Test is RiskSteward_Test {
     vm.stopPrank();
   }
 
-  /* ----------------------------- Caps Tests ----------------------------- */
+  /* ----------------------------- Rates Tests ----------------------------- */
 
-  function test_updateCaps() public override {
-    (uint256 daiBorrowCapBefore, uint256 daiSupplyCapBefore) = AaveV3Ethereum
-      .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveCaps(AaveV3EthereumAssets.DAI_UNDERLYING);
+  function test_updateRates() public override {
+    (
+      uint256 beforeOptimalUsageRatio,
+      uint256 beforeBaseVariableBorrowRate,
+      uint256 beforeVariableRateSlope1,
+      uint256 beforeVariableRateSlope2
+    ) = _getInterestRatesForAsset(AaveV3EthereumAssets.WETH_UNDERLYING);
 
-    IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
-    capUpdates[0] = IEngine.CapsUpdate(
-      AaveV3EthereumAssets.DAI_UNDERLYING,
-      (daiSupplyCapBefore * 110) / 100, // 10% relative increase
-      (daiBorrowCapBefore * 110) / 100 // 10% relative increase
-    );
+    IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
+    rateUpdates[0] = IEngine.RateStrategyUpdate({
+      asset: AaveV3EthereumAssets.WETH_UNDERLYING,
+      params: IEngine.InterestRateInputData({
+        optimalUsageRatio: beforeOptimalUsageRatio + 5_00, // 5% absolute increase
+        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 10_00, // 10% absolute increase
+        variableRateSlope1: beforeVariableRateSlope1 + 10_00, // 10% absolute increase
+        variableRateSlope2: beforeVariableRateSlope2 + 10_00 // 10% absolute increase
+      })
+    });
 
     vm.startPrank(riskCouncil);
     vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
-    steward.updateCaps(capUpdates);
+    steward.updateRates(rateUpdates);
   }
 
-  function test_updateCaps_outOfRange() public override {}
+  function test_updateRates_outOfRange() public override {}
 
-  function test_updateCaps_debounceNotRespected() public override {}
+  function test_updateRates_debounceNotRespected() public override {}
 
-  function test_updateCaps_allKeepCurrent() public override {}
+  function test_updateRates_assetUnlisted() public override {}
 
-  function test_updateCaps_sameUpdate() public override {}
+  function test_updateRates_assetRestricted() public override {}
 
-  function test_updateCaps_assetUnlisted() public override {}
+  function test_updateRates_allKeepCurrent() public override {}
 
-  function test_updateCaps_assetRestricted() public override {}
-
-  function test_updateCaps_toValueZeroNotAllowed() public override {}
+  function test_updateRate_sameUpdate() public override {}
 
   /* ----------------------------- Collateral Tests ----------------------------- */
 

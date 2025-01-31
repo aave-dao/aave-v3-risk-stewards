@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import './RiskSteward.sol';
 
 /**
- * @title EdgeRiskSteward
+ * @title EdgeRiskStewardRates
  * @author BGD labs
  * @notice Contract to manage the interest rates params within configured bound on aave v3 pool.
  *         To be triggered by the Aave Steward Injector Contract in a automated way via the Edge Risk Oracle.
  */
-contract EdgeRiskSteward is RiskSteward {
+contract EdgeRiskStewardRates is RiskSteward {
   /**
    * @param poolDataProvider The pool data provider of the pool to be controlled by the steward
    * @param engine the config engine to be used by the steward

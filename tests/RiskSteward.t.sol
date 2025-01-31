@@ -271,7 +271,7 @@ contract RiskSteward_Test is Test {
 
   /* ----------------------------- Rates Tests ----------------------------- */
 
-  function test_updateRates() public {
+  function test_updateRates() public virtual {
     (
       uint256 beforeOptimalUsageRatio,
       uint256 beforeBaseVariableBorrowRate,
@@ -354,7 +354,7 @@ contract RiskSteward_Test is Test {
     assertEq(lastUpdated.variableRateSlope2LastUpdated, block.timestamp);
   }
 
-  function test_updateRates_outOfRange() public {
+  function test_updateRates_outOfRange() public virtual {
     (
       uint256 beforeOptimalUsageRatio,
       uint256 beforeBaseVariableBorrowRate,
@@ -379,7 +379,7 @@ contract RiskSteward_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateRates_debounceNotRespected() public {
+  function test_updateRates_debounceNotRespected() public virtual {
     (
       uint256 beforeOptimalUsageRatio,
       uint256 beforeBaseVariableBorrowRate,
@@ -424,7 +424,7 @@ contract RiskSteward_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateRates_assetUnlisted() public {
+  function test_updateRates_assetUnlisted() public virtual {
     IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84, // stETH
@@ -441,7 +441,7 @@ contract RiskSteward_Test is Test {
     steward.updateRates(rateUpdates);
   }
 
-  function test_updateRates_assetRestricted() public {
+  function test_updateRates_assetRestricted() public virtual {
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward.setAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
     vm.stopPrank();
@@ -462,7 +462,7 @@ contract RiskSteward_Test is Test {
     steward.updateRates(rateUpdates);
   }
 
-  function test_updateRates_allKeepCurrent() public {
+  function test_updateRates_allKeepCurrent() public virtual {
     (
       uint256 beforeOptimalUsageRatio,
       uint256 beforeBaseVariableBorrowRate,
@@ -497,7 +497,7 @@ contract RiskSteward_Test is Test {
     assertEq(beforeVariableRateSlope2, afterVariableRateSlope2);
   }
 
-  function test_updateRate_sameUpdate() public {
+  function test_updateRate_sameUpdate() public virtual {
     (
       uint256 beforeOptimalUsageRatio,
       uint256 beforeBaseVariableBorrowRate,
