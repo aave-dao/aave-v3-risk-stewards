@@ -54,10 +54,4 @@ interface IAaveStewardInjectorCaps is IAaveStewardInjectorBase {
    * @param updateTypes array of updateTypes.
    */
   function getUpdateTypes() external pure returns (string[] memory updateTypes);
-
-  /**
-   * @notice method to get the maximum number of updates to check if an action could be performed upon.
-   * @return maximum size of updates to check.
-   */
-  function SIZE() external view returns (uint256);
 }

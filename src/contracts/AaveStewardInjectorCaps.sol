@@ -20,9 +20,6 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   using Strings for string;
   using EnumerableSet for EnumerableSet.AddressSet;
 
-  /// @inheritdoc IAaveStewardInjectorCaps
-  uint256 public constant SIZE = 15;
-
   EnumerableSet.AddressSet internal _markets;
 
   /**
@@ -41,11 +38,11 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
     address[] memory markets = getMarkets();
     string[] memory updateTypes = getUpdateTypes();
 
-    ActionData[] memory actions = new ActionData[](SIZE);
+    ActionData[] memory actions = new ActionData[](markets.length * updateTypes.length);
     uint256 actionCount;
 
-    for (uint256 i = 0; i < markets.length && actionCount < SIZE; i++) {
-      for (uint256 j = 0; j < updateTypes.length && actionCount < SIZE; j++) {
+    for (uint256 i = 0; i < markets.length; i++) {
+      for (uint256 j = 0; j < updateTypes.length; j++) {
         address market = markets[i];
         string memory updateType = updateTypes[j];
 
@@ -156,7 +153,7 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
 
   /**
    * @notice method to select a randomized action from a list of actions.
-   * @param actions the list of actions (of length SIZE) from where we select a randomized action.
+   * @param actions the list of actions from where we select a randomized action.
    * @param actionCount the count of actions.
    * @return action the randomized action from the actions list.
    */

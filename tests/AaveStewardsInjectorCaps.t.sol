@@ -247,6 +247,18 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     assertFalse(_checkAndPerformAutomation());
   }
 
+  function test_checkUpkeepGasLimit() public {
+    _addMultipleUpdatesToRiskOracleOfDifferentMarkets(40);
+
+    uint256 startGas = gasleft();
+    _stewardInjector.checkUpkeep('');
+    uint256 gasUsed = startGas - gasleft();
+
+    // for 40 markets added, the checkUpkeep gas consumed is less than 5m
+    // which is within the bounds of automation infra
+    assertLt(gasUsed, 5_000_000);
+  }
+
   function _addUpdateToRiskOracle(address market, string memory updateType, uint256 value) internal {
     vm.startPrank(_riskOracleOwner);
 
@@ -279,5 +291,30 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
 
     vm.prank(_stewardsInjectorOwner);
     AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(markets);
+  }
+
+  function _addMultipleUpdatesToRiskOracleOfDifferentMarkets(uint160 count) internal {
+    for (uint160 i = 0; i < count; i++) {
+      vm.startPrank(_riskOracleOwner);
+
+      address market = address(i);
+      _riskOracle.publishRiskParameterUpdate(
+        'referenceId',
+        abi.encode(105),
+        'supplyCap',
+        market,
+        'additionalData'
+      );
+      _riskOracle.publishRiskParameterUpdate(
+        'referenceId',
+        abi.encode(55),
+        'borrowCap',
+        market,
+        'additionalData'
+      );
+      vm.stopPrank();
+
+      _addMarket(market);
+    }
   }
 }
