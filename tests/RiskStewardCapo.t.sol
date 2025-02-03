@@ -12,7 +12,7 @@ import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable, IChainlinkAggregator} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 import {PriceCapAdapterStable} from 'aave-capo/contracts/PriceCapAdapterStable.sol';
-import {SafeCast} from 'solidity-utils/contracts/oz-common/SafeCast.sol';
+import {SafeCast} from 'openzeppelin-contracts/contracts/utils/math/SafeCast.sol';
 
 contract RiskSteward_Capo_Test is Test {
   using SafeCast for uint256;
