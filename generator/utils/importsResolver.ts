@@ -41,9 +41,13 @@ function generateRiskStewardImport(code: string) {
   const match = code.match(/RiskStewards(\w+)/);
 
   if (match) {
-    imports = `import {RiskStewards${match[1]}} from '${match[1] == 'ZkSync' ? '../' : ''}../../../../scripts/networks/RiskStewards${match[1]}.s.sol';\n`;
+    imports = `import {RiskStewards${match[1]}} from '${
+      match[1] == 'ZkSync' ? '../' : ''
+    }../../../../scripts/networks/RiskStewards${match[1]}.s.sol';\n`;
     if (findMatch(code, 'IRiskSteward')) {
-      imports += `import {IRiskSteward${findMatch(code, 'IPriceCapAdapter') ? ', IPriceCapAdapter': ''}} from '../../../interfaces/IRiskSteward.sol';\n`;
+      imports += `import {IRiskSteward${
+        findMatch(code, 'IPriceCapAdapter') ? ', IPriceCapAdapter' : ''
+      }} from '../../../interfaces/IRiskSteward.sol';\n`;
     }
   }
   return imports;
@@ -52,9 +56,9 @@ function generateRiskStewardImport(code: string) {
 function generateEngineImport(code: string) {
   const matches = [...code.matchAll(/Aave(V[2..3])Payload([A-Za-z]+)/g)].flat();
   if (matches.length > 0)
-    return `import {${matches[0]}} from 'aave-helpers/src/${matches[1].toLowerCase()}-config-engine/${
+    return `import {${
       matches[0]
-    }.sol';\n`;
+    }} from 'aave-helpers/src/${matches[1].toLowerCase()}-config-engine/${matches[0]}.sol';\n`;
 }
 
 function findMatches(code: string, needles: string[] | readonly string[]) {
@@ -110,10 +114,10 @@ export function prefixWithImports(code: string) {
   }
   // common imports
   if (findMatch(code, 'IERC20')) {
-    imports += `import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';\n`;
+    imports += `import {IERC20} from 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';\n`;
   }
   if (findMatch(code, 'forceApprove')) {
-    imports += `import {SafeERC20} from 'solidity-utils/contracts/oz-common/SafeERC20.sol';\n`;
+    imports += `import {SafeERC20} from 'openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol';\n`;
   }
   if (findMatch(code, 'GovernanceV3Ethereum')) {
     imports += `import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';\n`;
