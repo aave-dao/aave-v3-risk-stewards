@@ -54,7 +54,6 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
     WHITELISTED_ASSET = whitelistedAsset;
-    _transferOwnership(guardian);
   }
 
   /**
