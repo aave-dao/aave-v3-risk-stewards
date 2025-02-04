@@ -5,7 +5,7 @@ import {IRiskOracle} from './dependencies/IRiskOracle.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IAaveStewardInjector, AutomationCompatibleInterface} from '../interfaces/IAaveStewardInjector.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
+import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
 
 /**
  * @title AaveStewardInjector
@@ -45,11 +45,15 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
    * @param guardian address of the guardian / owner of the stewards injector.
    * @param whitelistedAsset address of the whitelisted asset for which update can be injected.
    */
-  constructor(address riskOracle, address riskSteward, address guardian, address whitelistedAsset) {
+  constructor(
+    address riskOracle,
+    address riskSteward,
+    address guardian,
+    address whitelistedAsset
+  ) Ownable(guardian) {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
     WHITELISTED_ASSET = whitelistedAsset;
-    _transferOwnership(guardian);
   }
 
   /**
@@ -108,13 +112,11 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (
-      !isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       updateRiskParams.market == WHITELISTED_ASSET &&
       keccak256(bytes(updateRiskParams.updateType)) == keccak256(bytes(WHITELISTED_UPDATE_TYPE)) &&
-      !isDisabled(updateRiskParams.updateId)
-    );
+      !isDisabled(updateRiskParams.updateId));
   }
 
   /**

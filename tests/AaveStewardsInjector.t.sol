@@ -6,6 +6,7 @@ import {TestnetProcedures} from 'aave-v3-origin/tests/utils/TestnetProcedures.so
 import {RiskOracle} from '../src/contracts/dependencies/RiskOracle.sol';
 import {AaveStewardInjector, IAaveStewardInjector} from '../src/contracts/AaveStewardInjector.sol';
 import {AaveV3EthereumLidoAssets} from 'aave-address-book/AaveV3EthereumLido.sol';
+import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
 
 contract AaveStewardsInjector_Test is TestnetProcedures {
   RiskSteward _riskSteward;
@@ -50,17 +51,16 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     string[] memory initialUpdateTypes = new string[](1);
     initialUpdateTypes[0] = 'RateStrategyUpdate';
 
-    _riskOracle = new RiskOracle(
-      'RiskOracle',
-      initialSenders,
-      initialUpdateTypes
-    );
+    _riskOracle = new RiskOracle('RiskOracle', initialSenders, initialUpdateTypes);
     vm.stopPrank();
 
     // setup steward injector
     vm.startPrank(_stewardsInjectorOwner);
 
-    address computedRiskStewardAddress = vm.computeCreateAddress(_stewardsInjectorOwner, vm.getNonce(_stewardsInjectorOwner) + 1);
+    address computedRiskStewardAddress = vm.computeCreateAddress(
+      _stewardsInjectorOwner,
+      vm.getNonce(_stewardsInjectorOwner) + 1
+    );
     _stewardInjector = new AaveStewardInjector(
       address(_riskOracle),
       address(computedRiskStewardAddress),
@@ -102,7 +102,9 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
     _addUpdateToRiskOracle();
 
     vm.prank(address(1));
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(
+      abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1))
+    );
     _stewardInjector.disableUpdateById(1, true);
 
     assertFalse(_stewardInjector.isDisabled(1));
@@ -131,7 +133,7 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
   }
 
   function test_isUpdatedIdExecuted() public {
-     // add rate update to risk oracle
+    // add rate update to risk oracle
     _addUpdateToRiskOracle();
 
     assertFalse(_stewardInjector.isUpdateIdExecuted(1));
@@ -160,7 +162,13 @@ contract AaveStewardsInjector_Test is TestnetProcedures {
   }
 
   function test_reverts_sameUpdateInjectedTwice() public {
-    _addUpdateToRiskOracle(EngineFlags.KEEP_CURRENT, 5_00, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT, block.timestamp - 100); // updateId 1
+    _addUpdateToRiskOracle(
+      EngineFlags.KEEP_CURRENT,
+      5_00,
+      EngineFlags.KEEP_CURRENT,
+      EngineFlags.KEEP_CURRENT,
+      block.timestamp - 100
+    ); // updateId 1
 
     vm.expectEmit(address(_stewardInjector));
     emit ActionSucceeded(1);
