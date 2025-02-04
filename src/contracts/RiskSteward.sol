@@ -59,7 +59,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     IEngine engine,
     address riskCouncil,
     Config memory riskConfig
-  ) Ownable(riskCouncil) {
+  ) Ownable(msg.sender) {
     POOL_DATA_PROVIDER = poolDataProvider;
     CONFIG_ENGINE = engine;
     RISK_COUNCIL = riskCouncil;
