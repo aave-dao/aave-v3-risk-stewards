@@ -50,7 +50,7 @@ contract AaveStewardInjector is Ownable, IAaveStewardInjector {
     address riskSteward,
     address guardian,
     address whitelistedAsset
-  ) Ownable(riskSteward) {
+  ) Ownable(guardian) {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
     WHITELISTED_ASSET = whitelistedAsset;
