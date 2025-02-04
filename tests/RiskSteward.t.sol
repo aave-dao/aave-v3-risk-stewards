@@ -10,6 +10,7 @@ import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/Ris
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {GovV3Helpers} from 'aave-helpers/src/GovV3Helpers.sol';
 import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
+import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
 
 contract RiskSteward_Test is Test {
   address public constant riskCouncil = address(42);
@@ -907,10 +908,10 @@ contract RiskSteward_Test is Test {
     vm.expectRevert(IRiskSteward.InvalidCaller.selector);
     steward.updateRates(rateStrategyUpdate);
 
-    vm.expectRevert('Ownable: caller is not the owner');
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, caller));
     steward.setRiskConfig(riskConfig);
 
-    vm.expectRevert('Ownable: caller is not the owner');
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, caller));
     steward.setAddressRestricted(AaveV3EthereumAssets.GHO_UNDERLYING, true);
 
     vm.stopPrank();
