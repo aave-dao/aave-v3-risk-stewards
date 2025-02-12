@@ -7,7 +7,7 @@ import {IAaveStewardInjectorCaps} from '../interfaces/IAaveStewardInjectorCaps.s
 import {AaveStewardInjectorBase} from './AaveStewardInjectorBase.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
-import {EnumerableSet} from 'solidity-utils/contracts/oz-common/EnumerableSet.sol';
+import {EnumerableSet} from 'openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol';
 import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
 
 /**
@@ -25,13 +25,15 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   /**
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
-   * @param guardian address of the guardian / owner of the stewards injector.
+   * @param owner address of the owner of the stewards injector.
+   * @param guardian address of the guardian of the stewards injector.
    */
   constructor(
     address riskOracle,
     address riskSteward,
+    address owner,
     address guardian
-  ) AaveStewardInjectorBase(riskOracle, riskSteward, guardian) {}
+  ) AaveStewardInjectorBase(riskOracle, riskSteward, owner, guardian) {}
 
   /// @inheritdoc AaveStewardInjectorBase
   function checkUpkeep(bytes memory) public view virtual override returns (bool, bytes memory) {

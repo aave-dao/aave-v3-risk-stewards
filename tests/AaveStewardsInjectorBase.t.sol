@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/RiskSteward.sol';
 import {TestnetProcedures} from 'aave-v3-origin/tests/utils/TestnetProcedures.sol';
 import {RiskOracle} from '../src/contracts/dependencies/RiskOracle.sol';
-import {AaveStewardInjectorBase, IAaveStewardInjectorBase} from '../src/contracts/AaveStewardInjectorBase.sol';
+import {AaveStewardInjectorBase, OwnableWithGuardian, IAaveStewardInjectorBase} from '../src/contracts/AaveStewardInjectorBase.sol';
+import {IWithGuardian} from 'solidity-utils/contracts/access-control/interfaces/IWithGuardian.sol';
+import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
 
 abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
   RiskSteward _riskSteward;
@@ -13,6 +15,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
 
   address _riskOracleOwner = address(20);
   address _stewardsInjectorOwner = address(25);
+  address _stewardsInjectorGuardian = address(30);
 
   event ActionSucceeded(uint256 indexed updateId);
   event AddressWhitelisted(address indexed contractAddress, bool indexed isWhitelisted);
@@ -42,7 +45,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _addUpdateToRiskOracle();
 
     vm.prank(address(1));
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(abi.encodeWithSelector(IWithGuardian.OnlyGuardianOrOwnerInvalidCaller.selector, address(1)));
     _stewardInjector.disableUpdateById(1, true);
 
     assertFalse(_stewardInjector.isDisabled(1));
@@ -75,7 +78,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _addUpdateToRiskOracle();
 
     vm.prank(address(1));
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(abi.encodeWithSelector(IWithGuardian.OnlyGuardianOrOwnerInvalidCaller.selector, address(1)));
     _stewardInjector.pauseInjector(true);
 
     assertFalse(_stewardInjector.isInjectorPaused());

@@ -5,7 +5,7 @@ import {IRiskOracle} from './dependencies/IRiskOracle.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IAaveStewardInjectorBase} from '../interfaces/IAaveStewardInjectorBase.sol';
 import {AutomationCompatibleInterface} from './dependencies/AutomationCompatibleInterface.sol';
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
+import {OwnableWithGuardian} from 'solidity-utils/contracts/access-control/OwnableWithGuardian.sol';
 
 /**
  * @title AaveStewardInjectorBase
@@ -16,7 +16,7 @@ import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
  *      - injects updates on the risk steward if all conditions are met.
  */
 abstract contract AaveStewardInjectorBase is
-  Ownable,
+  OwnableWithGuardian,
   AutomationCompatibleInterface,
   IAaveStewardInjectorBase
 {
@@ -40,12 +40,12 @@ abstract contract AaveStewardInjectorBase is
   /**
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
-   * @param guardian address of the guardian / owner of the stewards injector.
+   * @param owner address of the owner of the stewards injector.
+   * @param guardian address of the guardian of the stewards injector.
    */
-  constructor(address riskOracle, address riskSteward, address guardian) {
+  constructor(address riskOracle, address riskSteward, address owner, address guardian) OwnableWithGuardian(owner, guardian) {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
-    _transferOwnership(guardian);
   }
 
   /**
@@ -66,13 +66,13 @@ abstract contract AaveStewardInjectorBase is
   }
 
   /// @inheritdoc IAaveStewardInjectorBase
-  function disableUpdateById(uint256 updateId, bool disabled) external onlyOwner {
+  function disableUpdateById(uint256 updateId, bool disabled) external onlyOwnerOrGuardian {
     _disabledUpdates[updateId] = disabled;
     emit UpdateDisabled(updateId, disabled);
   }
 
   /// @inheritdoc IAaveStewardInjectorBase
-  function pauseInjector(bool isPaused) external onlyOwner {
+  function pauseInjector(bool isPaused) external onlyOwnerOrGuardian {
     _isPaused = isPaused;
     emit InjectorPaused(isPaused);
   }

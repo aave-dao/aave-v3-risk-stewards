@@ -52,7 +52,8 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     _stewardInjector = new AaveStewardInjectorCaps(
       address(_riskOracle),
       address(computedRiskStewardAddress),
-      _stewardsInjectorOwner
+      _stewardsInjectorOwner,
+      _stewardsInjectorGuardian
     );
 
     // setup risk steward
@@ -83,7 +84,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     markets[0] = address(weth);
 
     vm.prank(address(1));
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1)));
     AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(markets);
 
     vm.expectEmit(address(_stewardInjector));
@@ -103,7 +104,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     assertEq(markets[0], address(weth));
 
     vm.prank(address(1));
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1)));
     AaveStewardInjectorCaps(address(_stewardInjector)).removeMarkets(markets);
 
     vm.expectEmit(address(_stewardInjector));

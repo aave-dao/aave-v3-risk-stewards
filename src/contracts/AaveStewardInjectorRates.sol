@@ -7,6 +7,7 @@ import {IAaveStewardInjectorRates} from '../interfaces/IAaveStewardInjectorRates
 import {AaveStewardInjectorBase} from './AaveStewardInjectorBase.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
+import {OwnableWithGuardian} from 'solidity-utils/contracts/access-control/OwnableWithGuardian.sol';
 
 /**
  * @title AaveStewardInjectorRates
@@ -14,7 +15,7 @@ import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
  * @notice Aave chainlink automation-keeper-compatible contract to perform interest rate update injection
  *         on risk steward using the edge risk oracle.
  */
-contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInjectorRates {
+contract AaveStewardInjectorRates is OwnableWithGuardian, AaveStewardInjectorBase, IAaveStewardInjectorRates {
   using Strings for string;
 
   /// @inheritdoc IAaveStewardInjectorRates
@@ -26,15 +27,19 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
   /**
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
-   * @param guardian address of the guardian / owner of the stewards injector.
+   * @param owner address of the owner of the stewards injector.
+   * @param guardian address of the guardian of the stewards injector.
    * @param whitelistedAsset address of the whitelisted asset for which update can be injected.
    */
   constructor(
     address riskOracle,
     address riskSteward,
+    address owner,
     address guardian,
     address whitelistedAsset
-  ) AaveStewardInjectorBase(riskOracle, riskSteward, guardian) {
+  ) AaveStewardInjectorBase(riskOracle, riskSteward, owner, guardian) {
+    RISK_ORACLE = riskOracle;
+    RISK_STEWARD = riskSteward;
     WHITELISTED_ASSET = whitelistedAsset;
   }
 
@@ -72,8 +77,7 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase, IAaveStewardInject
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (
-      !isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       updateRiskParams.market == WHITELISTED_ASSET &&
       updateRiskParams.updateType.equal(WHITELISTED_UPDATE_TYPE) &&

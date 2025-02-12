@@ -48,6 +48,7 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
       address(_riskOracle),
       address(computedRiskStewardAddress),
       _stewardsInjectorOwner,
+      _stewardsInjectorGuardian,
       address(weth)
     );
 
