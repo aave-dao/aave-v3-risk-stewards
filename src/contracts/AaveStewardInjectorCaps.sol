@@ -10,6 +10,7 @@ import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-eng
 import {EnumerableSet} from 'openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol';
 import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
 import {IAToken} from 'aave-v3-origin/src/contracts/interfaces/IAToken.sol';
+import {IERC20Metadata} from 'openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol';
 
 /**
  * @title AaveStewardInjectorCaps
@@ -139,7 +140,7 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
     address underlyingAddress = IAToken(riskParams.market).UNDERLYING_ASSET_ADDRESS();
     uint256 capValue = abi.decode(
       abi.encodePacked(new bytes(32 - riskParams.newValue.length), riskParams.newValue), (uint256)
-    );
+    ) / (10 ** IERC20Metadata(riskParams.market).decimals());
 
     capUpdate = new IEngine.CapsUpdate[](1);
     if (riskParams.updateType.equal('supplyCap')) {

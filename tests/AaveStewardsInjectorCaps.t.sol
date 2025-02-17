@@ -132,7 +132,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
   }
 
   function test_perform_invalidMarketPassed() public {
-    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105));
+    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105e8));
 
     IAaveStewardInjectorCaps.ActionData memory action = IAaveStewardInjectorCaps.ActionData({
       market: _aWBTC,
@@ -153,7 +153,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
   }
 
   function test_perform_invalidUpdateTypePassed() public {
-    _addUpdateToRiskOracle(_aWETH, 'wrongUpdateType', _encode(105));
+    _addUpdateToRiskOracle(_aWETH, 'wrongUpdateType', _encode(105e18));
 
     IAaveStewardInjectorCaps.ActionData memory action = IAaveStewardInjectorCaps.ActionData({
       market: _aWETH,
@@ -163,7 +163,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
     _stewardInjector.performUpkeep(abi.encode(action));
 
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105));
+    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
     action = IAaveStewardInjectorCaps.ActionData({market: _aWETH, updateType: 'supplyCap'});
     vm.expectEmit(address(_stewardInjector));
     emit ActionSucceeded(2);
@@ -172,8 +172,8 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
 
   function test_multipleMarketInjection() public {
     _addMarket(_aWBTC);
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105));
-    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105));
+    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
+    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105e8));
 
     vm.expectEmit(address(_stewardInjector));
     emit ActionSucceeded(1);
@@ -185,8 +185,8 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
   }
 
   function test_multipleUpdateTypeInjection() public {
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105));
-    _addUpdateToRiskOracle(_aWETH, 'borrowCap', _encode(55));
+    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
+    _addUpdateToRiskOracle(_aWETH, 'borrowCap', _encode(55e18));
 
     vm.expectEmit(address(_stewardInjector));
     emit ActionSucceeded(1);
@@ -199,10 +199,10 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
 
   function test_randomized_multipleMarketInjection() public {
     _addMarket(_aWBTC);
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105));
-    _addUpdateToRiskOracle(_aWETH, 'borrowCap', _encode(55));
-    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105));
-    _addUpdateToRiskOracle(_aWBTC, 'borrowCap', _encode(55));
+    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
+    _addUpdateToRiskOracle(_aWETH, 'borrowCap', _encode(55e18));
+    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105e8));
+    _addUpdateToRiskOracle(_aWBTC, 'borrowCap', _encode(55e8));
 
     uint256 snapshot = vm.snapshotState();
 
@@ -284,7 +284,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(105),
+      _encode(105e18),
       'supplyCap',
       _aWETH,
       'additionalData'
@@ -307,14 +307,14 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
       address market = address(i);
       _riskOracle.publishRiskParameterUpdate(
         'referenceId',
-        _encode(105),
+        _encode(105e18),
         'supplyCap',
         market,
         'additionalData'
       );
       _riskOracle.publishRiskParameterUpdate(
         'referenceId',
-        _encode(55),
+        _encode(55e18),
         'borrowCap',
         market,
         'additionalData'
