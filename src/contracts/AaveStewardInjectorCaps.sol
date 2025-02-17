@@ -119,14 +119,13 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (
-      !isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       _markets.contains(updateRiskParams.market) &&
-      (updateRiskParams.updateType.equal('supplyCap') || updateRiskParams.updateType.equal('borrowCap')) &&
+      (updateRiskParams.updateType.equal('supplyCap') ||
+        updateRiskParams.updateType.equal('borrowCap')) &&
       !isDisabled(updateRiskParams.updateId) &&
-      !isInjectorPaused()
-    );
+      !isInjectorPaused());
   }
 
   /**
@@ -139,7 +138,8 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   ) internal view returns (IEngine.CapsUpdate[] memory capUpdate) {
     address underlyingAddress = IAToken(riskParams.market).UNDERLYING_ASSET_ADDRESS();
     uint256 capValue = abi.decode(
-      abi.encodePacked(new bytes(32 - riskParams.newValue.length), riskParams.newValue), (uint256)
+      abi.encodePacked(new bytes(32 - riskParams.newValue.length), riskParams.newValue),
+      (uint256)
     ) / (10 ** IERC20Metadata(riskParams.market).decimals());
 
     capUpdate = new IEngine.CapsUpdate[](1);

@@ -15,7 +15,11 @@ import {OwnableWithGuardian} from 'solidity-utils/contracts/access-control/Ownab
  * @notice Aave chainlink automation-keeper-compatible contract to perform interest rate update injection
  *         on risk steward using the edge risk oracle.
  */
-contract AaveStewardInjectorRates is OwnableWithGuardian, AaveStewardInjectorBase, IAaveStewardInjectorRates {
+contract AaveStewardInjectorRates is
+  OwnableWithGuardian,
+  AaveStewardInjectorBase,
+  IAaveStewardInjectorRates
+{
   using Strings for string;
 
   /// @inheritdoc IAaveStewardInjectorRates
@@ -82,8 +86,7 @@ contract AaveStewardInjectorRates is OwnableWithGuardian, AaveStewardInjectorBas
       updateRiskParams.market == WHITELISTED_ASSET &&
       updateRiskParams.updateType.equal(WHITELISTED_UPDATE_TYPE) &&
       !isDisabled(updateRiskParams.updateId) &&
-      !isInjectorPaused()
-    );
+      !isInjectorPaused());
   }
 
   /**

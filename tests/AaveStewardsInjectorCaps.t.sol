@@ -90,7 +90,9 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     markets[0] = _aWETH;
 
     vm.prank(address(1));
-    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1)));
+    vm.expectRevert(
+      abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1))
+    );
     AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(markets);
 
     vm.expectEmit(address(_stewardInjector));
@@ -110,7 +112,9 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     assertEq(markets[0], _aWETH);
 
     vm.prank(address(1));
-    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1)));
+    vm.expectRevert(
+      abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1))
+    );
     AaveStewardInjectorCaps(address(_stewardInjector)).removeMarkets(markets);
 
     vm.expectEmit(address(_stewardInjector));
@@ -330,6 +334,6 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
   }
 
   function _getAToken(address underlying) internal view returns (address aToken) {
-    (aToken, ,) = contracts.protocolDataProvider.getReserveTokensAddresses(underlying);
+    (aToken, , ) = contracts.protocolDataProvider.getReserveTokensAddresses(underlying);
   }
 }

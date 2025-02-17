@@ -43,7 +43,12 @@ abstract contract AaveStewardInjectorBase is
    * @param owner address of the owner of the stewards injector.
    * @param guardian address of the guardian of the stewards injector.
    */
-  constructor(address riskOracle, address riskSteward, address owner, address guardian) OwnableWithGuardian(owner, guardian) {
+  constructor(
+    address riskOracle,
+    address riskSteward,
+    address owner,
+    address guardian
+  ) OwnableWithGuardian(owner, guardian) {
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
   }

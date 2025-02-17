@@ -45,7 +45,9 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _addUpdateToRiskOracle();
 
     vm.prank(address(1));
-    vm.expectRevert(abi.encodeWithSelector(IWithGuardian.OnlyGuardianOrOwnerInvalidCaller.selector, address(1)));
+    vm.expectRevert(
+      abi.encodeWithSelector(IWithGuardian.OnlyGuardianOrOwnerInvalidCaller.selector, address(1))
+    );
     _stewardInjector.disableUpdateById(1, true);
 
     assertFalse(_stewardInjector.isDisabled(1));
@@ -78,7 +80,9 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _addUpdateToRiskOracle();
 
     vm.prank(address(1));
-    vm.expectRevert(abi.encodeWithSelector(IWithGuardian.OnlyGuardianOrOwnerInvalidCaller.selector, address(1)));
+    vm.expectRevert(
+      abi.encodeWithSelector(IWithGuardian.OnlyGuardianOrOwnerInvalidCaller.selector, address(1))
+    );
     _stewardInjector.pauseInjector(true);
 
     assertFalse(_stewardInjector.isInjectorPaused());
