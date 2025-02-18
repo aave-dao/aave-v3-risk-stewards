@@ -31,9 +31,10 @@ library DeployStewardContracts {
     return riskSteward;
   }
 
-  function _deployStewardsInjector(
+  function _deployRatesStewardInjector(
     bytes32 salt,
     address riskSteward,
+    address owner,
     address guardian,
     address whitelistedAsset
   ) internal returns (address) {
@@ -41,7 +42,7 @@ library DeployStewardContracts {
       salt,
       abi.encodePacked(
         type(AaveStewardInjectorRates).creationCode,
-        abi.encode(EDGE_RISK_ORACLE, riskSteward, guardian, whitelistedAsset)
+        abi.encode(EDGE_RISK_ORACLE, riskSteward, owner, guardian, whitelistedAsset)
       )
     );
     return stewardInjector;
@@ -75,7 +76,7 @@ library DeployStewardContracts {
   }
 }
 
-// make deploy-ledger contract=scripts/deploy/DeployInjector.s.sol:DeployEthereumLido chain=mainnet
+// make deploy-ledger contract=scripts/deploy/DeployRateInjector.s.sol:DeployEthereumLido chain=mainnet
 contract DeployEthereumLido is EthereumScript {
   address constant GUARDIAN = 0xff37939808EcF199A2D599ef91D699Fb13dab7F7;
 
@@ -92,9 +93,10 @@ contract DeployEthereumLido is EthereumScript {
       GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
 
-    DeployStewardContracts._deployStewardsInjector(
+    DeployStewardContracts._deployRatesStewardInjector(
       salt,
       riskSteward,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1,
       GUARDIAN,
       AaveV3EthereumLidoAssets.WETH_UNDERLYING
     );

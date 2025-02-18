@@ -88,7 +88,7 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   }
 
   /// @inheritdoc IAaveStewardInjectorCaps
-  function addMarkets(address[] memory markets) public onlyOwner {
+  function addMarkets(address[] calldata markets) external onlyOwner {
     for (uint256 i = 0; i < markets.length; i++) {
       _markets.add(markets[i]);
       emit MarketAdded(markets[i]);
@@ -96,7 +96,7 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase, IAaveStewardInjecto
   }
 
   /// @inheritdoc IAaveStewardInjectorCaps
-  function removeMarkets(address[] memory markets) public onlyOwner {
+  function removeMarkets(address[] calldata markets) external onlyOwner {
     for (uint256 i = 0; i < markets.length; i++) {
       _markets.remove(markets[i]);
       emit MarketRemoved(markets[i]);

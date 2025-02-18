@@ -41,13 +41,13 @@ interface IAaveStewardInjectorCaps is IAaveStewardInjectorBase {
    * @notice method called by the owner to whitelist markets on the injector.
    * @param markets array of aToken addresses to whitelist.
    */
-  function addMarkets(address[] memory markets) external;
+  function addMarkets(address[] calldata markets) external;
 
   /**
    * @notice method called by the owner to remove whitelisted markets on the injector.
    * @param markets array of aToken addresses to remove from whitelist.
    */
-  function removeMarkets(address[] memory markets) external;
+  function removeMarkets(address[] calldata markets) external;
 
   /**
    * @notice method to get all the valid update types.
