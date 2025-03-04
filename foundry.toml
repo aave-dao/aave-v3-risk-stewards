@@ -32,6 +32,9 @@ zksolc = '1.5.7'
 [profile.linea]
 evm_version = 'london'
 
+[profile.sonic]
+evm_version = 'cancun'
+
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"
 optimism = "${RPC_OPTIMISM}"
