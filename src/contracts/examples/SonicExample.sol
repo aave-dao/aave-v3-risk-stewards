@@ -18,8 +18,8 @@ contract SonicExample is RiskStewardsSonic {
   function capsUpdates() public pure override returns (IEngine.CapsUpdate[] memory) {
     IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
     capUpdates[0] = IEngine.CapsUpdate(
-      AaveV3SonicAssets.WETH_UNDERLYING,
-      40_000,
+      AaveV3SonicAssets.wS_UNDERLYING,
+      21_000_000,
       EngineFlags.KEEP_CURRENT
     );
     return capUpdates;
