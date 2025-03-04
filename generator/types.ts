@@ -22,11 +22,10 @@ export const V3_POOLS = [
   'AaveV3BNB',
   'AaveV3ZkSync',
   'AaveV3Linea',
+  'AaveV3Sonic',
 ] as const satisfies readonly (keyof typeof addressBook)[];
 
-export const POOLS = [
-  ...V3_POOLS,
-] as const satisfies readonly (keyof typeof addressBook)[];
+export const POOLS = [...V3_POOLS] as const satisfies readonly (keyof typeof addressBook)[];
 
 export type PoolIdentifier = (typeof POOLS)[number];
 export type PoolIdentifierV3 = (typeof V3_POOLS)[number];
