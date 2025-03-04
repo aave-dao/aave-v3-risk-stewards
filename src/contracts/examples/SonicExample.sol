@@ -6,7 +6,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {RiskStewardsSonic} from '../../../scripts/networks/RiskStewardsSonic.s.sol';
 
-// make run-script network=optimism contract=src/contracts/examples/SonicExample.sol:SonicExample broadcast=false generate_diff=true skip_timelock=false
+// make run-script network=sonic contract=src/contracts/examples/SonicExample.sol:SonicExample broadcast=false generate_diff=true skip_timelock=false
 contract SonicExample is RiskStewardsSonic {
   /**
    * @return string name identifier used for the diff
