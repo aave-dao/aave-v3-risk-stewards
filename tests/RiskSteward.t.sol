@@ -24,7 +24,7 @@ contract RiskSteward_Test is Test {
   event RiskConfigSet(IRiskSteward.Config indexed riskConfig);
 
   function setUp() public virtual {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 20934847);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 21974363);
 
     configEngine = AaveV3Ethereum.CONFIG_ENGINE;
 
