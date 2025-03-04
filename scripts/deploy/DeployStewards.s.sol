@@ -26,6 +26,8 @@ import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
 import {GovernanceV3Metis} from 'aave-address-book/GovernanceV3Metis.sol';
 import {AaveV3Linea} from 'aave-address-book/AaveV3Linea.sol';
 import {GovernanceV3Linea} from 'aave-address-book/GovernanceV3Linea.sol';
+import {AaveV3Sonic} from 'aave-address-book/AaveV3Sonic.sol';
+import {GovernanceV3Sonic} from 'aave-address-book/GovernanceV3Sonic.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {RiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/RiskSteward.sol';
 
@@ -253,6 +255,20 @@ contract DeployLinea is LineaScript {
       AaveV3Linea.CONFIG_ENGINE,
       0xF092A5aC5E284E7c433dAFE5b8B138bFcA53a4Ee, // linea-risk-council
       GovernanceV3Linea.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeploySonic chain=sonic
+contract DeploySonic is SonicScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3Sonic.AAVE_PROTOCOL_DATA_PROVIDER),
+      AaveV3Sonic.CONFIG_ENGINE,
+      0x1dE39A17a9Fa8c76899fff37488482EEb7835d04, // sonic-risk-council
+      GovernanceV3Sonic.EXECUTOR_LVL_1
     );
     vm.stopBroadcast();
   }
