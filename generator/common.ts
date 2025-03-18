@@ -14,6 +14,7 @@ import {
   zkSync,
   linea,
   sonic,
+  celo,
 } from 'viem/chains';
 
 export const AVAILABLE_CHAINS = [
@@ -32,6 +33,7 @@ export const AVAILABLE_CHAINS = [
   'ZkSync',
   'Linea',
   'Sonic',
+  'Celo',
 ] as const;
 
 export function getAssets(pool: PoolIdentifier): string[] {
@@ -117,6 +119,7 @@ export const CHAIN_TO_CHAIN_ID = {
   ZkSync: zkSync.id,
   Linea: linea.id,
   Sonic: sonic.id,
+  Celo: celo.id,
 };
 
 export function flagAsRequired(message: string, required?: boolean) {

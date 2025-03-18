@@ -28,6 +28,8 @@ import {AaveV3Linea} from 'aave-address-book/AaveV3Linea.sol';
 import {GovernanceV3Linea} from 'aave-address-book/GovernanceV3Linea.sol';
 import {AaveV3Sonic} from 'aave-address-book/AaveV3Sonic.sol';
 import {GovernanceV3Sonic} from 'aave-address-book/GovernanceV3Sonic.sol';
+import {AaveV3Celo} from 'aave-address-book/AaveV3Celo.sol';
+import {GovernanceV3Celo} from 'aave-address-book/GovernanceV3Celo.sol';
 import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
 import {RiskSteward, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/RiskSteward.sol';
 
@@ -269,6 +271,20 @@ contract DeploySonic is SonicScript {
       AaveV3Sonic.CONFIG_ENGINE,
       0x1dE39A17a9Fa8c76899fff37488482EEb7835d04, // sonic-risk-council
       GovernanceV3Sonic.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployCelo chain=celo
+contract DeployCelo is SonicScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3Celo.AAVE_PROTOCOL_DATA_PROVIDER),
+      AaveV3Celo.CONFIG_ENGINE,
+      0xd85786B5FC61E2A0c0a3144a33A0fC70646a99f6, // celo-risk-council
+      GovernanceV3Celo.EXECUTOR_LVL_1
     );
     vm.stopBroadcast();
   }
