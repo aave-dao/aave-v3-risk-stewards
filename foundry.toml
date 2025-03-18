@@ -35,6 +35,9 @@ evm_version = 'london'
 [profile.sonic]
 evm_version = 'cancun'
 
+[profile.celo]
+evm_version = 'paris'
+
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"
 optimism = "${RPC_OPTIMISM}"
@@ -52,6 +55,7 @@ scroll = "${RPC_SCROLL}"
 zksync = "${RPC_ZKSYNC}"
 linea = "${RPC_LINEA}"
 sonic = "${RPC_SONIC}"
+celo = "${RPC_CELO}"
 
 [etherscan]
 mainnet = { key="${ETHERSCAN_API_KEY_MAINNET}", chainId=1 }
@@ -69,5 +73,6 @@ scroll = { key="${ETHERSCAN_API_KEY_SCROLL}", chainId= 534352 }
 zksync = { key="${ETHERSCAN_API_KEY_ZKSYNC}", chainId= 324 }
 linea = { key="${ETHERSCAN_API_KEY_LINEA}", chain = 59144 }
 sonic = { key="${ETHERSCAN_API_KEY_SONIC}", chain = 146 }
+celo = { key="${ETHERSCAN_API_KEY_CELO}", chain = 42220 }
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config
