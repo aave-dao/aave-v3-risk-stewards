@@ -70,7 +70,7 @@ Some assets/oracles can also be restricted on the RiskStewards by calling the `s
 
 With the introduction of Edge Risk Oracles by Chaos Labs, which leverages advanced off-chain infrastructure to deliver real-time risk updates to the Aave protocol via the Risk Oracle, the risk updates for the Aave protocol can be automated in a constrained manner. This can be done by combining the Edge Risk Oracle with the Aave Risk Steward, using a middleware contract `AaveStewardsInjector`.
 
-The Aave Risk Steward contract used for automated updates (called now [EdgeRiskSteward](./src/contracts/EdgeRiskSteward.sol)), has been slightly modified to only allow Interest Rates Updates on the protocol initially as a matter of extra security considerations.
+The Aave Risk Steward contract used for automated updates (called now [EdgeRiskStewardRates](./src/contracts/EdgeRiskStewardRates.sol)), has been slightly modified to only allow Interest Rates Updates on the protocol initially as a matter of extra security considerations.
 
 The following is a simple diagram of how the system works as a whole:
 

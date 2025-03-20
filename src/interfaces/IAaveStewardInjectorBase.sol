@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {AutomationCompatibleInterface} from '../contracts/dependencies/AutomationCompatibleInterface.sol';
-
 /**
- * @title IAaveStewardInjector
+ * @title IAaveStewardInjectorBase
  * @author BGD Labs
- * @notice Defines the interface for the injector contract to automate actions for Risk Steward.
+ * @notice Defines the interface for the base injector contract to automate actions for Risk Steward.
  **/
-interface IAaveStewardInjector is AutomationCompatibleInterface {
+interface IAaveStewardInjectorBase {
   /**
    * @notice Emitted when performUpkeep is called and an update is injected into the risk steward.
    * @param updateId the risk oracle update id injected into the risk steward.
@@ -21,6 +19,12 @@ interface IAaveStewardInjector is AutomationCompatibleInterface {
    * @param disabled true if updateId is disabled, false otherwise.
    */
   event UpdateDisabled(uint256 indexed updateId, bool indexed disabled);
+
+  /**
+   * @notice Emitted when the injector is paused/unpaused.
+   * @param isPaused true if the injector is being paused, false otherwise.
+   */
+  event InjectorPaused(bool indexed isPaused);
 
   /**
    * @notice The following update cannot be injected in the steward injector because the conditions are not met.
@@ -43,10 +47,22 @@ interface IAaveStewardInjector is AutomationCompatibleInterface {
 
   /**
    * @notice method to check if the updateId from the risk oracle has been executed/injected into the risk steward.
-   * @param updateid the updateId from the risk oracle to check if already executed/injected.
+   * @param updateId the updateId from the risk oracle to check if already executed/injected.
    * @return bool true if the updateId is executed/injected, false otherwise.
    */
-  function isUpdateIdExecuted(uint256 updateid) external view returns (bool);
+  function isUpdateIdExecuted(uint256 updateId) external view returns (bool);
+
+  /**
+   * @notice method called by owner to pause/unpause the injector.
+   * @param isPaused true if the injector is being paused, false otherwise.
+   */
+  function pauseInjector(bool isPaused) external;
+
+  /**
+   * @notice method to check if the injector is paused.
+   * @return true if the injector is paused, false otherwise.
+   */
+  function isInjectorPaused() external view returns (bool);
 
   /**
    * @notice method to get the address of the edge risk oracle contract.
@@ -65,16 +81,4 @@ interface IAaveStewardInjector is AutomationCompatibleInterface {
    * @return time in seconds of the expiration time.
    */
   function EXPIRATION_PERIOD() external view returns (uint256);
-
-  /**
-   * @notice method to get the whitelisted update type for which injection is allowed from the risk oracle into the stewards.
-   * @return string for the whitelisted update type - interest rate update.
-   */
-  function WHITELISTED_UPDATE_TYPE() external view returns (string memory);
-
-  /**
-   * @notice method to get the whitelisted asset for which injection is allowed from the risk oracle into the stewards.
-   * @return address for the whitelisted asset.
-   */
-  function WHITELISTED_ASSET() external view returns (address);
 }

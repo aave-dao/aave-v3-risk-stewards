@@ -125,8 +125,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
       vm.warp(block.timestamp + uint256(maxTimelock) + 1);
     }
 
-    if (generateDiffReport)
-      createConfigurationSnapshot(pre, POOL, true, true, false, false);
+    if (generateDiffReport) createConfigurationSnapshot(pre, POOL, true, true, false, false);
 
     if (capUpdates.length != 0) {
       callDatas[txCount] = abi.encodeWithSelector(IRiskSteward.updateCaps.selector, capUpdates);
