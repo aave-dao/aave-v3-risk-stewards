@@ -9,15 +9,16 @@ contract EdgeRiskStewardRates_Test is RiskSteward_Test {
   function setUp() public override {
     super.setUp();
 
-    vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward = new EdgeRiskStewardRates(
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
-      IEngine(configEngine),
+      address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
+      AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1,
       riskConfig
     );
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
-    vm.stopPrank();
   }
 
   /* ----------------------------- Caps Tests ----------------------------- */

@@ -95,26 +95,26 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
 
       IRiskSteward.Config memory riskConfig = STEWARD.getRiskConfig();
       if (capUpdates.length != 0) {
-        timelocks[index++] = riskConfig.supplyCap.minDelay;
-        timelocks[index++] = riskConfig.borrowCap.minDelay;
+        timelocks[index++] = riskConfig.capConfig.supplyCap.minDelay;
+        timelocks[index++] = riskConfig.capConfig.borrowCap.minDelay;
       }
       if (collateralUpdates.length != 0) {
-        timelocks[index++] = riskConfig.ltv.minDelay;
-        timelocks[index++] = riskConfig.liquidationThreshold.minDelay;
-        timelocks[index++] = riskConfig.liquidationBonus.minDelay;
-        timelocks[index++] = riskConfig.debtCeiling.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.ltv.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.liquidationThreshold.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.liquidationBonus.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.debtCeiling.minDelay;
       }
       if (rateUpdates.length != 0) {
-        timelocks[index++] = riskConfig.baseVariableBorrowRate.minDelay;
-        timelocks[index++] = riskConfig.optimalUsageRatio.minDelay;
-        timelocks[index++] = riskConfig.variableRateSlope1.minDelay;
-        timelocks[index++] = riskConfig.variableRateSlope2.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.baseVariableBorrowRate.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.optimalUsageRatio.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.variableRateSlope1.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.variableRateSlope2.minDelay;
       }
       if (lstPriceCapUpdates.length != 0) {
-        timelocks[index++] = riskConfig.priceCapLst.minDelay;
+        timelocks[index++] = riskConfig.priceCapConfig.priceCapLst.minDelay;
       }
       if (stablePriceCapUpdates.length != 0) {
-        timelocks[index++] = riskConfig.priceCapStable.minDelay;
+        timelocks[index++] = riskConfig.priceCapConfig.priceCapStable.minDelay;
       }
       uint40 maxTimelock = 0;
       for (uint256 i = 0; i < timelocks.length; i++) {

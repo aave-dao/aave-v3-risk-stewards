@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
+import {IPoolDataProvider, IPoolAddressesProvider} from 'aave-address-book/AaveV3.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
@@ -47,6 +47,11 @@ interface IRiskSteward {
   error AssetIsRestricted();
 
   /**
+   * @notice The steward does not allow updates of risk param of a restricted eMode
+   */
+  error EModeIsRestricted();
+
+  /**
    * @notice The steward does not allow updates of cap param of a restricted oracle
    */
   error OracleIsRestricted();
@@ -69,6 +74,13 @@ interface IRiskSteward {
   event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
 
   /**
+   * @notice Emitted when the owner configures an eMode categoryId as restricted to be used by steward
+   * @param eModeCategoryId the id of the eMode category
+   * @param isRestricted true if eModeCategoryId is set as restricted, false otherwise
+   */
+  event EModeRestricted(uint8 indexed eModeCategoryId, bool indexed isRestricted);
+
+  /**
    * @notice Emitted when the risk configuration for the risk params has been set
    * @param riskConfig struct containing the risk configurations
    */
@@ -78,17 +90,20 @@ interface IRiskSteward {
    * @notice Struct storing the last update by the steward of each risk param
    */
   struct Debounce {
-    uint40 supplyCapLastUpdated;
-    uint40 borrowCapLastUpdated;
     uint40 ltvLastUpdated;
     uint40 liquidationBonusLastUpdated;
     uint40 liquidationThresholdLastUpdated;
-    uint40 debtCeilingLastUpdated;
+    uint40 eModeLtvLastUpdated;
+    uint40 eModeLiquidationBonusLastUpdated;
+    uint40 eModeLiquidationThresholdLastUpdated;
+    uint40 optimalUsageRatioLastUpdated;
     uint40 baseVariableRateLastUpdated;
     uint40 variableRateSlope1LastUpdated;
     uint40 variableRateSlope2LastUpdated;
-    uint40 optimalUsageRatioLastUpdated;
+    uint40 debtCeilingLastUpdated;
     uint40 priceCapLastUpdated;
+    uint40 supplyCapLastUpdated;
+    uint40 borrowCapLastUpdated;
   }
 
   /**
@@ -119,16 +134,54 @@ interface IRiskSteward {
    * @notice Struct storing the risk configuration for all the risk param
    */
   struct Config {
+    CollateralConfig collateralConfig;
+    EmodeConfig eModeConfig;
+    RateConfig rateConfig;
+    CapConfig capConfig;
+    PriceCapConfig priceCapConfig;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for collateral side param
+   */
+  struct CollateralConfig {
     RiskParamConfig ltv;
     RiskParamConfig liquidationThreshold;
     RiskParamConfig liquidationBonus;
-    RiskParamConfig supplyCap;
-    RiskParamConfig borrowCap;
     RiskParamConfig debtCeiling;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for emode category param
+   */
+  struct EmodeConfig {
+    RiskParamConfig ltv;
+    RiskParamConfig liquidationThreshold;
+    RiskParamConfig liquidationBonus;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for rate param
+   */
+  struct RateConfig {
     RiskParamConfig baseVariableBorrowRate;
     RiskParamConfig variableRateSlope1;
     RiskParamConfig variableRateSlope2;
     RiskParamConfig optimalUsageRatio;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for cap param
+   */
+  struct CapConfig {
+    RiskParamConfig supplyCap;
+    RiskParamConfig borrowCap;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for price cap param
+   */
+  struct PriceCapConfig {
     RiskParamConfig priceCapLst;
     RiskParamConfig priceCapStable;
   }
@@ -155,9 +208,9 @@ interface IRiskSteward {
   function CONFIG_ENGINE() external view returns (IEngine);
 
   /**
-   * @notice The pool data provider of the POOL the steward controls
+   * @notice The aave addresses provider of the instance steward controls
    */
-  function POOL_DATA_PROVIDER() external view returns (IPoolDataProvider);
+  function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
 
   /**
    * @notice The safe controlling the steward
@@ -189,6 +242,14 @@ interface IRiskSteward {
   function updateCollateralSide(IEngine.CollateralUpdate[] calldata collateralUpdates) external;
 
   /**
+   * @notice Allows updating eMode category params across multiple eMode ids
+   * @dev A eMode category update is only possible after minDelay has passed after last update
+   * @dev A eMode category increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param eModeCategoryUpdates struct containing new eMode category params to be updated
+   */
+  function updateEModeCategories(IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates) external;
+
+  /**
    * @notice Allows updating lst price cap params across multiple oracles
    * @dev A price cap update is only possible after minDelay has passed after last update
    * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
@@ -212,6 +273,13 @@ interface IRiskSteward {
   function isAddressRestricted(address contractAddress) external view returns (bool);
 
   /**
+   * @notice method to check if an eMode category id is restricted to be used by the risk stewards
+   * @param eModeCategoryId the id of the eMode category
+   * @return bool if eModeCategoryId is restricted or not
+   */
+  function isEModeCategoryRestricted(uint8 eModeCategoryId) external view returns (bool);
+
+  /**
    * @notice method called by the owner to set an asset/oracle as restricted
    * @param contractAddress address of the underlying asset or oracle
    * @param isRestricted true if asset needs to be restricted, false otherwise
@@ -219,11 +287,27 @@ interface IRiskSteward {
   function setAddressRestricted(address contractAddress, bool isRestricted) external;
 
   /**
+   * @notice method called by the owner to set an eMode category as restricted
+   * @param eModeCategoryId the id of the eMode category
+   * @param isRestricted true if eModeCategoryId needs to be restricted, false otherwise
+   */
+  function setEModeCategoryRestricted(uint8 eModeCategoryId, bool isRestricted) external;
+
+  /**
    * @notice Returns the timelock for a specific asset i.e the last updated timestamp
    * @param asset for which to fetch the timelock
-   * @return struct containing the latest updated timestamps of all the risk params by the steward
+   * @return struct containing the latest updated timestamps of all the risk params by the steward except eMode
+   * @dev the emode timelock params of the struct returned will be unused
    */
   function getTimelock(address asset) external view returns (Debounce memory);
+
+  /**
+   * @notice Returns the timelock for a specific eMode category id i.e the last updated timestamp
+   * @param eModeCategoryId the eMode category for which to fetch the timelock
+   * @return struct containing the latest updated timestamps of eMode risk params by the steward
+   * @dev the non-emode timelock params of the struct returned will be unused
+   */
+  function getEModeTimelock(uint8 eModeCategoryId) external view returns (Debounce memory);
 
   /**
    * @notice method to get the risk configuration set for all the risk params

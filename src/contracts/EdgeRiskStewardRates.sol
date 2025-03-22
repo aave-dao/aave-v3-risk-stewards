@@ -11,17 +11,19 @@ import './RiskSteward.sol';
  */
 contract EdgeRiskStewardRates is RiskSteward {
   /**
-   * @param poolDataProvider The pool data provider of the pool to be controlled by the steward
+   * @param poolAddressesProvider The pool addresses provider of the pool to be controlled by the steward
    * @param engine the config engine to be used by the steward
    * @param riskCouncil the safe address of the council being able to interact with the steward
+   * @param owner the owner of the risk steward being able to set configs and mark items as restricted
    * @param riskConfig the risk configuration to setup for each individual risk param
    */
   constructor(
-    IPoolDataProvider poolDataProvider,
-    IEngine engine,
+    address poolAddressesProvider,
+    address engine,
     address riskCouncil,
+    address owner,
     Config memory riskConfig
-  ) RiskSteward(poolDataProvider, engine, riskCouncil, riskConfig) {}
+  ) RiskSteward(poolAddressesProvider, engine, riskCouncil, owner, riskConfig) {}
 
   /// @inheritdoc IRiskSteward
   function updateCaps(IEngine.CapsUpdate[] calldata) external virtual override onlyRiskCouncil {
@@ -31,6 +33,13 @@ contract EdgeRiskStewardRates is RiskSteward {
   /// @inheritdoc IRiskSteward
   function updateCollateralSide(
     IEngine.CollateralUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
+    revert UpdateNotAllowed();
+  }
+
+  /// @inheritdoc IRiskSteward
+  function updateEModeCategories(
+    IEngine.EModeCategoryUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }

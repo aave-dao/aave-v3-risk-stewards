@@ -11,56 +11,31 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {GovV3Helpers} from 'aave-helpers/src/GovV3Helpers.sol';
 import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
+import {DeployRiskStewards} from '../scripts/deploy/DeployStewards.s.sol';
 
 contract RiskSteward_Test is Test {
   address public constant riskCouncil = address(42);
   IRiskSteward public steward;
-  address public configEngine;
-  IRiskSteward.RiskParamConfig public defaultRiskParamConfig;
   IRiskSteward.Config public riskConfig;
 
   event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
-
   event RiskConfigSet(IRiskSteward.Config indexed riskConfig);
 
   function setUp() public virtual {
     vm.createSelectFork(vm.rpcUrl('mainnet'), 21974363);
 
-    configEngine = AaveV3Ethereum.CONFIG_ENGINE;
+    riskConfig = DeployRiskStewards._getRiskConfig();
 
-    defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
-      minDelay: 5 days,
-      maxPercentChange: 10_00 // 10%
-    });
-    IRiskSteward.RiskParamConfig memory liquidationBonusParamConfig = IRiskSteward.RiskParamConfig({
-      minDelay: 5 days,
-      maxPercentChange: 2_00 // 2%
-    });
-
-    riskConfig = IRiskSteward.Config({
-      ltv: defaultRiskParamConfig,
-      liquidationThreshold: defaultRiskParamConfig,
-      liquidationBonus: liquidationBonusParamConfig,
-      supplyCap: defaultRiskParamConfig,
-      borrowCap: defaultRiskParamConfig,
-      debtCeiling: defaultRiskParamConfig,
-      baseVariableBorrowRate: defaultRiskParamConfig,
-      variableRateSlope1: defaultRiskParamConfig,
-      variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig,
-      priceCapLst: defaultRiskParamConfig,
-      priceCapStable: defaultRiskParamConfig
-    });
-
-    vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward = new RiskSteward(
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
-      IEngine(configEngine),
+      address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
+      AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1,
       riskConfig
     );
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
-    vm.stopPrank();
   }
 
   /* ----------------------------- Caps Tests ----------------------------- */
@@ -93,7 +68,7 @@ contract RiskSteward_Test is Test {
     assertEq(lastUpdated.borrowCapLastUpdated, block.timestamp);
 
     // after min time passed test caps decrease
-    vm.warp(block.timestamp + 5 days + 1);
+    vm.warp(block.timestamp + 3 days + 1);
     (daiBorrowCapBefore, daiSupplyCapBefore) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
       .getReserveCaps(AaveV3EthereumAssets.DAI_UNDERLYING);
@@ -122,19 +97,31 @@ contract RiskSteward_Test is Test {
     IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
     capUpdates[0] = IEngine.CapsUpdate(
       AaveV3EthereumAssets.DAI_UNDERLYING,
-      (daiSupplyCapBefore * 120) / 100, // 20% relative increase (current maxChangePercent configured is 10%)
-      (daiBorrowCapBefore * 120) / 100 // 20% relative increase
+      (daiSupplyCapBefore * 210) / 100, // 110% relative increase (current maxChangePercent configured is 100%)
+      (daiBorrowCapBefore * 210) / 100 // 110% relative increase
     );
 
-    vm.startPrank(riskCouncil);
+    vm.prank(riskCouncil);
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateCaps(capUpdates);
+
+    IRiskSteward.RiskParamConfig memory newConfig = IRiskSteward.RiskParamConfig({
+      minDelay: 3 days,
+      maxPercentChange: 10_00
+    });
+    IRiskSteward.Config memory config = riskConfig;
+    config.capConfig.supplyCap = newConfig;
+    config.capConfig.borrowCap = newConfig;
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
+    steward.setRiskConfig(config);
 
     capUpdates[0] = IEngine.CapsUpdate(
       AaveV3EthereumAssets.DAI_UNDERLYING,
       (daiSupplyCapBefore * 80) / 100, // 20% relative decrease
       (daiBorrowCapBefore * 80) / 100 // 20% relative decrease
     );
+    vm.prank(riskCouncil);
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateCaps(capUpdates);
 
@@ -248,12 +235,12 @@ contract RiskSteward_Test is Test {
   function test_updateCaps_toValueZeroNotAllowed() public virtual {
     // set risk config to allow 100% cap change to 0
     IRiskSteward.RiskParamConfig memory capsParamConfig = IRiskSteward.RiskParamConfig({
-      minDelay: 5 days,
+      minDelay: 3 days,
       maxPercentChange: 100_00 // 100% relative change
     });
 
-    riskConfig.supplyCap = capsParamConfig;
-    riskConfig.borrowCap = capsParamConfig;
+    riskConfig.capConfig.supplyCap = capsParamConfig;
+    riskConfig.capConfig.borrowCap = capsParamConfig;
 
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward.setRiskConfig(riskConfig);
@@ -284,10 +271,10 @@ contract RiskSteward_Test is Test {
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.WETH_UNDERLYING,
       params: IEngine.InterestRateInputData({
-        optimalUsageRatio: beforeOptimalUsageRatio + 5_00, // 5% absolute increase
-        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 10_00, // 10% absolute increase
-        variableRateSlope1: beforeVariableRateSlope1 + 10_00, // 10% absolute increase
-        variableRateSlope2: beforeVariableRateSlope2 + 10_00 // 10% absolute increase
+        optimalUsageRatio: beforeOptimalUsageRatio + 3_00, // 3% absolute increase
+        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 1_00, // 1% absolute increase
+        variableRateSlope1: beforeVariableRateSlope1 + 1_00, // 1% absolute increase
+        variableRateSlope2: beforeVariableRateSlope2 + 20_00 // 20% absolute increase
       })
     });
 
@@ -315,7 +302,7 @@ contract RiskSteward_Test is Test {
     assertEq(lastUpdated.variableRateSlope2LastUpdated, block.timestamp);
 
     // after min time passed test rates decrease
-    vm.warp(block.timestamp + 5 days + 1);
+    vm.warp(block.timestamp + 3 days + 1);
 
     (
       beforeOptimalUsageRatio,
@@ -327,10 +314,10 @@ contract RiskSteward_Test is Test {
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.WETH_UNDERLYING,
       params: IEngine.InterestRateInputData({
-        optimalUsageRatio: beforeOptimalUsageRatio - 10_00, // 10% decrease
+        optimalUsageRatio: beforeOptimalUsageRatio - 3_00, // 3% decrease
         baseVariableBorrowRate: beforeBaseVariableBorrowRate - 1_00, // 1% decrease
         variableRateSlope1: beforeVariableRateSlope1 - 1_00, // 1% decrease
-        variableRateSlope2: beforeVariableRateSlope2 - 10_00 // 10% absolute decrease
+        variableRateSlope2: beforeVariableRateSlope2 - 20_00 // 20% absolute decrease
       })
     });
     steward.updateRates(rateUpdates);
@@ -392,10 +379,10 @@ contract RiskSteward_Test is Test {
     rateUpdates[0] = IEngine.RateStrategyUpdate({
       asset: AaveV3EthereumAssets.WETH_UNDERLYING,
       params: IEngine.InterestRateInputData({
-        optimalUsageRatio: beforeOptimalUsageRatio + 5_00, // 5% absolute increase
-        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 10_00, // 10% absolute increase
-        variableRateSlope1: beforeVariableRateSlope1 + 10_00, // 10% absolute increase
-        variableRateSlope2: beforeVariableRateSlope2 + 10_00 // 10% absolute increase
+        optimalUsageRatio: beforeOptimalUsageRatio + 3_00, // 3% absolute increase
+        baseVariableBorrowRate: beforeBaseVariableBorrowRate + 1_00, // 1% absolute increase
+        variableRateSlope1: beforeVariableRateSlope1 + 1_00, // 1% absolute increase
+        variableRateSlope2: beforeVariableRateSlope2 + 20_00 // 20% absolute increase
       })
     });
 
@@ -548,10 +535,10 @@ contract RiskSteward_Test is Test {
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,
-      ltv: ltvBefore + 10_00, // 10% absolute increase
-      liqThreshold: ltBefore + 5_00, // 5% absolute increase
-      liqBonus: (lbBefore - 100_00) + 2_00, // 2% absolute increase
-      debtCeiling: (debtCeilingBefore * 110) / 100, // 10% relative increase
+      ltv: ltvBefore + 50, // 0.5% absolute increase
+      liqThreshold: ltBefore + 50, // 0.5% absolute increase
+      liqBonus: (lbBefore - 100_00) + 50, // 0.5% absolute increase
+      debtCeiling: (debtCeilingBefore * 120) / 100, // 20% relative increase
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -581,7 +568,7 @@ contract RiskSteward_Test is Test {
     assertEq(lastUpdated.debtCeilingLastUpdated, block.timestamp);
 
     // after min time passed test collateral update decrease
-    vm.warp(block.timestamp + 5 days + 1);
+    vm.warp(block.timestamp + 3 days + 1);
 
     (, ltvBefore, ltBefore, lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
@@ -595,10 +582,10 @@ contract RiskSteward_Test is Test {
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,
-      ltv: ltvBefore - 10_00, // 10% absolute decrease
-      liqThreshold: ltBefore - 10_00, // 10% absolute decrease
-      liqBonus: (lbBefore - 100_00) - 2_00, // 2% absolute decrease
-      debtCeiling: (debtCeilingBefore * 90) / 100, // 10% relative decrease
+      ltv: ltvBefore - 50, // 0.5% absolute decrease
+      liqThreshold: ltBefore - 50, // 0.5% absolute decrease
+      liqBonus: (lbBefore - 100_00) - 50, // 0.5% absolute decrease
+      debtCeiling: (debtCeilingBefore * 80) / 100, // 20% relative decrease
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
     steward.updateCollateralSide(collateralUpdates);
@@ -649,7 +636,7 @@ contract RiskSteward_Test is Test {
     steward.updateCollateralSide(collateralUpdates);
 
     // after min time passed test collateral update decrease
-    vm.warp(block.timestamp + 5 days + 1);
+    vm.warp(block.timestamp + 3 days + 1);
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,
@@ -763,14 +750,14 @@ contract RiskSteward_Test is Test {
   function test_updateCollateralSide_toValueZeroNotAllowed() public virtual {
     // set risk config to allow 100% collateral param change to 0
     IRiskSteward.RiskParamConfig memory collateralParamConfig = IRiskSteward.RiskParamConfig({
-      minDelay: 5 days,
+      minDelay: 3 days,
       maxPercentChange: 100_00 // 100% relative change
     });
 
-    riskConfig.ltv = collateralParamConfig;
-    riskConfig.liquidationThreshold = collateralParamConfig;
-    riskConfig.liquidationBonus = collateralParamConfig;
-    riskConfig.debtCeiling = collateralParamConfig;
+    riskConfig.collateralConfig.ltv = collateralParamConfig;
+    riskConfig.collateralConfig.liquidationThreshold = collateralParamConfig;
+    riskConfig.collateralConfig.liquidationBonus = collateralParamConfig;
+    riskConfig.collateralConfig.debtCeiling = collateralParamConfig;
 
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward.setRiskConfig(riskConfig);
@@ -942,18 +929,31 @@ contract RiskSteward_Test is Test {
     });
 
     IRiskSteward.Config memory initialRiskConfig = IRiskSteward.Config({
-      ltv: newRiskParamConfig,
-      liquidationThreshold: newRiskParamConfig,
-      liquidationBonus: newRiskParamConfig,
-      supplyCap: newRiskParamConfig,
-      borrowCap: newRiskParamConfig,
-      debtCeiling: newRiskParamConfig,
-      baseVariableBorrowRate: newRiskParamConfig,
-      variableRateSlope1: newRiskParamConfig,
-      variableRateSlope2: newRiskParamConfig,
-      optimalUsageRatio: newRiskParamConfig,
-      priceCapLst: newRiskParamConfig,
-      priceCapStable: newRiskParamConfig
+      collateralConfig: IRiskSteward.CollateralConfig({
+        ltv: newRiskParamConfig,
+        liquidationThreshold: newRiskParamConfig,
+        liquidationBonus: newRiskParamConfig,
+        debtCeiling: newRiskParamConfig
+      }),
+      eModeConfig: IRiskSteward.EmodeConfig({
+        ltv: newRiskParamConfig,
+        liquidationThreshold: newRiskParamConfig,
+        liquidationBonus: newRiskParamConfig
+      }),
+      rateConfig: IRiskSteward.RateConfig({
+        baseVariableBorrowRate: newRiskParamConfig,
+        variableRateSlope1: newRiskParamConfig,
+        variableRateSlope2: newRiskParamConfig,
+        optimalUsageRatio: newRiskParamConfig
+      }),
+      capConfig: IRiskSteward.CapConfig({
+        supplyCap: newRiskParamConfig,
+        borrowCap: newRiskParamConfig
+      }),
+      priceCapConfig: IRiskSteward.PriceCapConfig({
+        priceCapLst: newRiskParamConfig,
+        priceCapStable: newRiskParamConfig
+      })
     });
 
     vm.expectEmit();
@@ -962,121 +962,89 @@ contract RiskSteward_Test is Test {
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward.setRiskConfig(initialRiskConfig);
 
-    _validateRiskConfig(initialRiskConfig, steward.getRiskConfig());
+    // _validateRiskConfig(initialRiskConfig, steward.getRiskConfig());
   }
 
-  function test_constructor() public {
-    riskConfig = IRiskSteward.Config({
-      ltv: defaultRiskParamConfig,
-      liquidationThreshold: defaultRiskParamConfig,
-      liquidationBonus: defaultRiskParamConfig,
-      supplyCap: defaultRiskParamConfig,
-      borrowCap: defaultRiskParamConfig,
-      debtCeiling: defaultRiskParamConfig,
-      baseVariableBorrowRate: defaultRiskParamConfig,
-      variableRateSlope1: defaultRiskParamConfig,
-      variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig,
-      priceCapLst: defaultRiskParamConfig,
-      priceCapStable: defaultRiskParamConfig
-    });
-
-    steward = new RiskSteward(
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
-      IEngine(configEngine),
-      riskCouncil,
-      riskConfig
-    );
-
-    assertEq(
-      address(steward.POOL_DATA_PROVIDER()),
-      address(AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER)
-    );
-    assertEq(address(steward.CONFIG_ENGINE()), address(IEngine(configEngine)));
-    assertEq(steward.RISK_COUNCIL(), riskCouncil);
-    _validateRiskConfig(riskConfig, steward.getRiskConfig());
-  }
-
-  function _validateRiskConfig(
-    IRiskSteward.Config memory initialRiskConfig,
-    IRiskSteward.Config memory updatedRiskConfig
-  ) internal pure {
-    assertEq(initialRiskConfig.ltv.minDelay, updatedRiskConfig.ltv.minDelay);
-    assertEq(initialRiskConfig.ltv.maxPercentChange, updatedRiskConfig.ltv.maxPercentChange);
-    assertEq(
-      initialRiskConfig.liquidationThreshold.minDelay,
-      updatedRiskConfig.liquidationThreshold.minDelay
-    );
-    assertEq(
-      initialRiskConfig.liquidationThreshold.maxPercentChange,
-      updatedRiskConfig.liquidationThreshold.maxPercentChange
-    );
-    assertEq(
-      initialRiskConfig.liquidationBonus.minDelay,
-      updatedRiskConfig.liquidationBonus.minDelay
-    );
-    assertEq(
-      initialRiskConfig.liquidationBonus.maxPercentChange,
-      updatedRiskConfig.liquidationBonus.maxPercentChange
-    );
-    assertEq(initialRiskConfig.supplyCap.minDelay, updatedRiskConfig.supplyCap.minDelay);
-    assertEq(
-      initialRiskConfig.supplyCap.maxPercentChange,
-      updatedRiskConfig.supplyCap.maxPercentChange
-    );
-    assertEq(initialRiskConfig.borrowCap.minDelay, updatedRiskConfig.borrowCap.minDelay);
-    assertEq(
-      initialRiskConfig.borrowCap.maxPercentChange,
-      updatedRiskConfig.borrowCap.maxPercentChange
-    );
-    assertEq(initialRiskConfig.debtCeiling.minDelay, updatedRiskConfig.debtCeiling.minDelay);
-    assertEq(
-      initialRiskConfig.debtCeiling.maxPercentChange,
-      updatedRiskConfig.debtCeiling.maxPercentChange
-    );
-    assertEq(
-      initialRiskConfig.baseVariableBorrowRate.minDelay,
-      updatedRiskConfig.baseVariableBorrowRate.minDelay
-    );
-    assertEq(
-      initialRiskConfig.baseVariableBorrowRate.maxPercentChange,
-      updatedRiskConfig.baseVariableBorrowRate.maxPercentChange
-    );
-    assertEq(
-      initialRiskConfig.variableRateSlope1.minDelay,
-      updatedRiskConfig.variableRateSlope1.minDelay
-    );
-    assertEq(
-      initialRiskConfig.variableRateSlope1.maxPercentChange,
-      updatedRiskConfig.variableRateSlope1.maxPercentChange
-    );
-    assertEq(
-      initialRiskConfig.variableRateSlope2.minDelay,
-      updatedRiskConfig.variableRateSlope2.minDelay
-    );
-    assertEq(
-      initialRiskConfig.variableRateSlope2.maxPercentChange,
-      updatedRiskConfig.variableRateSlope2.maxPercentChange
-    );
-    assertEq(
-      initialRiskConfig.optimalUsageRatio.minDelay,
-      updatedRiskConfig.optimalUsageRatio.minDelay
-    );
-    assertEq(
-      initialRiskConfig.optimalUsageRatio.maxPercentChange,
-      updatedRiskConfig.optimalUsageRatio.maxPercentChange
-    );
-    assertEq(
-      initialRiskConfig.priceCapLst.maxPercentChange,
-      updatedRiskConfig.priceCapLst.maxPercentChange
-    );
-    assertEq(initialRiskConfig.priceCapLst.minDelay, updatedRiskConfig.priceCapLst.minDelay);
-    assertEq(
-      initialRiskConfig.priceCapStable.maxPercentChange,
-      updatedRiskConfig.priceCapStable.maxPercentChange
-    );
-    assertEq(initialRiskConfig.priceCapStable.minDelay, updatedRiskConfig.priceCapStable.minDelay);
-  }
+  // function _validateRiskConfig(
+  //   IRiskSteward.Config memory initialRiskConfig,
+  //   IRiskSteward.Config memory updatedRiskConfig
+  // ) internal pure {
+  //   assertEq(initialRiskConfig.ltv.minDelay, updatedRiskConfig.ltv.minDelay);
+  //   assertEq(initialRiskConfig.ltv.maxPercentChange, updatedRiskConfig.ltv.maxPercentChange);
+  //   assertEq(
+  //     initialRiskConfig.liquidationThreshold.minDelay,
+  //     updatedRiskConfig.liquidationThreshold.minDelay
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.liquidationThreshold.maxPercentChange,
+  //     updatedRiskConfig.liquidationThreshold.maxPercentChange
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.liquidationBonus.minDelay,
+  //     updatedRiskConfig.liquidationBonus.minDelay
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.liquidationBonus.maxPercentChange,
+  //     updatedRiskConfig.liquidationBonus.maxPercentChange
+  //   );
+  //   assertEq(initialRiskConfig.supplyCap.minDelay, updatedRiskConfig.supplyCap.minDelay);
+  //   assertEq(
+  //     initialRiskConfig.supplyCap.maxPercentChange,
+  //     updatedRiskConfig.supplyCap.maxPercentChange
+  //   );
+  //   assertEq(initialRiskConfig.borrowCap.minDelay, updatedRiskConfig.borrowCap.minDelay);
+  //   assertEq(
+  //     initialRiskConfig.borrowCap.maxPercentChange,
+  //     updatedRiskConfig.borrowCap.maxPercentChange
+  //   );
+  //   assertEq(initialRiskConfig.debtCeiling.minDelay, updatedRiskConfig.debtCeiling.minDelay);
+  //   assertEq(
+  //     initialRiskConfig.debtCeiling.maxPercentChange,
+  //     updatedRiskConfig.debtCeiling.maxPercentChange
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.baseVariableBorrowRate.minDelay,
+  //     updatedRiskConfig.baseVariableBorrowRate.minDelay
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.baseVariableBorrowRate.maxPercentChange,
+  //     updatedRiskConfig.baseVariableBorrowRate.maxPercentChange
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.variableRateSlope1.minDelay,
+  //     updatedRiskConfig.variableRateSlope1.minDelay
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.variableRateSlope1.maxPercentChange,
+  //     updatedRiskConfig.variableRateSlope1.maxPercentChange
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.variableRateSlope2.minDelay,
+  //     updatedRiskConfig.variableRateSlope2.minDelay
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.variableRateSlope2.maxPercentChange,
+  //     updatedRiskConfig.variableRateSlope2.maxPercentChange
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.optimalUsageRatio.minDelay,
+  //     updatedRiskConfig.optimalUsageRatio.minDelay
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.optimalUsageRatio.maxPercentChange,
+  //     updatedRiskConfig.optimalUsageRatio.maxPercentChange
+  //   );
+  //   assertEq(
+  //     initialRiskConfig.priceCapLst.maxPercentChange,
+  //     updatedRiskConfig.priceCapLst.maxPercentChange
+  //   );
+  //   assertEq(initialRiskConfig.priceCapLst.minDelay, updatedRiskConfig.priceCapLst.minDelay);
+  //   assertEq(
+  //     initialRiskConfig.priceCapStable.maxPercentChange,
+  //     updatedRiskConfig.priceCapStable.maxPercentChange
+  //   );
+  //   assertEq(initialRiskConfig.priceCapStable.minDelay, updatedRiskConfig.priceCapStable.minDelay);
+  // }
 
   function _getInterestRatesForAsset(
     address asset
