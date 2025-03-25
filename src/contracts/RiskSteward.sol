@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ReserveConfiguration, DataTypes} from 'aave-v3-origin/src/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
-import {IPool, IPoolAddressesProvider} from 'aave-address-book/AaveV3.sol';
+import {IPool} from 'aave-address-book/AaveV3.sol';
 import {Address} from 'openzeppelin-contracts/contracts/utils/Address.sol';
 import {SafeCast} from 'openzeppelin-contracts/contracts/utils/math/SafeCast.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
@@ -29,7 +29,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   IEngine public immutable CONFIG_ENGINE;
 
   /// @inheritdoc IRiskSteward
-  IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
+  IPool public immutable POOL;
 
   /// @inheritdoc IRiskSteward
   address public immutable RISK_COUNCIL;
@@ -53,20 +53,20 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @param poolAddressesProvider The pool addresses provider of the pool to be controlled by the steward
+   * @param pool The aave pool to be controlled by the steward
    * @param engine the config engine to be used by the steward
    * @param riskCouncil the safe address of the council being able to interact with the steward
    * @param owner the owner of the risk steward being able to set configs and mark items as restricted
    * @param riskConfig the risk configuration to setup for each individual risk param
    */
   constructor(
-    address poolAddressesProvider,
+    address pool,
     address engine,
     address riskCouncil,
     address owner,
     Config memory riskConfig
   ) Ownable(owner) {
-    ADDRESSES_PROVIDER = IPoolAddressesProvider(poolAddressesProvider);
+    POOL = IPool(pool);
     CONFIG_ENGINE = IEngine(engine);
     RISK_COUNCIL = riskCouncil;
     _riskConfig = riskConfig;
@@ -175,7 +175,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
 
-      (uint256 currentBorrowCap, uint256 currentSupplyCap) = IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset).getCaps();
+      (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL.getConfiguration(asset).getCaps();
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -277,8 +277,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         collateralUpdates[i].debtCeiling == 0
       ) revert InvalidUpdateToZero();
 
-      DataTypes.ReserveConfigurationMap memory configuration = IPool(ADDRESSES_PROVIDER.getPool())
-        .getConfiguration(asset);
+      DataTypes.ReserveConfigurationMap memory configuration = POOL.getConfiguration(asset);
       (
         uint256 currentLtv,
         uint256 currentLiquidationThreshold,
@@ -345,7 +344,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         eModeCategoryUpdates[i].liqBonus == 0
       ) revert InvalidUpdateToZero();
 
-      DataTypes.CollateralConfig memory currentEmodeConfig = IPool(ADDRESSES_PROVIDER.getPool()).getEModeCategoryCollateralConfig(eModeId);
+      DataTypes.CollateralConfig memory currentEmodeConfig = POOL.getEModeCategoryCollateralConfig(eModeId);
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -622,7 +621,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       uint256 variableRateSlope2
     )
   {
-    address rateStrategyAddress = IPool(ADDRESSES_PROVIDER.getPool()).getReserveData(asset).interestRateStrategyAddress;
+    address rateStrategyAddress = POOL.getReserveData(asset).interestRateStrategyAddress;
     IDefaultInterestRateStrategyV2.InterestRateData
       memory interestRateData = IDefaultInterestRateStrategyV2(rateStrategyAddress)
         .getInterestRateDataBps(asset);

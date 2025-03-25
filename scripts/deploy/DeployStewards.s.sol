@@ -34,14 +34,14 @@ import {RiskSteward, IRiskSteward} from '../../src/contracts/RiskSteward.sol';
 
 library DeployRiskStewards {
   function _deployRiskStewards(
-    address addressesProvider,
+    address pool,
     address configEngine,
     address riskCouncil,
     address governance
   ) internal returns (address) {
     address riskSteward = address(
       new RiskSteward(
-        addressesProvider,
+        pool,
         configEngine,
         riskCouncil,
         governance,
@@ -88,7 +88,7 @@ contract DeployEthereum is EthereumScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Ethereum.POOL),
       AaveV3Ethereum.CONFIG_ENGINE,
       0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8, // eth-risk-council
       GovernanceV3Ethereum.EXECUTOR_LVL_1
@@ -102,7 +102,7 @@ contract DeployEthereumLido is EthereumScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3EthereumLido.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3EthereumLido.POOL),
       AaveV3EthereumLido.CONFIG_ENGINE,
       0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8, // eth-risk-council
       GovernanceV3Ethereum.EXECUTOR_LVL_1
@@ -116,7 +116,7 @@ contract DeployEthereumEtherFi is EthereumScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3EthereumEtherFi.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3EthereumEtherFi.POOL),
       AaveV3EthereumEtherFi.CONFIG_ENGINE,
       0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8, // eth-risk-council
       GovernanceV3Ethereum.EXECUTOR_LVL_1
@@ -130,7 +130,7 @@ contract DeployPolygon is PolygonScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Polygon.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Polygon.POOL),
       AaveV3Polygon.CONFIG_ENGINE,
       0x2C40FB1ACe63084fc0bB95F83C31B5854C6C4cB5, // pol-risk-council
       GovernanceV3Polygon.EXECUTOR_LVL_1
@@ -144,7 +144,7 @@ contract DeployArbitrum is ArbitrumScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Arbitrum.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Arbitrum.POOL),
       AaveV3Arbitrum.CONFIG_ENGINE,
       0x3Be327F22eB4BD8042e6944073b8826dCf357Aa2, // arb-risk-council
       GovernanceV3Arbitrum.EXECUTOR_LVL_1
@@ -158,7 +158,7 @@ contract DeployOptimism is OptimismScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Optimism.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Optimism.POOL),
       AaveV3Optimism.CONFIG_ENGINE,
       0xCb86256A994f0c505c5e15c75BF85fdFEa0F2a56, // opt-risk-council
       GovernanceV3Optimism.EXECUTOR_LVL_1
@@ -172,7 +172,7 @@ contract DeployAvalanche is AvalancheScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Avalanche.POOL),
       AaveV3Avalanche.CONFIG_ENGINE,
       0xCa66149425E7DC8f81276F6D80C4b486B9503D1a, // ava-risk-council
       GovernanceV3Avalanche.EXECUTOR_LVL_1
@@ -186,7 +186,7 @@ contract DeployScroll is ScrollScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Scroll.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Scroll.POOL),
       AaveV3Scroll.CONFIG_ENGINE,
       0x611439a74546888c3535B4dd119A5Cbb9f5332EA, // scroll-risk-council
       GovernanceV3Scroll.EXECUTOR_LVL_1
@@ -200,7 +200,7 @@ contract DeployGnosis is GnosisScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Gnosis.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Gnosis.POOL),
       AaveV3Gnosis.CONFIG_ENGINE,
       0xF221B08dD10e0C68D74F035764931Baa3b030481, // gnosis-risk-council
       GovernanceV3Gnosis.EXECUTOR_LVL_1
@@ -214,7 +214,7 @@ contract DeployBNB is BNBScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3BNB.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3BNB.POOL),
       AaveV3BNB.CONFIG_ENGINE,
       0x126dc589cc75f17385dD95516F3F1788d862E7bc, // bnb-risk-council
       GovernanceV3BNB.EXECUTOR_LVL_1
@@ -228,7 +228,7 @@ contract DeployBase is BaseScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Base.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Base.POOL),
       AaveV3Base.CONFIG_ENGINE,
       0xfbeB4AcB31340bA4de9C87B11dfBf7e2bc8C0bF1, // base-risk-council
       GovernanceV3Base.EXECUTOR_LVL_1
@@ -242,7 +242,7 @@ contract DeployMetis is MetisScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Metis.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Metis.POOL),
       AaveV3Metis.CONFIG_ENGINE,
       0x0f547846920C34E70FBE4F3d87E46452a3FeAFfa, // metis-risk-council
       GovernanceV3Metis.EXECUTOR_LVL_1
@@ -256,7 +256,7 @@ contract DeployLinea is LineaScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Linea.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Linea.POOL),
       AaveV3Linea.CONFIG_ENGINE,
       0xF092A5aC5E284E7c433dAFE5b8B138bFcA53a4Ee, // linea-risk-council
       GovernanceV3Linea.EXECUTOR_LVL_1
@@ -270,7 +270,7 @@ contract DeploySonic is SonicScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Sonic.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Sonic.POOL),
       AaveV3Sonic.CONFIG_ENGINE,
       0x1dE39A17a9Fa8c76899fff37488482EEb7835d04, // sonic-risk-council
       GovernanceV3Sonic.EXECUTOR_LVL_1
@@ -284,7 +284,7 @@ contract DeployCelo is SonicScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
-      address(AaveV3Celo.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Celo.POOL),
       AaveV3Celo.CONFIG_ENGINE,
       0xd85786B5FC61E2A0c0a3144a33A0fC70646a99f6, // celo-risk-council
       GovernanceV3Celo.EXECUTOR_LVL_1

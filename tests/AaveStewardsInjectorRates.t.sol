@@ -45,7 +45,7 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
 
     // setup risk steward
     _riskSteward = new RiskSteward(
-      address(contracts.poolAddressesProvider),
+      address(contracts.poolProxy),
       report.configEngine,
       address(_stewardInjector),
       address(this),

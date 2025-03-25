@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import 'forge-std/Test.sol';
 import {ReserveConfiguration, DataTypes} from 'aave-v3-origin/src/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
-import {IACLManager, IPoolConfigurator, IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
+import {IACLManager, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/src/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {AaveV3Ethereum, AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
@@ -27,7 +27,7 @@ contract RiskSteward_Test is Test {
     riskConfig = DeployRiskStewards._getRiskConfig();
 
     steward = new RiskSteward(
-      address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Ethereum.POOL),
       AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,

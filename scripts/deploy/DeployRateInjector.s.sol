@@ -13,14 +13,14 @@ library DeployStewardContracts {
   address constant EDGE_RISK_ORACLE = 0x7ABB46C690C52E919687D19ebF89C81A6136C1F2;
 
   function _deployRiskStewards(
-    address poolDataProvider,
+    address pool,
     address configEngine,
     address riskCouncil,
     address governance
   ) internal returns (address) {
     address riskSteward = address(
       new EdgeRiskStewardRates(
-        poolDataProvider,
+        pool,
         configEngine,
         riskCouncil,
         governance,
@@ -90,7 +90,7 @@ contract DeployEthereumLido is EthereumScript {
       .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
-      address(AaveV3EthereumLido.AAVE_PROTOCOL_DATA_PROVIDER),
+      address(AaveV3EthereumLido.POOL),
       AaveV3EthereumLido.CONFIG_ENGINE,
       predictedStewardsInjector,
       GovernanceV3Ethereum.EXECUTOR_LVL_1

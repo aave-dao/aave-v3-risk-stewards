@@ -37,7 +37,7 @@ contract RiskSteward_Capo_Test is Test {
     riskConfig.priceCapConfig.priceCapStable = defaultRiskParamConfig;
 
     steward = new RiskSteward(
-      address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Ethereum.POOL),
       AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,

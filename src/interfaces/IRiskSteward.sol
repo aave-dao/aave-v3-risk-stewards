@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPoolDataProvider, IPoolAddressesProvider} from 'aave-address-book/AaveV3.sol';
+import {IPool} from 'aave-address-book/AaveV3.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
@@ -208,9 +208,9 @@ interface IRiskSteward {
   function CONFIG_ENGINE() external view returns (IEngine);
 
   /**
-   * @notice The aave addresses provider of the instance steward controls
+   * @notice The aave pool of the instance steward controls
    */
-  function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
+  function POOL() external view returns (IPool);
 
   /**
    * @notice The safe controlling the steward

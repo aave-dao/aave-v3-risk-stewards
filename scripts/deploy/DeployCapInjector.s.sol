@@ -13,14 +13,14 @@ library DeployStewardContracts {
   address constant EDGE_RISK_ORACLE = 0x861eeAdB55E41f161F31Acb1BFD4c70E3a964Aed;
 
   function _deployRiskStewards(
-    address poolAddressesProvider,
+    address pool,
     address configEngine,
     address riskCouncil,
     address governance
   ) internal returns (address) {
     address riskSteward = address(
       new EdgeRiskStewardCaps(
-        poolAddressesProvider,
+        pool,
         configEngine,
         riskCouncil,
         governance,
@@ -92,7 +92,7 @@ contract DeployArbitrum is ArbitrumScript {
       .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
-      address(AaveV3Arbitrum.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Arbitrum.POOL),
       AaveV3Arbitrum.CONFIG_ENGINE,
       predictedStewardsInjector,
       GovernanceV3Arbitrum.EXECUTOR_LVL_1

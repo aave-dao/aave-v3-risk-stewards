@@ -10,7 +10,7 @@ contract EdgeRiskStewardRates_Test is RiskSteward_Test {
     super.setUp();
 
     steward = new EdgeRiskStewardRates(
-      address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
+      address(AaveV3Ethereum.POOL),
       AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
