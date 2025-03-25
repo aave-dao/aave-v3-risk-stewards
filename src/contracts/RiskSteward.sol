@@ -38,7 +38,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
   Config internal _riskConfig;
 
-  mapping(bytes32 id => Debounce) internal _timelocks;
+  mapping(bytes20 id => Debounce) internal _timelocks;
 
   mapping(address => bool) internal _restrictedAddresses;
 
@@ -125,7 +125,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
   /// @inheritdoc IRiskSteward
   function getEModeTimelock(uint8 eModeCategoryId) external view returns (Debounce memory) {
-    return _timelocks[bytes32(uint256(eModeCategoryId))];
+    return _timelocks[bytes20(uint160(eModeCategoryId))];
   }
 
   /// @inheritdoc IRiskSteward
@@ -351,7 +351,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         ParamUpdateValidationInput({
           currentValue: currentEmodeConfig.ltv,
           newValue: eModeCategoryUpdates[i].ltv,
-          lastUpdated: _timelocks[bytes32(uint256(eModeId))].eModeLtvLastUpdated,
+          lastUpdated: _timelocks[bytes20(uint160(eModeId))].eModeLtvLastUpdated,
           riskConfig: _riskConfig.eModeConfig.ltv,
           isChangeRelative: false
         })
@@ -360,7 +360,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         ParamUpdateValidationInput({
           currentValue: currentEmodeConfig.liquidationThreshold,
           newValue: eModeCategoryUpdates[i].liqThreshold,
-          lastUpdated: _timelocks[bytes32(uint256(eModeId))].eModeLiquidationThresholdLastUpdated,
+          lastUpdated: _timelocks[bytes20(uint160(eModeId))].eModeLiquidationThresholdLastUpdated,
           riskConfig: _riskConfig.eModeConfig.liquidationThreshold,
           isChangeRelative: false
         })
@@ -369,7 +369,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         ParamUpdateValidationInput({
           currentValue: currentEmodeConfig.liquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
           newValue: eModeCategoryUpdates[i].liqBonus,
-          lastUpdated: _timelocks[bytes32(uint256(eModeId))].eModeLiquidationBonusLastUpdated,
+          lastUpdated: _timelocks[bytes20(uint160(eModeId))].eModeLiquidationBonusLastUpdated,
           riskConfig: _riskConfig.eModeConfig.liquidationBonus,
           isChangeRelative: false
         })
@@ -555,15 +555,15 @@ contract RiskSteward is Ownable, IRiskSteward {
       uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
 
       if (eModeCategoryUpdates[i].ltv != EngineFlags.KEEP_CURRENT) {
-        _timelocks[bytes32(uint256(eModeId))].eModeLtvLastUpdated = uint40(block.timestamp);
+        _timelocks[bytes20(uint160(eModeId))].eModeLtvLastUpdated = uint40(block.timestamp);
       }
 
       if (eModeCategoryUpdates[i].liqThreshold != EngineFlags.KEEP_CURRENT) {
-        _timelocks[bytes32(uint256(eModeId))].eModeLiquidationThresholdLastUpdated = uint40(block.timestamp);
+        _timelocks[bytes20(uint160(eModeId))].eModeLiquidationThresholdLastUpdated = uint40(block.timestamp);
       }
 
       if (eModeCategoryUpdates[i].liqBonus != EngineFlags.KEEP_CURRENT) {
-        _timelocks[bytes32(uint256(eModeId))].eModeLiquidationBonusLastUpdated = uint40(block.timestamp);
+        _timelocks[bytes20(uint160(eModeId))].eModeLiquidationBonusLastUpdated = uint40(block.timestamp);
       }
     }
 
