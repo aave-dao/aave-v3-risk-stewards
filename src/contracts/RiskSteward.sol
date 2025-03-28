@@ -454,7 +454,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @notice method to validate the oracle pendle price caps update
+   * @notice method to validate the pendle oracle price caps update
    * @param priceCapsUpdate list containing the new price cap values for the oracles
    */
   function _validatePendlePriceCapUpdate(
