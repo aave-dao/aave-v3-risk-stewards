@@ -12,7 +12,7 @@ import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/exten
 import {GovV3Helpers} from 'aave-helpers/src/GovV3Helpers.sol';
 import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
-// import {DeployRiskStewards} from '../scripts/deploy/DeployStewards.s.sol';
+import {DeployRiskStewards} from '../scripts/deploy/DeployStewards.s.sol';
 
 contract RiskSteward_Test is Test {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -22,20 +22,20 @@ contract RiskSteward_Test is Test {
   IRiskSteward.Config public riskConfig;
 
   function setUp() public virtual {
-  //   vm.createSelectFork(vm.rpcUrl('mainnet'), 21974363);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 21974363);
 
-  //   riskConfig = DeployRiskStewards._getRiskConfig();
+    riskConfig = DeployRiskStewards._getRiskConfig();
 
-  //   steward = new RiskSteward(
-  //     address(AaveV3Ethereum.POOL),
-  //     AaveV3Ethereum.CONFIG_ENGINE,
-  //     riskCouncil,
-  //     GovernanceV3Ethereum.EXECUTOR_LVL_1,
-  //     riskConfig
-  //   );
+    steward = new RiskSteward(
+      address(AaveV3Ethereum.POOL),
+      AaveV3Ethereum.CONFIG_ENGINE,
+      riskCouncil,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1,
+      riskConfig
+    );
 
-  //   vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
-  //   AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
+    AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
   }
 
   /* ----------------------------- Caps Tests ----------------------------- */

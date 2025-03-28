@@ -35,6 +35,7 @@ contract RiskSteward_Capo_Test is Test {
     IRiskSteward.Config memory riskConfig;
     riskConfig.priceCapConfig.priceCapLst = defaultRiskParamConfig;
     riskConfig.priceCapConfig.priceCapStable = defaultRiskParamConfig;
+    riskConfig.priceCapConfig.priceCapPendle = defaultRiskParamConfig;
 
     steward = new RiskSteward(
       address(AaveV3Ethereum.POOL),
