@@ -32,31 +32,20 @@ contract RiskSteward_Capo_Test is Test {
       minDelay: 5 days,
       maxPercentChange: 10_00 // 10%
     });
+    IRiskSteward.Config memory riskConfig;
+    riskConfig.priceCapConfig.priceCapLst = defaultRiskParamConfig;
+    riskConfig.priceCapConfig.priceCapStable = defaultRiskParamConfig;
 
-    IRiskSteward.Config memory riskConfig = IRiskSteward.Config({
-      ltv: defaultRiskParamConfig,
-      liquidationThreshold: defaultRiskParamConfig,
-      liquidationBonus: defaultRiskParamConfig,
-      supplyCap: defaultRiskParamConfig,
-      borrowCap: defaultRiskParamConfig,
-      debtCeiling: defaultRiskParamConfig,
-      baseVariableBorrowRate: defaultRiskParamConfig,
-      variableRateSlope1: defaultRiskParamConfig,
-      variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig,
-      priceCapLst: defaultRiskParamConfig,
-      priceCapStable: defaultRiskParamConfig
-    });
-
-    vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward = new RiskSteward(
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
-      IEngine(AaveV3Ethereum.CONFIG_ENGINE),
+      address(AaveV3Ethereum.POOL),
+      AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1,
       riskConfig
     );
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
-    vm.stopPrank();
 
     currentRatio = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getRatio()

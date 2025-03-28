@@ -6,28 +6,27 @@ import {MiscArbitrum} from 'aave-address-book/MiscArbitrum.sol';
 import {AaveV3Arbitrum, AaveV3ArbitrumAssets} from 'aave-address-book/AaveV3Arbitrum.sol';
 import {GovernanceV3Arbitrum} from 'aave-address-book/GovernanceV3Arbitrum.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
-import {IOwnable} from 'aave-address-book/common/IOwnable.sol';
-import {EdgeRiskStewardCaps, IRiskSteward, IPoolDataProvider, IEngine} from '../../src/contracts/EdgeRiskStewardCaps.sol';
+import {EdgeRiskStewardCaps, IRiskSteward} from '../../src/contracts/EdgeRiskStewardCaps.sol';
 import {AaveStewardInjectorCaps} from '../../src/contracts/AaveStewardInjectorCaps.sol';
 
 library DeployStewardContracts {
   address constant EDGE_RISK_ORACLE = 0x861eeAdB55E41f161F31Acb1BFD4c70E3a964Aed;
 
   function _deployRiskStewards(
-    address poolDataProvider,
+    address pool,
     address configEngine,
     address riskCouncil,
     address governance
   ) internal returns (address) {
     address riskSteward = address(
       new EdgeRiskStewardCaps(
-        IPoolDataProvider(poolDataProvider),
-        IEngine(configEngine),
+        pool,
+        configEngine,
         riskCouncil,
+        governance,
         _getRiskConfig()
       )
     );
-    IOwnable(riskSteward).transferOwnership(governance);
     return riskSteward;
   }
 
@@ -53,27 +52,26 @@ library DeployStewardContracts {
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
     return
       IRiskSteward.Config({
-        ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 25}),
-        liquidationThreshold: IRiskSteward.RiskParamConfig({
-          minDelay: 3 days,
-          maxPercentChange: 25
+        collateralConfig: IRiskSteward.CollateralConfig({
+          ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00})
         }),
-        liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-        supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00}),
-        borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00}),
-        debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
-        baseVariableBorrowRate: IRiskSteward.RiskParamConfig({
-          minDelay: 3 days,
-          maxPercentChange: 50
+        rateConfig: IRiskSteward.RateConfig({
+          baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 1_00}),
+          variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 1_00}),
+          variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
+          optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00})
         }),
-        variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-        variableRateSlope2: IRiskSteward.RiskParamConfig({
-          minDelay: 3 days,
-          maxPercentChange: 5_00
+        capConfig: IRiskSteward.CapConfig({
+          supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00}),
+          borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00})
         }),
-        optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00}),
-        priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
-        priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
+        priceCapConfig: IRiskSteward.PriceCapConfig({
+          priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
+          priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
+        })
       });
   }
 }
@@ -89,7 +87,7 @@ contract DeployArbitrum is ArbitrumScript {
       .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
-      address(AaveV3Arbitrum.AAVE_PROTOCOL_DATA_PROVIDER),
+      address(AaveV3Arbitrum.POOL),
       AaveV3Arbitrum.CONFIG_ENGINE,
       predictedStewardsInjector,
       GovernanceV3Arbitrum.EXECUTOR_LVL_1

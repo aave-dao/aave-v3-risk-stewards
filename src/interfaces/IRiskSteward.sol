@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPoolDataProvider} from 'aave-address-book/AaveV3.sol';
+import {IPool} from 'aave-address-book/AaveV3.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 
@@ -78,17 +78,17 @@ interface IRiskSteward {
    * @notice Struct storing the last update by the steward of each risk param
    */
   struct Debounce {
-    uint40 supplyCapLastUpdated;
-    uint40 borrowCapLastUpdated;
     uint40 ltvLastUpdated;
     uint40 liquidationBonusLastUpdated;
     uint40 liquidationThresholdLastUpdated;
-    uint40 debtCeilingLastUpdated;
+    uint40 optimalUsageRatioLastUpdated;
     uint40 baseVariableRateLastUpdated;
     uint40 variableRateSlope1LastUpdated;
     uint40 variableRateSlope2LastUpdated;
-    uint40 optimalUsageRatioLastUpdated;
+    uint40 debtCeilingLastUpdated;
     uint40 priceCapLastUpdated;
+    uint40 supplyCapLastUpdated;
+    uint40 borrowCapLastUpdated;
   }
 
   /**
@@ -119,16 +119,44 @@ interface IRiskSteward {
    * @notice Struct storing the risk configuration for all the risk param
    */
   struct Config {
+    CollateralConfig collateralConfig;
+    RateConfig rateConfig;
+    CapConfig capConfig;
+    PriceCapConfig priceCapConfig;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for collateral side param
+   */
+  struct CollateralConfig {
     RiskParamConfig ltv;
     RiskParamConfig liquidationThreshold;
     RiskParamConfig liquidationBonus;
-    RiskParamConfig supplyCap;
-    RiskParamConfig borrowCap;
     RiskParamConfig debtCeiling;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for rate param
+   */
+  struct RateConfig {
     RiskParamConfig baseVariableBorrowRate;
     RiskParamConfig variableRateSlope1;
     RiskParamConfig variableRateSlope2;
     RiskParamConfig optimalUsageRatio;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for cap param
+   */
+  struct CapConfig {
+    RiskParamConfig supplyCap;
+    RiskParamConfig borrowCap;
+  }
+
+  /**
+   * @notice Struct storing the risk configuration for price cap param
+   */
+  struct PriceCapConfig {
     RiskParamConfig priceCapLst;
     RiskParamConfig priceCapStable;
   }
@@ -155,9 +183,9 @@ interface IRiskSteward {
   function CONFIG_ENGINE() external view returns (IEngine);
 
   /**
-   * @notice The pool data provider of the POOL the steward controls
+   * @notice The aave pool of the instance steward controls
    */
-  function POOL_DATA_PROVIDER() external view returns (IPoolDataProvider);
+  function POOL() external view returns (IPool);
 
   /**
    * @notice The safe controlling the steward
@@ -221,7 +249,8 @@ interface IRiskSteward {
   /**
    * @notice Returns the timelock for a specific asset i.e the last updated timestamp
    * @param asset for which to fetch the timelock
-   * @return struct containing the latest updated timestamps of all the risk params by the steward
+   * @return struct containing the latest updated timestamps of all the risk params by the steward except eMode
+   * @dev the emode timelock params of the struct returned will be unused
    */
   function getTimelock(address asset) external view returns (Debounce memory);
 

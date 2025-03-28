@@ -12,20 +12,11 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
       minDelay: 3 days,
       maxPercentChange: 5_00 // 5%
     });
-    IRiskSteward.Config memory riskConfig = IRiskSteward.Config({
-      ltv: defaultRiskParamConfig,
-      liquidationThreshold: defaultRiskParamConfig,
-      liquidationBonus: defaultRiskParamConfig,
-      supplyCap: defaultRiskParamConfig,
-      borrowCap: defaultRiskParamConfig,
-      debtCeiling: defaultRiskParamConfig,
-      baseVariableBorrowRate: defaultRiskParamConfig,
-      variableRateSlope1: defaultRiskParamConfig,
-      variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig,
-      priceCapLst: defaultRiskParamConfig,
-      priceCapStable: defaultRiskParamConfig
-    });
+    IRiskSteward.Config memory riskConfig;
+    riskConfig.rateConfig.baseVariableBorrowRate = defaultRiskParamConfig;
+    riskConfig.rateConfig.variableRateSlope1 = defaultRiskParamConfig;
+    riskConfig.rateConfig.variableRateSlope2 = defaultRiskParamConfig;
+    riskConfig.rateConfig.optimalUsageRatio = defaultRiskParamConfig;
 
     // setup risk oracle
     vm.startPrank(_riskOracleOwner);
@@ -54,9 +45,10 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
 
     // setup risk steward
     _riskSteward = new RiskSteward(
-      contracts.protocolDataProvider,
-      IEngine(report.configEngine),
+      address(contracts.poolProxy),
+      report.configEngine,
       address(_stewardInjector),
+      address(this),
       riskConfig
     );
 
