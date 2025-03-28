@@ -641,7 +641,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @notice method to update the oracle pendle price caps update
+   * @notice method to update the pendle oracle price caps update
    * @param priceCapsUpdate list containing the new price cap values for the oracles
    */
   function _updatePendlePriceCaps(PriceCapPendleUpdate[] calldata priceCapsUpdate) internal {
