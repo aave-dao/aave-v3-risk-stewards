@@ -57,4 +57,11 @@ contract EdgeRiskStewardRates is RiskSteward {
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
+
+  /// @inheritdoc IRiskSteward
+  function updatePendlePriceCaps(
+    PriceCapPendleUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
+    revert UpdateNotAllowed();
+  }
 }
