@@ -184,6 +184,7 @@ interface IRiskSteward {
   struct PriceCapConfig {
     RiskParamConfig priceCapLst;
     RiskParamConfig priceCapStable;
+    RiskParamConfig priceCapPendle;
   }
 
   /**
@@ -200,6 +201,14 @@ interface IRiskSteward {
   struct PriceCapStableUpdate {
     address oracle;
     uint256 priceCap;
+  }
+
+  /**
+   * @notice Struct used to update the pendle cap params
+   */
+  struct PriceCapPendleUpdate {
+    address oracle;
+    uint256 discountRate;
   }
 
   /**
@@ -264,6 +273,14 @@ interface IRiskSteward {
    * @param priceCapUpdates struct containing new price cap params to be updated
    */
   function updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapUpdates) external;
+
+  /**
+   * @notice Allows updating pendle price cap params (i.e discount rate) across multiple oracles
+   * @dev A price cap update is only possible after minDelay has passed after last update
+   * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
+   * @param priceCapUpdates struct containing new price cap params to be updated
+   */
+  function updatePendlePriceCaps(PriceCapPendleUpdate[] calldata priceCapUpdates) external;
 
   /**
    * @notice method to check if an asset/oracle is restricted to be used by the risk stewards

@@ -12,6 +12,7 @@ import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/src/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
+import {IPendlePriceCapAdapter} from 'aave-capo/interfaces/IPendlePriceCapAdapter.sol';
 
 /**
  * @title RiskSteward
@@ -116,6 +117,14 @@ contract RiskSteward is Ownable, IRiskSteward {
   ) external virtual onlyRiskCouncil {
     _validatePriceCapStableUpdate(priceCapUpdates);
     _updateStablePriceCaps(priceCapUpdates);
+  }
+
+  /// @inheritdoc IRiskSteward
+  function updatePendlePriceCaps(
+    PriceCapPendleUpdate[] calldata priceCapUpdates
+  ) external virtual onlyRiskCouncil {
+    _validatePendlePriceCapUpdate(priceCapUpdates);
+    _updatePendlePriceCaps(priceCapUpdates);
   }
 
   /// @inheritdoc IRiskSteward
@@ -445,6 +454,36 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
+   * @notice method to validate the oracle pendle price caps update
+   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   */
+  function _validatePendlePriceCapUpdate(
+    PriceCapPendleUpdate[] calldata priceCapsUpdate
+  ) internal view {
+    if (priceCapsUpdate.length == 0) revert NoZeroUpdates();
+
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      if (_restrictedAddresses[oracle]) revert OracleIsRestricted();
+      if (priceCapsUpdate[i].discountRate == 0) revert InvalidUpdateToZero();
+
+      // get current rate
+      uint256 currentDiscount = IPendlePriceCapAdapter(oracle).discountRatePerYear();
+
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentDiscount,
+          newValue: priceCapsUpdate[i].discountRate,
+          lastUpdated: _timelocks[bytes20(oracle)].priceCapLastUpdated,
+          riskConfig: _riskConfig.priceCapConfig.priceCapPendle,
+          isChangeRelative: true
+        })
+      );
+    }
+  }
+
+  /**
    * @notice method to validate the risk param update is within the allowed bound and the debounce is respected
    * @param validationParam struct containing values used for validation of the risk param update
    */
@@ -598,6 +637,20 @@ contract RiskSteward is Ownable, IRiskSteward {
       _timelocks[bytes20(oracle)].priceCapLastUpdated = uint40(block.timestamp);
 
       IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap.toInt256());
+    }
+  }
+
+  /**
+   * @notice method to update the oracle pendle price caps update
+   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   */
+  function _updatePendlePriceCaps(PriceCapPendleUpdate[] calldata priceCapsUpdate) internal {
+    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
+      address oracle = priceCapsUpdate[i].oracle;
+
+      _timelocks[bytes20(oracle)].priceCapLastUpdated = uint40(block.timestamp);
+
+      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(priceCapsUpdate[i].discountRate.toUint64());
     }
   }
 
