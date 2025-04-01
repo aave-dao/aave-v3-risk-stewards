@@ -101,7 +101,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateStablePriceCaps(
+  function updateStablecoinPriceCaps(
     PriceCapStableUpdate[] calldata priceCapUpdates
   ) external virtual onlyRiskCouncil {
     _validatePriceCapStableUpdate(priceCapUpdates);
@@ -338,7 +338,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @notice method to validate the oracle stable price caps update
+   * @notice method to validate the stablecoin oracle price caps update
    * @param priceCapsUpdate list containing the new price cap values for the oracles
    */
   function _validatePriceCapStableUpdate(
@@ -485,7 +485,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @notice method to update the oracle stable price caps update
+   * @notice method to update the stablecoin oracle price caps update
    * @param priceCapsUpdate list containing the new price cap values for the oracles
    */
   function _updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapsUpdate) internal {

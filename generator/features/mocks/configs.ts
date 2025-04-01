@@ -86,7 +86,7 @@ export const lstPriceCapUpdate: LstPriceCapUpdate[] = [
   },
 ];
 
-export const stablePriceCapUpdate: StablePriceCapUpdate[] = [
+export const stablecoinPriceCapUpdate: StablePriceCapUpdate[] = [
   {
     asset: 'USDT',
     priceCap: '108000000'

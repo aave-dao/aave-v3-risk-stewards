@@ -45,7 +45,7 @@ contract EdgeRiskStewardRates is RiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateStablePriceCaps(
+  function updateStablecoinPriceCaps(
     PriceCapStableUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();

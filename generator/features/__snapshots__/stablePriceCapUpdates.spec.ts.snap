@@ -14,7 +14,7 @@ export const config: ConfigFile = {
   },
   poolOptions: {
     AaveV3Ethereum: {
-      configs: {STABLE_PRICE_CAP_UPDATE: [{asset: 'USDT', priceCap: '108000000'}]},
+      configs: {STABLECOIN_PRICE_CAP_UPDATE: [{asset: 'USDT', priceCap: '108000000'}]},
       cache: {blockNumber: 42},
     },
   },

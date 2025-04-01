@@ -1,6 +1,6 @@
 // sum.test.js
 import {expect, describe, it} from 'vitest';
-import {MOCK_OPTIONS, stablePriceCapUpdate} from './mocks/configs';
+import {MOCK_OPTIONS, stablecoinPriceCapUpdate} from './mocks/configs';
 import {generateFiles} from '../generator';
 import {FEATURE, PoolConfigs} from '../types';
 import {stablePriceCapsUpdates} from './stablePriceCapsUpdates';
@@ -10,7 +10,7 @@ describe('feature: capUpdates', () => {
     const output = stablePriceCapsUpdates.build({
       options: MOCK_OPTIONS,
       pool: 'AaveV3Ethereum',
-      cfg: stablePriceCapUpdate,
+      cfg: stablecoinPriceCapUpdate,
       cache: {blockNumber: 42},
     });
     expect(output).toMatchSnapshot();
@@ -23,11 +23,11 @@ describe('feature: capUpdates', () => {
           stablePriceCapsUpdates.build({
             options: {...MOCK_OPTIONS, pools: ['AaveV3Ethereum']},
             pool: 'AaveV3Ethereum',
-            cfg: stablePriceCapUpdate,
+            cfg: stablecoinPriceCapUpdate,
             cache: {blockNumber: 42},
           }),
         ],
-        configs: {[FEATURE.STABLE_PRICE_CAP_UPDATE]: stablePriceCapUpdate},
+        configs: {[FEATURE.STABLECOIN_PRICE_CAP_UPDATE]: stablecoinPriceCapUpdate},
         cache: {blockNumber: 42},
       },
     };

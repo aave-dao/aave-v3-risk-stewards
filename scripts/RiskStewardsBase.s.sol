@@ -85,7 +85,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     IEngine.CollateralUpdate[] memory collateralUpdates = collateralsUpdates();
     IEngine.RateStrategyUpdate[] memory rateUpdates = rateStrategiesUpdates();
     IRiskSteward.PriceCapLstUpdate[] memory lstPriceCapUpdates = lstPriceCapsUpdates();
-    IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
+    IRiskSteward.PriceCapStableUpdate[] memory stablecoinPriceCapUpdates = stablePriceCapsUpdates();
 
     if (skipTimelock) {
       // warp to the max timelock
@@ -113,7 +113,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
       if (lstPriceCapUpdates.length != 0) {
         timelocks[index++] = riskConfig.priceCapConfig.priceCapLst.minDelay;
       }
-      if (stablePriceCapUpdates.length != 0) {
+      if (stablecoinPriceCapUpdates.length != 0) {
         timelocks[index++] = riskConfig.priceCapConfig.priceCapStable.minDelay;
       }
       uint40 maxTimelock = 0;
@@ -162,10 +162,10 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
       txCount++;
     }
 
-    if (stablePriceCapUpdates.length != 0) {
+    if (stablecoinPriceCapUpdates.length != 0) {
       callDatas[txCount] = abi.encodeWithSelector(
-        IRiskSteward.updateStablePriceCaps.selector,
-        stablePriceCapUpdates
+        IRiskSteward.updateStablecoinPriceCaps.selector,
+        stablecoinPriceCapUpdates
       );
       (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
       _verifyCallResult(success, resultData);

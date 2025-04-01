@@ -58,7 +58,7 @@ export enum FEATURE {
   COLLATERALS_UPDATE = 'COLLATERALS_UPDATE',
   RATE_UPDATE_V3 = 'RATE_UPDATE_V3',
   LST_PRICE_CAP_UPDATE = 'LST_PRICE_CAP_UPDATE',
-  STABLE_PRICE_CAP_UPDATE = 'STABLE_PRICE_CAP_UPDATE',
+  STABLECOIN_PRICE_CAP_UPDATE = 'STABLECOIN_PRICE_CAP_UPDATE',
 }
 
 export interface FeatureModule<T extends {} = {}> {
@@ -92,7 +92,7 @@ export interface PoolConfig {
     [FEATURE.COLLATERALS_UPDATE]?: CollateralUpdate[];
     [FEATURE.RATE_UPDATE_V3]?: RateStrategyUpdate[];
     [FEATURE.LST_PRICE_CAP_UPDATE]?: LstPriceCapUpdate[];
-    [FEATURE.STABLE_PRICE_CAP_UPDATE]?: StablePriceCapUpdate[];
+    [FEATURE.STABLECOIN_PRICE_CAP_UPDATE]?: StablePriceCapUpdate[];
   };
   cache: PoolCache;
 }

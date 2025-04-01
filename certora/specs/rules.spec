@@ -69,7 +69,7 @@ ghost uint256 KEEP_CURRENT {
   Rule: updateCaps_validity.
 
   Description: the rule checks that:
-  1. After a successed call to updateCaps, the fields supplyCapLastUpdated and borrowCapLastUpdated 
+  1. After a successed call to updateCaps, the fields supplyCapLastUpdated and borrowCapLastUpdated
      get the value of current timestamp.
   2. The function AaveV3ConfigEngine.updateCaps is called.
 
@@ -81,7 +81,7 @@ rule updateCaps_validity(env e) {
   require capsUpdate.length <= 2; // The length of the array is either 1 or 2.
                                   // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
+  require i==1 || i==2;
 
   require capsUpdate[i].supplyCap != KEEP_CURRENT;
   require capsUpdate[i].borrowCap != KEEP_CURRENT;
@@ -112,13 +112,13 @@ rule updateRates_validity(env e) {
   require ratesUpdate.length <= 2; // The length of the array is either 1 or 2.
                                   // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
-  
+  require i==1 || i==2;
+
   require ratesUpdate[i].params.optimalUsageRatio != KEEP_CURRENT;
   require ratesUpdate[i].params.baseVariableBorrowRate != KEEP_CURRENT;
   require ratesUpdate[i].params.variableRateSlope1 != KEEP_CURRENT;
   require ratesUpdate[i].params.variableRateSlope2 != KEEP_CURRENT;
-  
+
   updateRates(e,ratesUpdate);
 
   address asset = ratesUpdate[i].asset;
@@ -147,13 +147,13 @@ rule updateCollateralSide_validity(env e) {
   require collateralUpdate.length <= 2; // The length of the array is either 1 or 2.
                                         // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
-  
+  require i==1 || i==2;
+
   require collateralUpdate[i].ltv != KEEP_CURRENT;
   require collateralUpdate[i].liqThreshold != KEEP_CURRENT;
   require collateralUpdate[i].liqBonus != KEEP_CURRENT;
   require collateralUpdate[i].debtCeiling != KEEP_CURRENT;
-  
+
   updateCollateralSide(e,collateralUpdate);
 
   address asset = collateralUpdate[i].asset;
@@ -185,8 +185,8 @@ rule updateLstPriceCaps_validity(env e) {
   require priceCapUpdates.length <= 2; // The length of the array is either 1 or 2.
                                        // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
-  
+  require i==1 || i==2;
+
   updateLstPriceCaps(e,priceCapUpdates);
 
   address oracle = priceCapUpdates[i].oracle;
@@ -202,7 +202,7 @@ rule updateLstPriceCaps_validity(env e) {
   Rule: updateStablePriceCaps_validity
 
   Description: the rule checks that:
-  1. After a successed call to updateStablePriceCaps, the field priceCapLastUpdated
+  1. After a successed call to updateStablecoinPriceCaps, the field priceCapLastUpdated
      get the value of current timestamp.
   2. The function IPriceCapAdapterStable.setPriceCap is called.
 
@@ -214,10 +214,10 @@ rule updateStablePriceCaps_validity(env e) {
   require priceCapUpdates.length <= 2; // The length of the array is either 1 or 2.
                                        // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
-  
-  
-  updateStablePriceCaps(e,priceCapUpdates);
+  require i==1 || i==2;
+
+
+  updateStablecoinPriceCaps(e,priceCapUpdates);
 
   address oracle = priceCapUpdates[i].oracle;
 
