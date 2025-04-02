@@ -78,17 +78,17 @@ interface IRiskSteward {
    * @notice Struct storing the last update by the steward of risk param
    */
   struct Debounce {
+    uint40 supplyCapLastUpdated;
+    uint40 borrowCapLastUpdated;
     uint40 ltvLastUpdated;
     uint40 liquidationBonusLastUpdated;
     uint40 liquidationThresholdLastUpdated;
-    uint40 optimalUsageRatioLastUpdated;
+    uint40 debtCeilingLastUpdated;
     uint40 baseVariableRateLastUpdated;
     uint40 variableRateSlope1LastUpdated;
     uint40 variableRateSlope2LastUpdated;
-    uint40 debtCeilingLastUpdated;
+    uint40 optimalUsageRatioLastUpdated;
     uint40 priceCapLastUpdated;
-    uint40 supplyCapLastUpdated;
-    uint40 borrowCapLastUpdated;
   }
 
   /**
