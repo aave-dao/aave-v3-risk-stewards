@@ -870,7 +870,7 @@ contract RiskSteward_Test is Test {
     vm.startPrank(riskCouncil);
     steward.updateEModeCategories(eModeCategoryUpdates);
 
-    RiskSteward.Debounce memory lastUpdated = steward.getEModeTimelock(eModeId);
+    RiskSteward.EModeDebounce memory lastUpdated = steward.getEModeTimelock(eModeId);
 
     DataTypes.CollateralConfig memory afterEmodeConfig = AaveV3Ethereum.POOL.getEModeCategoryCollateralConfig(eModeId);
     string memory afterLabel = AaveV3Ethereum.POOL.getEModeCategoryLabel(eModeId);
@@ -1034,7 +1034,7 @@ contract RiskSteward_Test is Test {
     uint8 eModeId = 1;
     DataTypes.CollateralConfig memory prevEmodeConfig = AaveV3Ethereum.POOL.getEModeCategoryCollateralConfig(eModeId);
     string memory prevLabel = AaveV3Ethereum.POOL.getEModeCategoryLabel(eModeId);
-    RiskSteward.Debounce memory prevLastUpdated = steward.getEModeTimelock(eModeId);
+    RiskSteward.EModeDebounce memory prevLastUpdated = steward.getEModeTimelock(eModeId);
 
     IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
     eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
@@ -1049,7 +1049,7 @@ contract RiskSteward_Test is Test {
     steward.updateEModeCategories(eModeCategoryUpdates);
 
     DataTypes.CollateralConfig memory afterEmodeConfig = AaveV3Ethereum.POOL.getEModeCategoryCollateralConfig(eModeId);
-    RiskSteward.Debounce memory afterLastUpdated = steward.getEModeTimelock(eModeId);
+    RiskSteward.EModeDebounce memory afterLastUpdated = steward.getEModeTimelock(eModeId);
     string memory afterLabel = AaveV3Ethereum.POOL.getEModeCategoryLabel(eModeId);
 
     assertEq(afterEmodeConfig.ltv, prevEmodeConfig.ltv);
@@ -1080,7 +1080,7 @@ contract RiskSteward_Test is Test {
     steward.updateEModeCategories(eModeCategoryUpdates);
 
     DataTypes.CollateralConfig memory afterEmodeConfig = AaveV3Ethereum.POOL.getEModeCategoryCollateralConfig(eModeId);
-    RiskSteward.Debounce memory afterLastUpdated = steward.getEModeTimelock(eModeId);
+    RiskSteward.EModeDebounce memory afterLastUpdated = steward.getEModeTimelock(eModeId);
     string memory afterLabel = AaveV3Ethereum.POOL.getEModeCategoryLabel(eModeId);
 
     assertEq(afterEmodeConfig.ltv, prevEmodeConfig.ltv);

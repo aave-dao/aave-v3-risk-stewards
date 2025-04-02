@@ -87,15 +87,12 @@ interface IRiskSteward {
   event RiskConfigSet(Config indexed riskConfig);
 
   /**
-   * @notice Struct storing the last update by the steward of each risk param
+   * @notice Struct storing the last update by the steward of risk param
    */
   struct Debounce {
     uint40 ltvLastUpdated;
     uint40 liquidationBonusLastUpdated;
     uint40 liquidationThresholdLastUpdated;
-    uint40 eModeLtvLastUpdated;
-    uint40 eModeLiquidationBonusLastUpdated;
-    uint40 eModeLiquidationThresholdLastUpdated;
     uint40 optimalUsageRatioLastUpdated;
     uint40 baseVariableRateLastUpdated;
     uint40 variableRateSlope1LastUpdated;
@@ -104,6 +101,15 @@ interface IRiskSteward {
     uint40 priceCapLastUpdated;
     uint40 supplyCapLastUpdated;
     uint40 borrowCapLastUpdated;
+  }
+
+  /**
+   * @notice Struct storing the last update by the steward of eMode risk param
+   */
+  struct EModeDebounce {
+    uint40 eModeLtvLastUpdated;
+    uint40 eModeLiquidationBonusLastUpdated;
+    uint40 eModeLiquidationThresholdLastUpdated;
   }
 
   /**
@@ -322,9 +328,8 @@ interface IRiskSteward {
    * @notice Returns the timelock for a specific eMode category id i.e the last updated timestamp
    * @param eModeCategoryId the eMode category for which to fetch the timelock
    * @return struct containing the latest updated timestamps of eMode risk params by the steward
-   * @dev the non-emode timelock params of the struct returned will be unused
    */
-  function getEModeTimelock(uint8 eModeCategoryId) external view returns (Debounce memory);
+  function getEModeTimelock(uint8 eModeCategoryId) external view returns (EModeDebounce memory);
 
   /**
    * @notice method to get the risk configuration set for all the risk params
