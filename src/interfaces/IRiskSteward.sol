@@ -249,8 +249,7 @@ interface IRiskSteward {
   /**
    * @notice Returns the timelock for a specific asset i.e the last updated timestamp
    * @param asset for which to fetch the timelock
-   * @return struct containing the latest updated timestamps of all the risk params by the steward except eMode
-   * @dev the emode timelock params of the struct returned will be unused
+   * @return struct containing the latest updated timestamps of all the risk params by the steward per asset
    */
   function getTimelock(address asset) external view returns (Debounce memory);
 
