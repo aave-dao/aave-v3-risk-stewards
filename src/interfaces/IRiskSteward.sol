@@ -170,7 +170,7 @@ interface IRiskSteward {
   }
 
   /**
-   * @notice Struct used to update the stablecoin cap params
+   * @notice Struct used to update the stable cap params
    */
   struct PriceCapStableUpdate {
     address oracle;
@@ -230,7 +230,7 @@ interface IRiskSteward {
    * @dev A price cap increase / decrease is only allowed by a magnitude of maxPercentChange
    * @param priceCapUpdates struct containing new price cap params to be updated
    */
-  function updateStablecoinPriceCaps(PriceCapStableUpdate[] calldata priceCapUpdates) external;
+  function updateStablePriceCaps(PriceCapStableUpdate[] calldata priceCapUpdates) external;
 
   /**
    * @notice method to check if an asset/oracle is restricted to be used by the risk stewards

@@ -89,6 +89,6 @@ contract EdgeRiskStewardCaps_Test is RiskSteward_Test {
 
     vm.startPrank(riskCouncil);
     vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
   }
 }

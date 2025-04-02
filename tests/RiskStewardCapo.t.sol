@@ -373,7 +373,7 @@ contract RiskSteward_Capo_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     RiskSteward.Debounce memory lastUpdated = steward.getTimelock(AaveV3EthereumAssets.USDT_ORACLE);
 
@@ -392,7 +392,7 @@ contract RiskSteward_Capo_Test is Test {
       priceCap: ((priceCapAfter * 90) / 100) // -10% relative change
     });
 
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     lastUpdated = steward.getTimelock(AaveV3EthereumAssets.USDT_ORACLE);
 
@@ -420,7 +420,7 @@ contract RiskSteward_Capo_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     priceCapUpdates[0] = IRiskSteward.PriceCapStableUpdate({
       oracle: AaveV3EthereumAssets.USDT_ORACLE,
@@ -429,7 +429,7 @@ contract RiskSteward_Capo_Test is Test {
 
     // expect revert as minimum time has not passed for next update
     vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     vm.stopPrank();
   }
@@ -451,7 +451,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.startPrank(riskCouncil);
 
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     vm.stopPrank();
   }
@@ -469,7 +469,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.startPrank(riskCouncil);
 
     vm.expectRevert();
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     vm.stopPrank();
   }
@@ -487,7 +487,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.startPrank(riskCouncil);
 
     vm.expectRevert(IRiskSteward.InvalidUpdateToZero.selector);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     vm.stopPrank();
   }
@@ -513,7 +513,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.startPrank(riskCouncil);
 
     vm.expectRevert(IRiskSteward.OracleIsRestricted.selector);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     vm.stopPrank();
   }
@@ -532,7 +532,7 @@ contract RiskSteward_Capo_Test is Test {
     });
 
     vm.startPrank(riskCouncil);
-    steward.updateStablecoinPriceCaps(priceCapUpdates);
+    steward.updateStablePriceCaps(priceCapUpdates);
 
     uint256 priceCapAfter = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
       .getPriceCap()

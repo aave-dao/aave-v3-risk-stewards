@@ -20,15 +20,15 @@ export async function fetchStablePriceCapUpdate(
   };
 }
 
-type StablecoinPriceCapUpdates = StablePriceCapUpdate[];
+type StablePriceCapUpdates = StablePriceCapUpdate[];
 
-export const stablePriceCapsUpdates: FeatureModule<StablecoinPriceCapUpdates> = {
-  value: FEATURE.STABLECOIN_PRICE_CAP_UPDATE,
-  description: 'StablecoinPriceCapUpdates (priceCap)',
+export const stablePriceCapsUpdates: FeatureModule<StablePriceCapUpdates> = {
+  value: FEATURE.STABLE_PRICE_CAP_UPDATE,
+  description: 'StablePriceCapUpdates (priceCap)',
   async cli({pool}) {
     console.log(`Fetching information for Stable Price Cap Updates on ${pool}`);
 
-    const response: StablecoinPriceCapUpdates = [];
+    const response: StablePriceCapUpdates = [];
     const assets = await assetsSelectPrompt({
       message: 'Select the asset whose oracle you want to amend',
       pool,
