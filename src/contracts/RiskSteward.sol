@@ -477,7 +477,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         ParamUpdateValidationInput({
           currentValue: currentDiscount,
           newValue: priceCapsUpdate[i].discountRate,
-          lastUpdated: _timelocks[bytes20(oracle)].priceCapLastUpdated,
+          lastUpdated: _timelocks[oracle].priceCapLastUpdated,
           riskConfig: _riskConfig.priceCapConfig.priceCapPendle,
           isChangeRelative: true
         })
@@ -650,7 +650,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
       address oracle = priceCapsUpdate[i].oracle;
 
-      _timelocks[bytes20(oracle)].priceCapLastUpdated = uint40(block.timestamp);
+      _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
       IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(priceCapsUpdate[i].discountRate.toUint64());
     }
