@@ -73,7 +73,8 @@ library DeployStewardContracts {
         }),
         priceCapConfig: IRiskSteward.PriceCapConfig({
           priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00}),
-          priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50})
+          priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          discountRatePendle: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 20_00})
         })
       });
   }

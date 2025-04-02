@@ -1246,7 +1246,8 @@ contract RiskSteward_Test is Test {
       }),
       priceCapConfig: IRiskSteward.PriceCapConfig({
         priceCapLst: newRiskParamConfig,
-        priceCapStable: newRiskParamConfig
+        priceCapStable: newRiskParamConfig,
+        discountRatePendle: newRiskParamConfig
       })
     });
 
