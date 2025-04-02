@@ -37,7 +37,7 @@ contract RiskSteward_Capo_Test is Test {
     IRiskSteward.Config memory riskConfig;
     riskConfig.priceCapConfig.priceCapLst = defaultRiskParamConfig;
     riskConfig.priceCapConfig.priceCapStable = defaultRiskParamConfig;
-    riskConfig.priceCapConfig.priceCapPendle = defaultRiskParamConfig;
+    riskConfig.priceCapConfig.discountRatePendle = defaultRiskParamConfig;
 
     steward = new RiskSteward(
       address(AaveV3Ethereum.POOL),
@@ -558,16 +558,16 @@ contract RiskSteward_Capo_Test is Test {
   function test_updatePendlePriceCap() public {
     uint256 currentDiscount = pendleAdapter.discountRatePerYear();
 
-    IRiskSteward.PriceCapPendleUpdate[]
-      memory priceCapUpdates = new IRiskSteward.PriceCapPendleUpdate[](1);
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: ((currentDiscount * 110) / 100) // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
 
     RiskSteward.Debounce memory lastUpdated = steward.getTimelock(address(pendleAdapter));
 
@@ -580,12 +580,12 @@ contract RiskSteward_Capo_Test is Test {
     vm.warp(block.timestamp + 5 days + 1);
     currentDiscount = pendleAdapter.discountRatePerYear();
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: ((currentDiscount * 90) / 100) // -10% relative change
     });
 
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
 
     lastUpdated = steward.getTimelock(address(pendleAdapter));
 
@@ -598,33 +598,33 @@ contract RiskSteward_Capo_Test is Test {
   function test_updatePendlePriceCap_debounceNotRespected() public {
     uint256 currentDiscount = pendleAdapter.discountRatePerYear();
 
-    IRiskSteward.PriceCapPendleUpdate[]
-      memory priceCapUpdates = new IRiskSteward.PriceCapPendleUpdate[](1);
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: ((currentDiscount * 110) / 100) // +10% relative change
     });
 
     vm.startPrank(riskCouncil);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: ((currentDiscount * 105) / 100) // +10% relative change
     });
 
     // expect revert as minimum time has not passed for next update
     vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
   }
 
   function test_updatePendlePriceCap_outOfRange() public {
     uint256 currentDiscount = pendleAdapter.discountRatePerYear();
-    IRiskSteward.PriceCapPendleUpdate[]
-      memory priceCapUpdates = new IRiskSteward.PriceCapPendleUpdate[](1);
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: ((currentDiscount * 111) / 100) // +11% relative increase
     });
@@ -632,21 +632,21 @@ contract RiskSteward_Capo_Test is Test {
 
     // expect revert as price cap (discountRate) is out of range
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: ((currentDiscount * 89) / 100) // -11% relative decrease
     });
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
   }
 
   function test_updatePendlePriceCap_keepCurrent_revert() public {
-    IRiskSteward.PriceCapPendleUpdate[]
-      memory priceCapUpdates = new IRiskSteward.PriceCapPendleUpdate[](1);
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: EngineFlags.KEEP_CURRENT
     });
@@ -654,14 +654,14 @@ contract RiskSteward_Capo_Test is Test {
 
     // expect revert as price cap is out of range
     vm.expectRevert();
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
   }
 
   function test_updatePendlePriceCap_toValueZeroNotAllowed() public {
-    IRiskSteward.PriceCapPendleUpdate[]
-      memory priceCapUpdates = new IRiskSteward.PriceCapPendleUpdate[](1);
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: 0
     });
@@ -669,7 +669,7 @@ contract RiskSteward_Capo_Test is Test {
 
     // expect revert as price cap is out of range
     vm.expectRevert(IRiskSteward.InvalidUpdateToZero.selector);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
   }
 
   function test_updatePendlePriceCap_oracleRestricted() public {
@@ -677,10 +677,10 @@ contract RiskSteward_Capo_Test is Test {
     steward.setAddressRestricted(address(pendleAdapter), true);
 
     uint256 currentDiscount = pendleAdapter.discountRatePerYear();
-    IRiskSteward.PriceCapPendleUpdate[]
-      memory priceCapUpdates = new IRiskSteward.PriceCapPendleUpdate[](1);
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: ((currentDiscount * 110) / 100) // +10% relative change
     });
@@ -688,20 +688,20 @@ contract RiskSteward_Capo_Test is Test {
     // expect revert as oracle is restricted
 
     vm.expectRevert(IRiskSteward.OracleIsRestricted.selector);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
   }
 
   function test_updatePendlePriceCap_sameUpdates() public {
     uint256 initialDiscount = pendleAdapter.discountRatePerYear();
-    IRiskSteward.PriceCapPendleUpdate[]
-      memory priceCapUpdates = new IRiskSteward.PriceCapPendleUpdate[](1);
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
 
-    priceCapUpdates[0] = IRiskSteward.PriceCapPendleUpdate({
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
       discountRate: initialDiscount
     });
     vm.prank(riskCouncil);
-    steward.updatePendlePriceCaps(priceCapUpdates);
+    steward.updatePendleDiscountRates(priceCapUpdates);
 
     uint256 afterDiscount = pendleAdapter.discountRatePerYear();
     assertEq(initialDiscount, afterDiscount);

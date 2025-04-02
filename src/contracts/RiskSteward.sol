@@ -122,11 +122,11 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updatePendlePriceCaps(
-    PriceCapPendleUpdate[] calldata priceCapUpdates
+  function updatePendleDiscountRates(
+    DiscountRatePendleUpdate[] calldata discountRateUpdates
   ) external virtual onlyRiskCouncil {
-    _validatePendlePriceCapUpdate(priceCapUpdates);
-    _updatePendlePriceCaps(priceCapUpdates);
+    _validatePendleDiscountRateUpdate(discountRateUpdates);
+    _updatePendleDiscountRates(discountRateUpdates);
   }
 
   /// @inheritdoc IRiskSteward
@@ -456,19 +456,19 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @notice method to validate the pendle oracle price caps update
-   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   * @notice method to validate the pendle oracle discount rate update
+   * @param discountRateUpdate list containing the new discount rate values for the pendle oracles
    */
-  function _validatePendlePriceCapUpdate(
-    PriceCapPendleUpdate[] calldata priceCapsUpdate
+  function _validatePendleDiscountRateUpdate(
+    DiscountRatePendleUpdate[] calldata discountRateUpdate
   ) internal view {
-    if (priceCapsUpdate.length == 0) revert NoZeroUpdates();
+    if (discountRateUpdate.length == 0) revert NoZeroUpdates();
 
-    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
-      address oracle = priceCapsUpdate[i].oracle;
+    for (uint256 i = 0; i < discountRateUpdate.length; i++) {
+      address oracle = discountRateUpdate[i].oracle;
 
       if (_restrictedAddresses[oracle]) revert OracleIsRestricted();
-      if (priceCapsUpdate[i].discountRate == 0) revert InvalidUpdateToZero();
+      if (discountRateUpdate[i].discountRate == 0) revert InvalidUpdateToZero();
 
       // get current rate
       uint256 currentDiscount = IPendlePriceCapAdapter(oracle).discountRatePerYear();
@@ -476,9 +476,9 @@ contract RiskSteward is Ownable, IRiskSteward {
       _validateParamUpdate(
         ParamUpdateValidationInput({
           currentValue: currentDiscount,
-          newValue: priceCapsUpdate[i].discountRate,
+          newValue: discountRateUpdate[i].discountRate,
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
-          riskConfig: _riskConfig.priceCapConfig.priceCapPendle,
+          riskConfig: _riskConfig.priceCapConfig.discountRatePendle,
           isChangeRelative: true
         })
       );
@@ -643,16 +643,16 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
-   * @notice method to update the pendle oracle price caps update
-   * @param priceCapsUpdate list containing the new price cap values for the oracles
+   * @notice method to update the pendle oracle discount rate
+   * @param discountRateUpdate list containing the new discount rate values for the pendle oracles
    */
-  function _updatePendlePriceCaps(PriceCapPendleUpdate[] calldata priceCapsUpdate) internal {
-    for (uint256 i = 0; i < priceCapsUpdate.length; i++) {
-      address oracle = priceCapsUpdate[i].oracle;
+  function _updatePendleDiscountRates(DiscountRatePendleUpdate[] calldata discountRateUpdate) internal {
+    for (uint256 i = 0; i < discountRateUpdate.length; i++) {
+      address oracle = discountRateUpdate[i].oracle;
 
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
-      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(priceCapsUpdate[i].discountRate.toUint64());
+      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(discountRateUpdate[i].discountRate.toUint64());
     }
   }
 

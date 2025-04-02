@@ -61,8 +61,8 @@ contract EdgeRiskStewardCaps is RiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updatePendlePriceCaps(
-    PriceCapPendleUpdate[] calldata
+  function updatePendleDiscountRates(
+    DiscountRatePendleUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
