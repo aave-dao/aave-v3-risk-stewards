@@ -93,7 +93,7 @@ contract EdgeRiskStewardCaps_Test is RiskSteward_Test {
 
   function test_updateEModeCategories_sameUpdate() public override {}
 
-  function test_updateEModeCategories_onlyLabelChange() public override {}
+  function test_updateEModeCategories_labelChangeNotAllowed() public override {}
 
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
 

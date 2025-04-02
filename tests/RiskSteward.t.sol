@@ -1093,7 +1093,7 @@ contract RiskSteward_Test is Test {
     assertEq(afterLastUpdated.eModeLiquidationBonusLastUpdated, block.timestamp);
   }
 
-  function test_updateEModeCategories_onlyLabelChange() public virtual {
+  function test_updateEModeCategories_labelChangeNotAllowed() public virtual {
     uint8 eModeId = 1;
     string memory newLabel = 'NEW_EMODE_LABEL';
 
@@ -1106,22 +1106,8 @@ contract RiskSteward_Test is Test {
       label: newLabel
     });
 
-    vm.startPrank(riskCouncil);
-    steward.updateEModeCategories(eModeCategoryUpdates);
-
-    string memory afterLabel = AaveV3Ethereum.POOL.getEModeCategoryLabel(eModeId);
-    assertEq(newLabel, afterLabel);
-
-    eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
-      eModeCategory: eModeId,
-      ltv: EngineFlags.KEEP_CURRENT,
-      liqThreshold: EngineFlags.KEEP_CURRENT,
-      liqBonus: EngineFlags.KEEP_CURRENT,
-      label: 'LABEL_CHANGE_AGAIN'
-    });
-
-    // no timelock for label change
-    vm.startPrank(riskCouncil);
+    vm.prank(riskCouncil);
+    vm.expectRevert(IRiskSteward.ParamChangeNotAllowed.selector);
     steward.updateEModeCategories(eModeCategoryUpdates);
   }
 

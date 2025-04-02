@@ -7,6 +7,7 @@ import {Address} from 'openzeppelin-contracts/contracts/utils/Address.sol';
 import {SafeCast} from 'openzeppelin-contracts/contracts/utils/math/SafeCast.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
+import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/src/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
@@ -21,6 +22,7 @@ import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStabl
  */
 contract RiskSteward is Ownable, IRiskSteward {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
+  using Strings for string;
   using Address for address;
   using SafeCast for uint256;
   using SafeCast for int256;
@@ -339,6 +341,8 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < eModeCategoryUpdates.length; i++) {
       uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
       if (_restrictedEModes[eModeId]) revert EModeIsRestricted();
+      if (!eModeCategoryUpdates[i].label.equal(EngineFlags.KEEP_CURRENT_STRING))
+        revert ParamChangeNotAllowed();
 
       if (
         eModeCategoryUpdates[i].ltv == 0 ||
