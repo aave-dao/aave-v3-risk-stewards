@@ -75,7 +75,7 @@ interface IRiskSteward {
   event RiskConfigSet(Config indexed riskConfig);
 
   /**
-   * @notice Struct storing the last update by the steward of each risk param
+   * @notice Struct storing the last update by the steward of risk param
    */
   struct Debounce {
     uint40 ltvLastUpdated;
