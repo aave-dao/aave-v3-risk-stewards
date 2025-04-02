@@ -93,9 +93,6 @@ interface IRiskSteward {
     uint40 ltvLastUpdated;
     uint40 liquidationBonusLastUpdated;
     uint40 liquidationThresholdLastUpdated;
-    uint40 eModeLtvLastUpdated;
-    uint40 eModeLiquidationBonusLastUpdated;
-    uint40 eModeLiquidationThresholdLastUpdated;
     uint40 optimalUsageRatioLastUpdated;
     uint40 baseVariableRateLastUpdated;
     uint40 variableRateSlope1LastUpdated;
