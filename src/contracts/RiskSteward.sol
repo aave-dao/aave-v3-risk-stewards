@@ -153,7 +153,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function isAddressRestricted(address contractAddress) external view returns (bool) {
+  function isAddressRestricted(address contractAddress) public view virtual returns (bool) {
     return _restrictedAddresses[contractAddress];
   }
 
@@ -184,7 +184,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < capsUpdate.length; i++) {
       address asset = capsUpdate[i].asset;
 
-      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
+      if (isAddressRestricted(asset)) revert AssetIsRestricted();
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
 
@@ -220,7 +220,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
       address asset = ratesUpdate[i].asset;
-      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
+      if (isAddressRestricted(asset)) revert AssetIsRestricted();
 
       (
         uint256 currentOptimalUsageRatio,
@@ -274,13 +274,13 @@ contract RiskSteward is Ownable, IRiskSteward {
    */
   function _validateCollateralsUpdate(
     IEngine.CollateralUpdate[] calldata collateralUpdates
-  ) internal view {
+  ) internal view virtual {
     if (collateralUpdates.length == 0) revert NoZeroUpdates();
 
     for (uint256 i = 0; i < collateralUpdates.length; i++) {
       address asset = collateralUpdates[i].asset;
 
-      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
+      if (isAddressRestricted(asset)) revert AssetIsRestricted();
       if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT)
         revert ParamChangeNotAllowed();
       if (
@@ -296,6 +296,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         uint256 currentLiquidationThreshold,
         uint256 currentLiquidationBonus,
         ,
+
       ) = configuration.getParams();
       uint256 currentDebtCeiling = configuration.getDebtCeiling();
 
@@ -359,7 +360,9 @@ contract RiskSteward is Ownable, IRiskSteward {
         eModeCategoryUpdates[i].liqBonus == 0
       ) revert InvalidUpdateToZero();
 
-      DataTypes.CollateralConfig memory currentEmodeConfig = POOL.getEModeCategoryCollateralConfig(eModeId);
+      DataTypes.CollateralConfig memory currentEmodeConfig = POOL.getEModeCategoryCollateralConfig(
+        eModeId
+      );
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -594,7 +597,9 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to update the eMode category params using the config engine and updates the debounce
    * @param eModeCategoryUpdates list containing the new eMode category params of the eMode category id
    */
-  function _updateEModeCategories(IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates) internal {
+  function _updateEModeCategories(
+    IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates
+  ) internal {
     for (uint256 i = 0; i < eModeCategoryUpdates.length; i++) {
       uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
 
@@ -650,13 +655,17 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to update the pendle oracle discount rate
    * @param discountRateUpdate list containing the new discount rate values for the pendle oracles
    */
-  function _updatePendleDiscountRates(DiscountRatePendleUpdate[] calldata discountRateUpdate) internal {
+  function _updatePendleDiscountRates(
+    DiscountRatePendleUpdate[] calldata discountRateUpdate
+  ) internal {
     for (uint256 i = 0; i < discountRateUpdate.length; i++) {
       address oracle = discountRateUpdate[i].oracle;
 
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
-      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(discountRateUpdate[i].discountRate.toUint64());
+      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(
+        discountRateUpdate[i].discountRate.toUint64()
+      );
     }
   }
 
