@@ -27,8 +27,13 @@ contract EdgeRiskStewardCollateralPT is RiskSteward {
     address engine,
     address riskCouncil,
     address owner,
-    Config memory riskConfig
-  ) RiskSteward(pool, engine, riskCouncil, owner, riskConfig) {}
+    Config memory riskConfig,
+    address[] memory allowedAddresses
+  ) RiskSteward(pool, engine, riskCouncil, owner, riskConfig) {
+    for (uint256 i = 0; i < allowedAddresses.length; i++) {
+      _setAddressAllowed(allowedAddresses[i], true);
+    }
+  }
 
   /// @inheritdoc IRiskSteward
   function updateRates(
@@ -87,8 +92,7 @@ contract EdgeRiskStewardCollateralPT is RiskSteward {
 
   // TODO: add docs, make interface
   function setAddressAllowed(address contractAddress, bool isAllowed) external onlyOwner {
-    _allowedAddress[contractAddress] = isAllowed;
-    emit AddressAllowed(contractAddress, isAllowed);
+    _setAddressAllowed(contractAddress, isAllowed);
   }
 
   // TODO: add docs, make interface
@@ -99,5 +103,10 @@ contract EdgeRiskStewardCollateralPT is RiskSteward {
   /// @inheritdoc IRiskSteward
   function isAddressRestricted(address contractAddress) public view override returns (bool) {
     return !isAddressAllowed(contractAddress);
+  }
+
+  function _setAddressAllowed(address contractAddress, bool isAllowed) internal {
+    _allowedAddress[contractAddress] = isAllowed;
+    emit AddressAllowed(contractAddress, isAllowed);
   }
 }
