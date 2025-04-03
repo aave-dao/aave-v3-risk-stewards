@@ -1,5 +1,5 @@
 import {Options} from '../../types';
-import {CapsUpdate, CollateralUpdate, RateStrategyUpdate, LstPriceCapUpdate, StablePriceCapUpdate} from '../types';
+import {CapsUpdate, CollateralUpdate, RateStrategyUpdate, LstPriceCapUpdate, StablePriceCapUpdate, EModeCategoryUpdate} from '../types';
 
 export const MOCK_OPTIONS: Options = {
   pools: ['AaveV3Ethereum'],
@@ -26,6 +26,16 @@ export const collateralUpdate: CollateralUpdate[] = [
     liqBonus: '600',
     debtCeiling: '',
     liqProtocolFee: '1200'
+  },
+];
+
+export const eModeUpdate: EModeCategoryUpdate[] = [
+  {
+    eModeCategory: 'AaveV3EthereumEModes.ETH_CORRELATED',
+    ltv: '',
+    liqThreshold: '50',
+    liqBonus: '',
+    label: '',
   },
 ];
 

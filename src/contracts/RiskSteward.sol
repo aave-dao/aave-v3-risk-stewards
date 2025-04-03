@@ -7,11 +7,13 @@ import {Address} from 'openzeppelin-contracts/contracts/utils/Address.sol';
 import {SafeCast} from 'openzeppelin-contracts/contracts/utils/math/SafeCast.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
+import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IRiskSteward} from '../interfaces/IRiskSteward.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/src/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
+import {IPendlePriceCapAdapter} from 'aave-capo/interfaces/IPendlePriceCapAdapter.sol';
 
 /**
  * @title RiskSteward
@@ -21,6 +23,7 @@ import {IPriceCapAdapterStable} from 'aave-capo/interfaces/IPriceCapAdapterStabl
  */
 contract RiskSteward is Ownable, IRiskSteward {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
+  using Strings for string;
   using Address for address;
   using SafeCast for uint256;
   using SafeCast for int256;
@@ -40,7 +43,11 @@ contract RiskSteward is Ownable, IRiskSteward {
 
   mapping(address => Debounce) internal _timelocks;
 
+  mapping(uint8 => EModeDebounce) internal _eModeTimelocks;
+
   mapping(address => bool) internal _restrictedAddresses;
+
+  mapping(uint8 => bool) internal _restrictedEModes;
 
   /**
    * @dev Modifier preventing anyone, but the council to update risk params.
@@ -93,6 +100,14 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
+  function updateEModeCategories(
+    IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates
+  ) external virtual onlyRiskCouncil {
+    _validateEModeCategoryUpdate(eModeCategoryUpdates);
+    _updateEModeCategories(eModeCategoryUpdates);
+  }
+
+  /// @inheritdoc IRiskSteward
   function updateLstPriceCaps(
     PriceCapLstUpdate[] calldata priceCapUpdates
   ) external virtual onlyRiskCouncil {
@@ -109,8 +124,21 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
+  function updatePendleDiscountRates(
+    DiscountRatePendleUpdate[] calldata discountRateUpdates
+  ) external virtual onlyRiskCouncil {
+    _validatePendleDiscountRateUpdate(discountRateUpdates);
+    _updatePendleDiscountRates(discountRateUpdates);
+  }
+
+  /// @inheritdoc IRiskSteward
   function getTimelock(address asset) external view returns (Debounce memory) {
     return _timelocks[asset];
+  }
+
+  /// @inheritdoc IRiskSteward
+  function getEModeTimelock(uint8 eModeCategoryId) external view returns (EModeDebounce memory) {
+    return _eModeTimelocks[eModeCategoryId];
   }
 
   /// @inheritdoc IRiskSteward
@@ -133,6 +161,17 @@ contract RiskSteward is Ownable, IRiskSteward {
   function setAddressRestricted(address contractAddress, bool isRestricted) external onlyOwner {
     _restrictedAddresses[contractAddress] = isRestricted;
     emit AddressRestricted(contractAddress, isRestricted);
+  }
+
+  /// @inheritdoc IRiskSteward
+  function isEModeCategoryRestricted(uint8 eModeCategoryId) external view returns (bool) {
+    return _restrictedEModes[eModeCategoryId];
+  }
+
+  /// @inheritdoc IRiskSteward
+  function setEModeCategoryRestricted(uint8 eModeCategoryId, bool isRestricted) external onlyOwner {
+    _restrictedEModes[eModeCategoryId] = isRestricted;
+    emit EModeRestricted(eModeCategoryId, isRestricted);
   }
 
   /**
@@ -300,6 +339,59 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
+   * @notice method to validate the eMode category update
+   * @param eModeCategoryUpdates list containing the new eMode category updates
+   */
+  function _validateEModeCategoryUpdate(
+    IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates
+  ) internal view {
+    if (eModeCategoryUpdates.length == 0) revert NoZeroUpdates();
+
+    for (uint256 i = 0; i < eModeCategoryUpdates.length; i++) {
+      uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
+      if (_restrictedEModes[eModeId]) revert EModeIsRestricted();
+      if (!eModeCategoryUpdates[i].label.equal(EngineFlags.KEEP_CURRENT_STRING))
+        revert ParamChangeNotAllowed();
+
+      if (
+        eModeCategoryUpdates[i].ltv == 0 ||
+        eModeCategoryUpdates[i].liqThreshold == 0 ||
+        eModeCategoryUpdates[i].liqBonus == 0
+      ) revert InvalidUpdateToZero();
+
+      DataTypes.CollateralConfig memory currentEmodeConfig = POOL.getEModeCategoryCollateralConfig(eModeId);
+
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentEmodeConfig.ltv,
+          newValue: eModeCategoryUpdates[i].ltv,
+          lastUpdated: _eModeTimelocks[eModeId].eModeLtvLastUpdated,
+          riskConfig: _riskConfig.eModeConfig.ltv,
+          isChangeRelative: false
+        })
+      );
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentEmodeConfig.liquidationThreshold,
+          newValue: eModeCategoryUpdates[i].liqThreshold,
+          lastUpdated: _eModeTimelocks[eModeId].eModeLiquidationThresholdLastUpdated,
+          riskConfig: _riskConfig.eModeConfig.liquidationThreshold,
+          isChangeRelative: false
+        })
+      );
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentEmodeConfig.liquidationBonus - 100_00, // as the definition is 100% + x%, and config engine takes into account x% for simplicity.
+          newValue: eModeCategoryUpdates[i].liqBonus,
+          lastUpdated: _eModeTimelocks[eModeId].eModeLiquidationBonusLastUpdated,
+          riskConfig: _riskConfig.eModeConfig.liquidationBonus,
+          isChangeRelative: false
+        })
+      );
+    }
+  }
+
+  /**
    * @notice method to validate the oracle price caps update
    * @param priceCapsUpdate list containing the new price cap params for the oracles
    */
@@ -361,6 +453,36 @@ contract RiskSteward is Ownable, IRiskSteward {
           newValue: priceCapsUpdate[i].priceCap,
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
           riskConfig: _riskConfig.priceCapConfig.priceCapStable,
+          isChangeRelative: true
+        })
+      );
+    }
+  }
+
+  /**
+   * @notice method to validate the pendle oracle discount rate update
+   * @param discountRateUpdate list containing the new discount rate values for the pendle oracles
+   */
+  function _validatePendleDiscountRateUpdate(
+    DiscountRatePendleUpdate[] calldata discountRateUpdate
+  ) internal view {
+    if (discountRateUpdate.length == 0) revert NoZeroUpdates();
+
+    for (uint256 i = 0; i < discountRateUpdate.length; i++) {
+      address oracle = discountRateUpdate[i].oracle;
+
+      if (_restrictedAddresses[oracle]) revert OracleIsRestricted();
+      if (discountRateUpdate[i].discountRate == 0) revert InvalidUpdateToZero();
+
+      // get current rate
+      uint256 currentDiscount = IPendlePriceCapAdapter(oracle).discountRatePerYear();
+
+      _validateParamUpdate(
+        ParamUpdateValidationInput({
+          currentValue: currentDiscount,
+          newValue: discountRateUpdate[i].discountRate,
+          lastUpdated: _timelocks[oracle].priceCapLastUpdated,
+          riskConfig: _riskConfig.priceCapConfig.discountRatePendle,
           isChangeRelative: true
         })
       );
@@ -469,6 +591,32 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /**
+   * @notice method to update the eMode category params using the config engine and updates the debounce
+   * @param eModeCategoryUpdates list containing the new eMode category params of the eMode category id
+   */
+  function _updateEModeCategories(IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates) internal {
+    for (uint256 i = 0; i < eModeCategoryUpdates.length; i++) {
+      uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
+
+      if (eModeCategoryUpdates[i].ltv != EngineFlags.KEEP_CURRENT) {
+        _eModeTimelocks[eModeId].eModeLtvLastUpdated = uint40(block.timestamp);
+      }
+
+      if (eModeCategoryUpdates[i].liqThreshold != EngineFlags.KEEP_CURRENT) {
+        _eModeTimelocks[eModeId].eModeLiquidationThresholdLastUpdated = uint40(block.timestamp);
+      }
+
+      if (eModeCategoryUpdates[i].liqBonus != EngineFlags.KEEP_CURRENT) {
+        _eModeTimelocks[eModeId].eModeLiquidationBonusLastUpdated = uint40(block.timestamp);
+      }
+    }
+
+    address(CONFIG_ENGINE).functionDelegateCall(
+      abi.encodeWithSelector(CONFIG_ENGINE.updateEModeCategories.selector, eModeCategoryUpdates)
+    );
+  }
+
+  /**
    * @notice method to update the oracle price caps update
    * @param priceCapsUpdate list containing the new price cap params for the oracles
    */
@@ -495,6 +643,20 @@ contract RiskSteward is Ownable, IRiskSteward {
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
       IPriceCapAdapterStable(oracle).setPriceCap(priceCapsUpdate[i].priceCap.toInt256());
+    }
+  }
+
+  /**
+   * @notice method to update the pendle oracle discount rate
+   * @param discountRateUpdate list containing the new discount rate values for the pendle oracles
+   */
+  function _updatePendleDiscountRates(DiscountRatePendleUpdate[] calldata discountRateUpdate) internal {
+    for (uint256 i = 0; i < discountRateUpdate.length; i++) {
+      address oracle = discountRateUpdate[i].oracle;
+
+      _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
+
+      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(discountRateUpdate[i].discountRate.toUint64());
     }
   }
 

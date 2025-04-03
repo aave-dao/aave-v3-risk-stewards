@@ -69,6 +69,32 @@ contract EdgeRiskStewardCaps_Test is RiskSteward_Test {
 
   function test_updateCollaterals_sameUpdate() public override {}
 
+  /* ----------------------------- EMode Category Update Tests ----------------------------- */
+
+  function test_updateEModeCategories() public override {
+    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
+
+    vm.startPrank(riskCouncil);
+    vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
+    steward.updateEModeCategories(eModeCategoryUpdates);
+  }
+
+  function test_updateEModeCategories_outOfRange() public override {}
+
+  function test_updateEModeCategories_debounceNotRespected() public override {}
+
+  function test_updateEModeCategories_eModeDoesNotExist() public override {}
+
+  function test_updateEModeCategories_eModeRestricted() public override {}
+
+  function test_updateEModeCategories_toValueZeroNotAllowed() public override {}
+
+  function test_updateEModeCategories_allKeepCurrent() public override {}
+
+  function test_updateEModeCategories_sameUpdate() public override {}
+
+  function test_updateEModeCategories_labelChangeNotAllowed() public override {}
+
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
 
   function test_updateLstPriceCap() public {
