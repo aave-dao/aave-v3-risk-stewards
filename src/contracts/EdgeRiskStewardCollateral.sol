@@ -4,17 +4,12 @@ pragma solidity ^0.8.0;
 import './RiskSteward.sol';
 
 /**
- * @title EdgeRiskStewardCollateralPT
+ * @title EdgeRiskStewardCollateral
  * @author BGD labs
- * @notice Contract to manage the collateral params for the PT tokens within configured bound on aave v3 pool.
+ * @notice Contract to manage the collateral params updates within configured bound on aave v3 pool.
  *         To be triggered by the Aave Steward Injector Contract in a automated way via the Edge Risk Oracle.
  */
-contract EdgeRiskStewardCollateralPT is RiskSteward {
-  // TODO: add docs, move to interface
-  event AddressAllowed(address contractAddress, bool isAllowed);
-
-  mapping(address => bool) internal _allowedAddress;
-
+contract EdgeRiskStewardCollateral is RiskSteward {
   /**
    * @param pool the aave pool to be controlled by the steward
    * @param engine the config engine to be used by the steward
@@ -27,13 +22,8 @@ contract EdgeRiskStewardCollateralPT is RiskSteward {
     address engine,
     address riskCouncil,
     address owner,
-    Config memory riskConfig,
-    address[] memory allowedAddresses
-  ) RiskSteward(pool, engine, riskCouncil, owner, riskConfig) {
-    for (uint256 i = 0; i < allowedAddresses.length; i++) {
-      _setAddressAllowed(allowedAddresses[i], true);
-    }
-  }
+    Config memory riskConfig
+  ) RiskSteward(pool, engine, riskCouncil, owner, riskConfig) {}
 
   /// @inheritdoc IRiskSteward
   function updateRates(
@@ -88,25 +78,5 @@ contract EdgeRiskStewardCollateralPT is RiskSteward {
         revert ParamChangeNotAllowed();
     }
     super._validateCollateralsUpdate(collateralUpdates);
-  }
-
-  // TODO: add docs, make interface
-  function setAddressAllowed(address contractAddress, bool isAllowed) external onlyOwner {
-    _setAddressAllowed(contractAddress, isAllowed);
-  }
-
-  // TODO: add docs, make interface
-  function isAddressAllowed(address contractAddress) public view returns (bool) {
-    return _allowedAddress[contractAddress];
-  }
-
-  /// @inheritdoc IRiskSteward
-  function isAddressRestricted(address contractAddress) public view override returns (bool) {
-    return !isAddressAllowed(contractAddress);
-  }
-
-  function _setAddressAllowed(address contractAddress, bool isAllowed) internal {
-    _allowedAddress[contractAddress] = isAllowed;
-    emit AddressAllowed(contractAddress, isAllowed);
   }
 }

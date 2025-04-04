@@ -653,18 +653,17 @@ contract RiskSteward_Test is Test {
   }
 
   function test_updateCollateralSide_debounceNotRespected() public virtual {
-    // as the definition is with 2 decimals, and config engine does not take the decimals into account, so we divide by 100.
-    uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
-    ) / 100;
+    (, uint256 ltvBefore, , , , , , , , ) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,
-      ltv: EngineFlags.KEEP_CURRENT,
+      ltv: ltvBefore + 25,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: (debtCeilingBefore * 110) / 100, // 10% relative increase
+      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -673,18 +672,16 @@ contract RiskSteward_Test is Test {
 
     vm.warp(block.timestamp + 1 days);
 
-    debtCeilingBefore =
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-        AaveV3EthereumAssets.UNI_UNDERLYING
-      ) /
-      100;
+    (, ltvBefore, , , , , , , , ) = AaveV3Ethereum
+      .AAVE_PROTOCOL_DATA_PROVIDER
+      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,
-      ltv: EngineFlags.KEEP_CURRENT,
+      ltv: ltvBefore + 1,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: debtCeilingBefore + 1,
+      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -718,7 +715,7 @@ contract RiskSteward_Test is Test {
       ltv: 80_00,
       liqThreshold: 83_00,
       liqBonus: 5_00,
-      debtCeiling: 1_000_000,
+      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -738,7 +735,7 @@ contract RiskSteward_Test is Test {
       ltv: 90_00,
       liqThreshold: 83_00,
       liqBonus: 1_00,
-      debtCeiling: 100_000_000,
+      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 

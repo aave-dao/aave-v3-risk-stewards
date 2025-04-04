@@ -9,7 +9,7 @@ import {IWithGuardian} from 'solidity-utils/contracts/access-control/interfaces/
 import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
 
 abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
-  RiskSteward _riskSteward;
+  IRiskSteward _riskSteward;
   RiskOracle _riskOracle;
   AaveStewardInjectorBase _stewardInjector;
 

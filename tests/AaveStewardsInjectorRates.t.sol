@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {AaveStewardInjectorRates} from '../src/contracts/AaveStewardInjectorRates.sol';
+import {EdgeRiskStewardRates} from '../src/contracts/EdgeRiskStewardRates.sol';
 import './AaveStewardsInjectorBase.t.sol';
 
 contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
@@ -44,7 +45,7 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
     );
 
     // setup risk steward
-    _riskSteward = new RiskSteward(
+    _riskSteward = new EdgeRiskStewardRates(
       address(contracts.poolProxy),
       report.configEngine,
       address(_stewardInjector),
