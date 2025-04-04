@@ -153,7 +153,7 @@ contract RiskSteward is Ownable, IRiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function isAddressRestricted(address contractAddress) public view virtual returns (bool) {
+  function isAddressRestricted(address contractAddress) external view returns (bool) {
     return _restrictedAddresses[contractAddress];
   }
 
@@ -184,7 +184,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < capsUpdate.length; i++) {
       address asset = capsUpdate[i].asset;
 
-      if (isAddressRestricted(asset)) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (capsUpdate[i].supplyCap == 0 || capsUpdate[i].borrowCap == 0)
         revert InvalidUpdateToZero();
 
@@ -220,7 +220,7 @@ contract RiskSteward is Ownable, IRiskSteward {
 
     for (uint256 i = 0; i < ratesUpdate.length; i++) {
       address asset = ratesUpdate[i].asset;
-      if (isAddressRestricted(asset)) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
 
       (
         uint256 currentOptimalUsageRatio,
@@ -280,7 +280,7 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < collateralUpdates.length; i++) {
       address asset = collateralUpdates[i].asset;
 
-      if (isAddressRestricted(asset)) revert AssetIsRestricted();
+      if (_restrictedAddresses[asset]) revert AssetIsRestricted();
       if (collateralUpdates[i].liqProtocolFee != EngineFlags.KEEP_CURRENT)
         revert ParamChangeNotAllowed();
       if (
