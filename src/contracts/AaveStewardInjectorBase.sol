@@ -137,6 +137,7 @@ abstract contract AaveStewardInjectorBase is
     return _isUpdateIdExecuted[updateId];
   }
 
+  /// @inheritdoc IAaveStewardInjectorBase
   function getMarkets() public view returns (address[] memory) {
     return _markets.values();
   }

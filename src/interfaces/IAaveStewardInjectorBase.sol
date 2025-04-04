@@ -45,7 +45,7 @@ interface IAaveStewardInjectorBase {
 
   /**
    * @notice struct holding action for which update can be performed.
-   * @param market aToken address for which action needs to be performed.
+   * @param market market address for which action needs to be performed.
    * @param updateType updateType for which action needs to be performed.
    */
   struct ActionData {
@@ -105,20 +105,20 @@ interface IAaveStewardInjectorBase {
   function EXPIRATION_PERIOD() external view returns (uint256);
 
   /**
-   * @notice method to get the whitelisted markets / aToken addresses on the injector.
-   * @return array of whitelisted markets / aToken addresses.
+   * @notice method to get the whitelisted markets addresses on the injector.
+   * @return array of whitelisted markets addresses.
    */
   function getMarkets() external view returns (address[] memory);
 
   /**
    * @notice method called by the owner to whitelist markets on the injector.
-   * @param markets array of aToken addresses to whitelist.
+   * @param markets array of addresses to whitelist.
    */
   function addMarkets(address[] calldata markets) external;
 
   /**
    * @notice method called by the owner to remove whitelisted markets on the injector.
-   * @param markets array of aToken addresses to remove from whitelist.
+   * @param markets array of addresses to remove from whitelist.
    */
   function removeMarkets(address[] calldata markets) external;
 

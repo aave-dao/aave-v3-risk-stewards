@@ -360,9 +360,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         eModeCategoryUpdates[i].liqBonus == 0
       ) revert InvalidUpdateToZero();
 
-      DataTypes.CollateralConfig memory currentEmodeConfig = POOL.getEModeCategoryCollateralConfig(
-        eModeId
-      );
+      DataTypes.CollateralConfig memory currentEmodeConfig = POOL.getEModeCategoryCollateralConfig(eModeId);
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -597,9 +595,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to update the eMode category params using the config engine and updates the debounce
    * @param eModeCategoryUpdates list containing the new eMode category params of the eMode category id
    */
-  function _updateEModeCategories(
-    IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates
-  ) internal {
+  function _updateEModeCategories(IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates) internal {
     for (uint256 i = 0; i < eModeCategoryUpdates.length; i++) {
       uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
 
@@ -655,17 +651,13 @@ contract RiskSteward is Ownable, IRiskSteward {
    * @notice method to update the pendle oracle discount rate
    * @param discountRateUpdate list containing the new discount rate values for the pendle oracles
    */
-  function _updatePendleDiscountRates(
-    DiscountRatePendleUpdate[] calldata discountRateUpdate
-  ) internal {
+  function _updatePendleDiscountRates(DiscountRatePendleUpdate[] calldata discountRateUpdate) internal {
     for (uint256 i = 0; i < discountRateUpdate.length; i++) {
       address oracle = discountRateUpdate[i].oracle;
 
       _timelocks[oracle].priceCapLastUpdated = uint40(block.timestamp);
 
-      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(
-        discountRateUpdate[i].discountRate.toUint64()
-      );
+      IPendlePriceCapAdapter(oracle).setDiscountRatePerYear(discountRateUpdate[i].discountRate.toUint64());
     }
   }
 
