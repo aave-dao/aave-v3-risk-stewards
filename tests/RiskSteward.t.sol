@@ -1111,7 +1111,7 @@ contract RiskSteward_Test is Test {
   /* ----------------------------- MISC ----------------------------- */
 
   function test_invalidCaller(address caller) public {
-    vm.assume(caller != riskCouncil);
+    vm.assume(caller != riskCouncil && caller != GovernanceV3Ethereum.EXECUTOR_LVL_1);
 
     IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
     capUpdates[0] = IEngine.CapsUpdate(

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {AaveStewardInjectorCaps, IAaveStewardInjectorCaps} from '../src/contracts/AaveStewardInjectorCaps.sol';
+import {AaveStewardInjectorCaps} from '../src/contracts/AaveStewardInjectorCaps.sol';
+import {IAaveStewardInjectorBase} from '../src/interfaces/IAaveStewardInjectorBase.sol';
 import {EdgeRiskStewardCaps} from '../src/contracts/EdgeRiskStewardCaps.sol';
 import './AaveStewardsInjectorBase.t.sol';
 
@@ -76,106 +77,17 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
   }
 
-  function test_addMarkets() public {
-    address[] memory markets = new address[](1);
-    markets[0] = _aWETH;
-
-    vm.prank(address(1));
-    vm.expectRevert(
-      abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1))
-    );
-    AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(markets);
-
-    vm.expectEmit(address(_stewardInjector));
-    emit MarketAdded(_aWETH);
-
-    vm.prank(_stewardsInjectorOwner);
-    AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(markets);
-
-    markets = AaveStewardInjectorCaps(address(_stewardInjector)).getMarkets();
-    assertEq(markets.length, 1);
-    assertEq(markets[0], _aWETH);
-  }
-
-  function test_removeMarkets() public {
-    address[] memory markets = AaveStewardInjectorCaps(address(_stewardInjector)).getMarkets();
-    assertEq(markets.length, 1);
-    assertEq(markets[0], _aWETH);
-
-    vm.prank(address(1));
-    vm.expectRevert(
-      abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1))
-    );
-    AaveStewardInjectorCaps(address(_stewardInjector)).removeMarkets(markets);
-
-    vm.expectEmit(address(_stewardInjector));
-    emit MarketRemoved(_aWETH);
-
-    vm.prank(_stewardsInjectorOwner);
-    AaveStewardInjectorCaps(address(_stewardInjector)).removeMarkets(markets);
-
-    markets = AaveStewardInjectorCaps(address(_stewardInjector)).getMarkets();
-    assertEq(markets.length, 0);
-
-    // removing already removed market does nothing
-    markets = new address[](1);
-    markets[0] = _aWETH;
-    vm.prank(_stewardsInjectorOwner);
-    AaveStewardInjectorCaps(address(_stewardInjector)).removeMarkets(markets);
-    markets = AaveStewardInjectorCaps(address(_stewardInjector)).getMarkets();
-    assertEq(markets.length, 0);
-  }
-
-  function test_perform_invalidMarketPassed() public {
-    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105e8));
-
-    IAaveStewardInjectorCaps.ActionData memory action = IAaveStewardInjectorCaps.ActionData({
-      market: _aWBTC,
-      updateType: 'supplyCap'
-    });
-
-    vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
-    _stewardInjector.performUpkeep(abi.encode(action));
-
-    address[] memory markets = new address[](1);
-    markets[0] = _aWBTC;
-    vm.prank(_stewardsInjectorOwner);
-    AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(markets);
-
-    vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
-    _stewardInjector.performUpkeep(abi.encode(action));
-  }
-
-  function test_perform_invalidUpdateTypePassed() public {
-    _addUpdateToRiskOracle(_aWETH, 'wrongUpdateType', _encode(105e18));
-
-    IAaveStewardInjectorCaps.ActionData memory action = IAaveStewardInjectorCaps.ActionData({
-      market: _aWETH,
-      updateType: 'wrongUpdateType'
-    });
-
-    vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
-    _stewardInjector.performUpkeep(abi.encode(action));
-
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
-    action = IAaveStewardInjectorCaps.ActionData({market: _aWETH, updateType: 'supplyCap'});
-    vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(2);
-    _stewardInjector.performUpkeep(abi.encode(action));
-  }
-
   function test_multipleMarketInjection() public {
     _addMarket(_aWBTC);
     _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
     _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105e8));
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
+    emit IAaveStewardInjectorBase.ActionSucceeded(1);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(2);
+    emit IAaveStewardInjectorBase.ActionSucceeded(2);
     assertTrue(_checkAndPerformAutomation());
   }
 
@@ -184,11 +96,11 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     _addUpdateToRiskOracle(_aWETH, 'borrowCap', _encode(55e18));
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
+    emit IAaveStewardInjectorBase.ActionSucceeded(1);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(2);
+    emit IAaveStewardInjectorBase.ActionSucceeded(2);
     assertTrue(_checkAndPerformAutomation());
   }
 
@@ -202,19 +114,19 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     uint256 snapshot = vm.snapshotState();
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
+    emit IAaveStewardInjectorBase.ActionSucceeded(1);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(3);
+    emit IAaveStewardInjectorBase.ActionSucceeded(3);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(2);
+    emit IAaveStewardInjectorBase.ActionSucceeded(2);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(4);
+    emit IAaveStewardInjectorBase.ActionSucceeded(4);
     assertTrue(_checkAndPerformAutomation());
 
     assertTrue(vm.revertToState(snapshot));
@@ -225,19 +137,19 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     // we can see with block.timestamp changing the order of execution of action changes as well
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(4);
+    emit IAaveStewardInjectorBase.ActionSucceeded(4);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
+    emit IAaveStewardInjectorBase.ActionSucceeded(1);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(3);
+    emit IAaveStewardInjectorBase.ActionSucceeded(3);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(2);
+    emit IAaveStewardInjectorBase.ActionSucceeded(2);
     assertTrue(_checkAndPerformAutomation());
   }
 
@@ -274,17 +186,49 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
   }
 
-  function _addUpdateToRiskOracle() internal override {
+  function _addUpdateToRiskOracle() internal override returns (string memory updateType, address market) {
     vm.startPrank(_riskOracleOwner);
+    updateType = 'supplyCap';
+    market = _aWETH;
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
       _encode(105e18),
-      'supplyCap',
-      _aWETH,
+      updateType,
+      market,
       'additionalData'
     );
     vm.stopPrank();
+  }
+
+  function _addUpdateToRiskOracle(address market) internal override returns (string memory, address) {
+    vm.startPrank(_riskOracleOwner);
+    string memory updateType = 'supplyCap';
+
+    _riskOracle.publishRiskParameterUpdate(
+      'referenceId',
+      _encode(105e18),
+      updateType,
+      market,
+      'additionalData'
+    );
+    vm.stopPrank();
+    return (updateType, market);
+  }
+
+  function _addUpdateToRiskOracle(string memory updateType) internal override returns (string memory, address) {
+    vm.startPrank(_riskOracleOwner);
+    address market = _aWETH;
+
+    _riskOracle.publishRiskParameterUpdate(
+      'referenceId',
+      _encode(105e18),
+      updateType,
+      market,
+      'additionalData'
+    );
+    vm.stopPrank();
+    return (updateType, market);
   }
 
   function _addMarket(address market) internal {

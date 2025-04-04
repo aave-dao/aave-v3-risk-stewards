@@ -17,12 +17,6 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
   address _stewardsInjectorOwner = address(25);
   address _stewardsInjectorGuardian = address(30);
 
-  event ActionSucceeded(uint256 indexed updateId);
-  event AddressWhitelisted(address indexed contractAddress, bool indexed isWhitelisted);
-  event UpdateDisabled(uint256 indexed updateId, bool indexed disabled);
-  event UpdateTypeChanged(string indexed updateType, bool indexed isValid);
-  event InjectorPaused(bool indexed isPaused);
-
   function setUp() public virtual {
     initTestEnvironment();
 
@@ -34,7 +28,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _addUpdateToRiskOracle();
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
+    emit IAaveStewardInjectorBase.ActionSucceeded(1);
 
     bool isAutomationPerformed = _checkAndPerformAutomation();
     assertTrue(isAutomationPerformed);
@@ -53,7 +47,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     assertFalse(_stewardInjector.isDisabled(1));
 
     vm.expectEmit(address(_stewardInjector));
-    emit UpdateDisabled(1, true);
+    emit IAaveStewardInjectorBase.UpdateDisabled(1, true);
 
     vm.prank(_stewardsInjectorOwner);
     _stewardInjector.disableUpdateById(1, true);
@@ -64,7 +58,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     assertFalse(isAutomationPerformed);
 
     vm.expectEmit(address(_stewardInjector));
-    emit UpdateDisabled(1, false);
+    emit IAaveStewardInjectorBase.UpdateDisabled(1, false);
 
     vm.prank(_stewardsInjectorOwner);
     _stewardInjector.disableUpdateById(1, false);
@@ -88,7 +82,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     assertFalse(_stewardInjector.isInjectorPaused());
 
     vm.expectEmit(address(_stewardInjector));
-    emit InjectorPaused(true);
+    emit IAaveStewardInjectorBase.InjectorPaused(true);
 
     vm.prank(_stewardsInjectorOwner);
     _stewardInjector.pauseInjector(true);
@@ -99,7 +93,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     assertFalse(isAutomationPerformed);
 
     vm.expectEmit(address(_stewardInjector));
-    emit InjectorPaused(false);
+    emit IAaveStewardInjectorBase.InjectorPaused(false);
 
     vm.prank(_stewardsInjectorOwner);
     _stewardInjector.pauseInjector(false);
@@ -143,7 +137,7 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _addUpdateToRiskOracle(); // updateId 1
 
     vm.expectEmit(address(_stewardInjector));
-    emit ActionSucceeded(1);
+    emit IAaveStewardInjectorBase.ActionSucceeded(1);
 
     (bool shouldRunKeeper, bytes memory performData) = _stewardInjector.checkUpkeep('');
     _stewardInjector.performUpkeep(performData);
@@ -153,7 +147,83 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _stewardInjector.performUpkeep(performData);
   }
 
-  function _addUpdateToRiskOracle() internal virtual;
+  function test_addMarkets() public {
+    address marketToAdd = address(999);
+    address[] memory markets = new address[](1);
+    markets[0] = marketToAdd;
+
+    vm.prank(address(1));
+    vm.expectRevert(
+      abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1))
+    );
+    _stewardInjector.addMarkets(markets);
+
+    vm.expectEmit(address(_stewardInjector));
+    emit IAaveStewardInjectorBase.MarketAdded(marketToAdd);
+
+    vm.prank(_stewardsInjectorOwner);
+    _stewardInjector.addMarkets(markets);
+
+    address[] memory newMarkets = _stewardInjector.getMarkets();
+    assertEq(newMarkets.length, 2);
+    assertEq(marketToAdd, newMarkets[1]);
+  }
+
+  function test_removeMarkets() public {
+    address[] memory markets = _stewardInjector.getMarkets();
+    assertEq(markets.length, 1);
+
+    vm.prank(address(1));
+    vm.expectRevert(
+      abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(1))
+    );
+    _stewardInjector.removeMarkets(markets);
+
+    vm.expectEmit(address(_stewardInjector));
+    emit IAaveStewardInjectorBase.MarketRemoved(markets[0]);
+
+    vm.prank(_stewardsInjectorOwner);
+    _stewardInjector.removeMarkets(markets);
+
+    address[] memory newMarkets = _stewardInjector.getMarkets();
+    assertEq(newMarkets.length, 0);
+
+    vm.prank(_stewardsInjectorOwner);
+    _stewardInjector.removeMarkets(markets);
+    newMarkets = _stewardInjector.getMarkets();
+    assertEq(newMarkets.length, 0);
+  }
+
+  function test_perform_invalidMarketPassed() public {
+    address invalidMarket = address(3939);
+    (string memory updateType,) = _addUpdateToRiskOracle(invalidMarket);
+
+    IAaveStewardInjectorBase.ActionData memory action = IAaveStewardInjectorBase.ActionData({
+      market: invalidMarket,
+      updateType: updateType
+    });
+
+    vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
+    _stewardInjector.performUpkeep(abi.encode(action));
+  }
+
+  function test_perform_invalidUpdateTypePassed() public {
+    (, address market) = _addUpdateToRiskOracle('wrongUpdateType');
+
+    IAaveStewardInjectorBase.ActionData memory action = IAaveStewardInjectorBase.ActionData({
+      market: market,
+      updateType: 'wrongUpdateType'
+    });
+
+    vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
+    _stewardInjector.performUpkeep(abi.encode(action));
+  }
+
+  function _addUpdateToRiskOracle() internal virtual returns (string memory updateType, address market);
+
+  function _addUpdateToRiskOracle(address market) internal virtual returns (string memory, address);
+
+  function _addUpdateToRiskOracle(string memory updateType) internal virtual returns (string memory, address);
 
   function _checkAndPerformAutomation() internal virtual returns (bool) {
     (bool shouldRunKeeper, bytes memory performData) = _stewardInjector.checkUpkeep('');
