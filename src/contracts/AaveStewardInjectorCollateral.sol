@@ -119,16 +119,14 @@ contract AaveStewardInjectorCollateral is AaveStewardInjectorBase, IAaveStewardI
   function _canUpdateBeInjected(
     IRiskOracle.RiskParameterUpdate memory updateRiskParams
   ) internal view returns (bool) {
-    return (
-      !isUpdateIdExecuted(updateRiskParams.updateId) &&
+    return (!isUpdateIdExecuted(updateRiskParams.updateId) &&
       (updateRiskParams.timestamp + EXPIRATION_PERIOD > block.timestamp) &&
       _markets.contains(updateRiskParams.market) &&
       (updateRiskParams.updateType.equal('ltv') ||
         updateRiskParams.updateType.equal('liquidationThreshold') ||
         updateRiskParams.updateType.equal('liquidationBonus')) &&
       !isDisabled(updateRiskParams.updateId) &&
-      !isInjectorPaused()
-    );
+      !isInjectorPaused());
   }
 
   /**

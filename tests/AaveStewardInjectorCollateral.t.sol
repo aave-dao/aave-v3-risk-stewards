@@ -90,7 +90,8 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
   }
 
   function test_removeMarkets() public {
-    address[] memory markets = AaveStewardInjectorCollateral(address(_stewardInjector)).getMarkets();
+    address[] memory markets = AaveStewardInjectorCollateral(address(_stewardInjector))
+      .getMarkets();
     assertEq(markets.length, 1);
     assertEq(markets[0], _aWETH);
 
@@ -121,10 +122,8 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
   function test_perform_invalidMarketPassed() public {
     _addUpdateToRiskOracle(_aWBTC, 'ltv', _encode(82_75));
 
-    IAaveStewardInjectorCollateral.ActionData memory action = IAaveStewardInjectorCollateral.ActionData({
-      market: _aWBTC,
-      updateType: 'ltv'
-    });
+    IAaveStewardInjectorCollateral.ActionData memory action = IAaveStewardInjectorCollateral
+      .ActionData({market: _aWBTC, updateType: 'ltv'});
 
     vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
     _stewardInjector.performUpkeep(abi.encode(action));
@@ -142,10 +141,8 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
   function test_perform_invalidUpdateTypePassed() public {
     _addUpdateToRiskOracle(_aWETH, 'wrongUpdateType', _encode(105e18));
 
-    IAaveStewardInjectorCollateral.ActionData memory action = IAaveStewardInjectorCollateral.ActionData({
-      market: _aWETH,
-      updateType: 'wrongUpdateType'
-    });
+    IAaveStewardInjectorCollateral.ActionData memory action = IAaveStewardInjectorCollateral
+      .ActionData({market: _aWETH, updateType: 'wrongUpdateType'});
 
     vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
     _stewardInjector.performUpkeep(abi.encode(action));

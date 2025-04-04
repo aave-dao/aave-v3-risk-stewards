@@ -66,14 +66,16 @@ contract RiskSteward_Capo_Test is Test {
     );
     vm.etch(AaveV3EthereumAssets.USDT_ORACLE, address(mockAdapter).code);
 
-    pendleAdapter = new PendlePriceCapAdapter(IPendlePriceCapAdapter.PendlePriceCapAdapterParams({
-      assetToUsdAggregator: 0x42bc86f2f08419280a99d8fbEa4672e7c30a86ec, // sUSDe capo
-      pendlePrincipalToken: 0xb7de5dFCb74d25c2f21841fbd6230355C50d9308, // sUSDe PT token
-      maxDiscountRatePerYear: 1e18, // 100%
-      discountRatePerYear: 0.1e18, // 10%
-      aclManager: address(AaveV3Ethereum.ACL_MANAGER),
-      description: 'sUSDe PT Adapter'
-    }));
+    pendleAdapter = new PendlePriceCapAdapter(
+      IPendlePriceCapAdapter.PendlePriceCapAdapterParams({
+        assetToUsdAggregator: 0x42bc86f2f08419280a99d8fbEa4672e7c30a86ec, // sUSDe capo
+        pendlePrincipalToken: 0xb7de5dFCb74d25c2f21841fbd6230355C50d9308, // sUSDe PT token
+        maxDiscountRatePerYear: 1e18, // 100%
+        discountRatePerYear: 0.1e18, // 10%
+        aclManager: address(AaveV3Ethereum.ACL_MANAGER),
+        description: 'sUSDe PT Adapter'
+      })
+    );
   }
 
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
