@@ -262,9 +262,7 @@ interface IRiskSteward {
    * @dev A eMode category increase / decrease is only allowed by a magnitude of maxPercentChange
    * @param eModeCategoryUpdates struct containing new eMode category params to be updated
    */
-  function updateEModeCategories(
-    IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates
-  ) external;
+  function updateEModeCategories(IEngine.EModeCategoryUpdate[] calldata eModeCategoryUpdates) external;
 
   /**
    * @notice Allows updating lst price cap params across multiple oracles
@@ -288,9 +286,7 @@ interface IRiskSteward {
    * @dev A price cap (i.e discount rate) increase / decrease is only allowed by a magnitude of maxPercentChange
    * @param discountRateUpdates struct containing new price cap params (i.e discount rate) to be updated
    */
-  function updatePendleDiscountRates(
-    DiscountRatePendleUpdate[] calldata discountRateUpdates
-  ) external;
+  function updatePendleDiscountRates(DiscountRatePendleUpdate[] calldata discountRateUpdates) external;
 
   /**
    * @notice method to check if an asset/oracle is restricted to be used by the risk stewards

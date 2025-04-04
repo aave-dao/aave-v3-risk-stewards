@@ -268,9 +268,7 @@ contract EdgeRiskStewardCollateral_Test is RiskSteward_Test {
   /* ----------------------------- EMode Category Update Tests ----------------------------- */
 
   function test_updateEModeCategories() public override {
-    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](
-      1
-    );
+    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
 
     vm.startPrank(riskCouncil);
     vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);

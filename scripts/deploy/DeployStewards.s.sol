@@ -40,7 +40,13 @@ library DeployRiskStewards {
     address governance
   ) internal returns (address) {
     address riskSteward = address(
-      new RiskSteward(pool, configEngine, riskCouncil, governance, _getRiskConfig())
+      new RiskSteward(
+        pool,
+        configEngine,
+        riskCouncil,
+        governance,
+        _getRiskConfig()
+      )
     );
     return riskSteward;
   }
@@ -50,38 +56,20 @@ library DeployRiskStewards {
       IRiskSteward.Config({
         collateralConfig: IRiskSteward.CollateralConfig({
           ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-          liquidationThreshold: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 50
-          }),
+          liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
           liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
           debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00})
         }),
         eModeConfig: IRiskSteward.EmodeConfig({
           ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-          liquidationThreshold: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 50
-          }),
+          liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
           liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
         }),
         rateConfig: IRiskSteward.RateConfig({
-          baseVariableBorrowRate: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 1_00
-          }),
-          variableRateSlope1: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 1_00
-          }),
-          variableRateSlope2: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 20_00
-          }),
-          optimalUsageRatio: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 3_00
-          })
+          baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 1_00}),
+          variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 1_00}),
+          variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
+          optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00})
         }),
         capConfig: IRiskSteward.CapConfig({
           supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 100_00}),
@@ -90,10 +78,7 @@ library DeployRiskStewards {
         priceCapConfig: IRiskSteward.PriceCapConfig({
           priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
           priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-          discountRatePendle: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 20_00
-          })
+          discountRatePendle: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00})
         })
       });
   }
