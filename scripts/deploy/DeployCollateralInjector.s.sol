@@ -10,8 +10,6 @@ import {EdgeRiskStewardCollateral, IRiskSteward} from '../../src/contracts/EdgeR
 import {AaveStewardInjectorCollateral} from '../../src/contracts/AaveStewardInjectorCollateral.sol';
 
 library DeployStewardContracts {
-  address constant EDGE_RISK_ORACLE = address(0); // TODO
-
   function _deployRiskStewards(
     address pool,
     address configEngine,
@@ -25,17 +23,19 @@ library DeployStewardContracts {
   }
 
   function _deployCollateralStewardInjector(
+    address create3Factory,
     bytes32 salt,
     address riskSteward,
+    address edgeRiskOracle,
     address owner,
     address guardian,
     address[] memory whitelistedMarkets
   ) internal returns (address) {
-    address stewardInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY).create(
+    address stewardInjector = ICreate3Factory(create3Factory).create(
       salt,
       abi.encodePacked(
         type(AaveStewardInjectorCollateral).creationCode,
-        abi.encode(EDGE_RISK_ORACLE, riskSteward, msg.sender, guardian)
+        abi.encode(edgeRiskOracle, riskSteward, msg.sender, guardian)
       )
     );
     AaveStewardInjectorCollateral(stewardInjector).addMarkets(whitelistedMarkets);
@@ -99,7 +99,8 @@ library DeployStewardContracts {
 
 // make deploy-ledger contract=scripts/deploy/DeployCollateralInjector.s.sol:DeployEthereum chain=mainnet
 contract DeployEthereum is EthereumScript {
-  address constant GUARDIAN = 0x87dFb794364f2B117C8dbaE29EA622938b3Ce465;
+  address constant GUARDIAN = 0xff37939808EcF199A2D599ef91D699Fb13dab7F7;
+  address constant EDGE_RISK_ORACLE = address(0); // TODO
 
   function run() external {
     vm.startBroadcast();
@@ -118,8 +119,10 @@ contract DeployEthereum is EthereumScript {
     whitelistedMarkets[0] = address(0); // TODO: add listed pendle PT asset
 
     DeployStewardContracts._deployCollateralStewardInjector(
+      MiscEthereum.CREATE_3_FACTORY,
       salt,
       riskSteward,
+      EDGE_RISK_ORACLE,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
       GUARDIAN,
       whitelistedMarkets
