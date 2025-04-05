@@ -44,10 +44,7 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase {
     IRiskOracle.RiskParameterUpdate memory riskParams
   ) internal override {
     address underlyingAddress = IAToken(riskParams.market).UNDERLYING_ASSET_ADDRESS();
-    uint256 capValue = abi.decode(
-      abi.encodePacked(new bytes(32 - riskParams.newValue.length), riskParams.newValue),
-      (uint256)
-    ) / (10 ** IERC20Metadata(riskParams.market).decimals());
+    uint256 capValue =  uint256(bytes32(riskParams.newValue)) / (10 ** IERC20Metadata(riskParams.market).decimals());
 
     IEngine.CapsUpdate[] memory capUpdate = new IEngine.CapsUpdate[](1);
     if (riskParams.updateType.equal('supplyCap')) {
