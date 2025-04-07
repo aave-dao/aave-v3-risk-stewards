@@ -16,15 +16,17 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase {
   /**
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
+   * @param markets list of market addresses to allow.
    * @param owner address of the owner of the stewards injector.
    * @param guardian address of the guardian of the stewards injector.
    */
   constructor(
     address riskOracle,
     address riskSteward,
+    address[] memory markets,
     address owner,
     address guardian
-  ) AaveStewardInjectorBase(riskOracle, riskSteward, owner, guardian) {}
+  ) AaveStewardInjectorBase(riskOracle, riskSteward, markets, owner, guardian) {}
 
   function getUpdateTypes() public pure override returns (string[] memory updateTypes) {
     updateTypes = new string[](1);

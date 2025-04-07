@@ -37,17 +37,16 @@ library DeployStewardContracts {
     address guardian,
     address whitelistedAsset
   ) internal returns (address) {
+    address[] memory markets = new address[](1);
+    markets[0] = whitelistedAsset;
+
     address stewardInjector = ICreate3Factory(create3Factory).create(
       salt,
       abi.encodePacked(
         type(AaveStewardInjectorRates).creationCode,
-        abi.encode(edgeRiskOracle, riskSteward, msg.sender, guardian)
+        abi.encode(edgeRiskOracle, riskSteward, markets, owner, guardian)
       )
     );
-    address[] memory markets = new address[](1);
-    markets[0] = whitelistedAsset;
-    AaveStewardInjectorRates(stewardInjector).addMarkets(markets);
-    AaveStewardInjectorRates(stewardInjector).transferOwnership(owner);
     return stewardInjector;
   }
 

@@ -35,6 +35,9 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
     _riskOracle = new RiskOracle('RiskOracle', initialSenders, initialUpdateTypes);
     vm.stopPrank();
 
+    _aWETH = _getAToken(address(weth));
+    _aWBTC = _getAToken(address(wbtc));
+
     // setup steward injector
     vm.startPrank(_stewardsInjectorOwner);
 
@@ -42,9 +45,13 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
       _stewardsInjectorOwner,
       vm.getNonce(_stewardsInjectorOwner) + 1
     );
+    address[] memory markets = new address[](1);
+    markets[0] = _aWETH;
+
     _stewardInjector = new AaveStewardInjectorCollateral(
       address(_riskOracle),
       address(computedRiskStewardAddress),
+      markets,
       _stewardsInjectorOwner,
       _stewardsInjectorGuardian
     );
@@ -59,11 +66,6 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
     );
     vm.assertEq(computedRiskStewardAddress, address(_riskSteward));
     vm.stopPrank();
-
-    _aWETH = _getAToken(address(weth));
-    _aWBTC = _getAToken(address(wbtc));
-
-    _addMarket(_aWETH);
 
     vm.prank(poolAdmin);
     contracts.aclManager.addRiskAdmin(address(_riskSteward));

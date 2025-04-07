@@ -37,15 +37,16 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
       _stewardsInjectorOwner,
       vm.getNonce(_stewardsInjectorOwner) + 1
     );
+    address[] memory validMarkets = new address[](1);
+    validMarkets[0] = address(weth);
+
     _stewardInjector = new AaveStewardInjectorRates(
       address(_riskOracle),
       address(computedRiskStewardAddress),
+      validMarkets,
       _stewardsInjectorOwner,
       _stewardsInjectorGuardian
     );
-    address[] memory validMarkets = new address[](1);
-    validMarkets[0] = address(weth);
-    _stewardInjector.addMarkets(validMarkets);
 
     // setup risk steward
     _riskSteward = new EdgeRiskStewardRates(
