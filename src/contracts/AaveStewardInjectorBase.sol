@@ -60,7 +60,7 @@ abstract contract AaveStewardInjectorBase is
     RISK_ORACLE = riskOracle;
     RISK_STEWARD = riskSteward;
 
-    for (uint256 i = 0; i < markets.length; i++) _markets.add(markets[i]);
+    _addMarkets(markets);
   }
 
   /**
@@ -147,11 +147,8 @@ abstract contract AaveStewardInjectorBase is
   }
 
   /// @inheritdoc IAaveStewardInjectorBase
-  function addMarkets(address[] calldata markets) external onlyOwner {
-    for (uint256 i = 0; i < markets.length; i++) {
-      _markets.add(markets[i]);
-      emit MarketAdded(markets[i]);
-    }
+  function addMarkets(address[] memory markets) external onlyOwner {
+    _addMarkets(markets);
   }
 
   /// @inheritdoc IAaveStewardInjectorBase
@@ -206,6 +203,17 @@ abstract contract AaveStewardInjectorBase is
       keccak256(abi.encodePacked(blockhash(block.number - 1), block.timestamp))
     );
     action = actions[randomNumber % actionCount];
+  }
+
+  /**
+   * @notice method called to whitelist markets on the injector.
+   * @param markets array of addresses to whitelist.
+   */
+  function _addMarkets(address[] memory markets) internal {
+    for (uint256 i = 0; i < markets.length; i++) {
+      _markets.add(markets[i]);
+      emit MarketAdded(markets[i]);
+    }
   }
 
   /// @inheritdoc IAaveStewardInjectorBase
