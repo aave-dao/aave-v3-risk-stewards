@@ -4,11 +4,15 @@ pragma solidity ^0.8.0;
 import {AaveStewardInjectorCollateral} from '../src/contracts/AaveStewardInjectorCollateral.sol';
 import {IAaveStewardInjectorBase} from '../src/interfaces/IAaveStewardInjectorBase.sol';
 import {EdgeRiskStewardCollateral} from '../src/contracts/EdgeRiskStewardCollateral.sol';
+import {IAToken} from 'aave-v3-origin/src/contracts/interfaces/IAToken.sol';
+import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
+import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import './AaveStewardsInjectorBase.t.sol';
 
 contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
   address internal _aWETH;
   address internal _aWBTC;
+  address internal _aUSDX;
 
   function setUp() public override {
     super.setUp();
@@ -24,19 +28,19 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
     // setup risk oracle
     vm.startPrank(_riskOracleOwner);
-    address[] memory initialSenders = new address[](1);
+    address[] memory initialSenders = new address[](2);
     initialSenders[0] = _riskOracleOwner;
-    string[] memory initialUpdateTypes = new string[](4);
-    initialUpdateTypes[0] = 'ltv';
-    initialUpdateTypes[1] = 'liquidationThreshold';
-    initialUpdateTypes[2] = 'liquidationBonus';
-    initialUpdateTypes[3] = 'wrongUpdateType';
+
+    string[] memory initialUpdateTypes = new string[](2);
+    initialUpdateTypes[0] = 'CollateralUpdate';
+    initialUpdateTypes[1] = 'wrongUpdateType';
 
     _riskOracle = new RiskOracle('RiskOracle', initialSenders, initialUpdateTypes);
     vm.stopPrank();
 
     _aWETH = _getAToken(address(weth));
     _aWBTC = _getAToken(address(wbtc));
+    _aUSDX = _getAToken(address(usdx));
 
     // setup steward injector
     vm.startPrank(_stewardsInjectorOwner);
@@ -73,8 +77,9 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
   function test_multipleMarketInjection() public {
     _addMarket(_aWBTC);
-    _addUpdateToRiskOracle(_aWETH, 'ltv', _encode(82_75));
-    _addUpdateToRiskOracle(_aWBTC, 'ltv', _encode(82_75));
+
+    _addUpdateToRiskOracle(_aWETH, 'CollateralUpdate', _encodeCollateralUpdate(address(weth), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aWBTC, 'CollateralUpdate', _encodeCollateralUpdate(address(wbtc), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(1);
@@ -82,78 +87,49 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(2);
-    assertTrue(_checkAndPerformAutomation());
-  }
-
-  function test_multipleUpdateTypeInjection() public {
-    _addUpdateToRiskOracle(_aWETH, 'ltv', _encode(82_75));
-    _addUpdateToRiskOracle(_aWETH, 'liquidationThreshold', _encode(86_25));
-    _addUpdateToRiskOracle(_aWETH, 'liquidationBonus', _encode(5_25));
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(2);
-    assertTrue(_checkAndPerformAutomation());
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(1);
-    assertTrue(_checkAndPerformAutomation());
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(3);
     assertTrue(_checkAndPerformAutomation());
   }
 
   function test_randomized_multipleMarketInjection() public {
     _addMarket(_aWBTC);
-    _addUpdateToRiskOracle(_aWETH, 'ltv', _encode(82_75));
-    _addUpdateToRiskOracle(_aWETH, 'liquidationThreshold', _encode(86_25));
-    _addUpdateToRiskOracle(_aWBTC, 'ltv', _encode(82_70));
-    _addUpdateToRiskOracle(_aWBTC, 'liquidationThreshold', _encode(86_20));
+    _addMarket(_aUSDX);
+
+    _addUpdateToRiskOracle(_aWETH, 'CollateralUpdate', _encodeCollateralUpdate(address(weth), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aUSDX, 'CollateralUpdate', _encodeCollateralUpdate(address(usdx), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aWBTC, 'CollateralUpdate', _encodeCollateralUpdate(address(wbtc), 82_70, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
 
     uint256 snapshot = vm.snapshotState();
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(1);
-    assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(3);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(2);
+    emit IAaveStewardInjectorBase.ActionSucceeded(1);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(4);
+    emit IAaveStewardInjectorBase.ActionSucceeded(2);
     assertTrue(_checkAndPerformAutomation());
 
     assertTrue(vm.revertToState(snapshot));
     vm.warp(block.timestamp + 3);
 
-    // previous updateId order of execution: 1, 3, 2, 4
-    // updateId order of execution:          4, 1, 3, 2
+    // previous updateId order of execution: 3, 1, 2
+    // updateId order of execution:          1, 2, 3
     // we can see with block.timestamp changing the order of execution of action changes as well
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(4);
-    assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(1);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(3);
+    emit IAaveStewardInjectorBase.ActionSucceeded(2);
     assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(2);
+    emit IAaveStewardInjectorBase.ActionSucceeded(3);
     assertTrue(_checkAndPerformAutomation());
-  }
-
-  function test_noInjection_ifUpdateDoesNotExist() public {
-    assertFalse(_checkAndPerformAutomation());
   }
 
   function test_checkUpkeepGasLimit() public {
@@ -187,12 +163,12 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
   function _addUpdateToRiskOracle() internal override returns (string memory updateType, address market) {
     vm.startPrank(_riskOracleOwner);
-    updateType = 'ltv';
+    updateType = 'CollateralUpdate';
     market = _aWETH;
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(82_75),
+      _encodeCollateralUpdate(address(weth), 82_75, 86_25, 5_25),
       updateType,
       market,
       'additionalData'
@@ -202,11 +178,14 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
   function _addUpdateToRiskOracle(address market) internal override returns (string memory, address) {
     vm.startPrank(_riskOracleOwner);
-    string memory updateType = 'ltv';
+    string memory updateType = 'CollateralUpdate';
+    address underlying;
+    (bool success, bytes memory data) = market.call(abi.encodeWithSignature("UNDERLYING_ASSET_ADDRESS()"));
+    if (success && data.length >= 20) underlying = abi.decode(data, (address));
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(82_75),
+      _encodeCollateralUpdate(underlying, 82_75, 86_25, 5_25),
       updateType,
       market,
       'additionalData'
@@ -221,7 +200,7 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(82_75),
+      _encodeCollateralUpdate(address(weth), 82_50, 86_00, 5_00),
       updateType,
       market,
       'additionalData'
@@ -243,24 +222,11 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
       vm.startPrank(_riskOracleOwner);
 
       address market = address(i);
+      address underlying = address(i+100);
       _riskOracle.publishRiskParameterUpdate(
         'referenceId',
-        _encode(82_50),
-        'ltv',
-        market,
-        'additionalData'
-      );
-      _riskOracle.publishRiskParameterUpdate(
-        'referenceId',
-        _encode(86_00),
-        'liquidationThreshold',
-        market,
-        'additionalData'
-      );
-      _riskOracle.publishRiskParameterUpdate(
-        'referenceId',
-        _encode(5_00),
-        'liquidationBonus',
+        _encodeCollateralUpdate(underlying, 82_50, 86_00, 5_00),
+        'CollateralUpdate',
         market,
         'additionalData'
       );
@@ -270,8 +236,16 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
     }
   }
 
-  function _encode(uint256 input) internal pure returns (bytes memory encodedData) {
-    encodedData = abi.encodePacked(uint256(input));
+  function _encodeCollateralUpdate(address asset, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) internal pure returns (bytes memory) {
+    IEngine.CollateralUpdate memory update = IEngine.CollateralUpdate({
+      asset: asset,
+      ltv: ltv,
+      liqThreshold: liquidationThreshold,
+      liqBonus: liquidationBonus,
+      debtCeiling: EngineFlags.KEEP_CURRENT,
+      liqProtocolFee: EngineFlags.KEEP_CURRENT
+    });
+    return abi.encode(update);
   }
 
   function _getAToken(address underlying) internal view returns (address aToken) {

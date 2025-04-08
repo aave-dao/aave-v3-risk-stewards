@@ -155,10 +155,6 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     assertTrue(_checkAndPerformAutomation());
   }
 
-  function test_noInjection_ifUpdateDoesNotExist() public {
-    assertFalse(_checkAndPerformAutomation());
-  }
-
   function test_checkUpkeepGasLimit() public {
     _addMultipleUpdatesToRiskOracleOfDifferentMarkets(40);
 

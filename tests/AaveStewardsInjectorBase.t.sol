@@ -219,6 +219,10 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     _stewardInjector.performUpkeep(abi.encode(action));
   }
 
+  function test_noInjection_ifUpdateDoesNotExist() public {
+    assertFalse(_checkAndPerformAutomation());
+  }
+
   function _addUpdateToRiskOracle() internal virtual returns (string memory updateType, address market);
 
   function _addUpdateToRiskOracle(address market) internal virtual returns (string memory, address);
