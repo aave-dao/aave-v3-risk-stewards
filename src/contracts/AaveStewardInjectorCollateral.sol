@@ -16,9 +16,13 @@ import {IAToken} from 'aave-v3-origin/src/contracts/interfaces/IAToken.sol';
  */
 contract AaveStewardInjectorCollateral is AaveStewardInjectorBase {
   /**
-   * @notice Error thrown when the underlying address of the aToken does not match the expected address from risk update
+   * @notice Struct containing the collateral params encoded in BPS, received from the risk oracle
    */
-  error AssetMismatch();
+  struct CollateralUpdate {
+    uint256 ltv;
+    uint256 liquidationThreshold;
+    uint256 liquidationBonus;
+  }
 
   /**
    * @param riskOracle address of the edge risk oracle contract.
@@ -46,11 +50,17 @@ contract AaveStewardInjectorCollateral is AaveStewardInjectorBase {
     IRiskOracle.RiskParameterUpdate memory riskParams
   ) internal override {
     address underlyingAddress = IAToken(riskParams.market).UNDERLYING_ASSET_ADDRESS();
+    CollateralUpdate memory update = abi.decode(riskParams.newValue, (CollateralUpdate));
+
     IEngine.CollateralUpdate[] memory collateralUpdate = new IEngine.CollateralUpdate[](1);
-    collateralUpdate[0] = abi.decode(riskParams.newValue, (IEngine.CollateralUpdate));
-
-    if (underlyingAddress != collateralUpdate[0].asset) revert AssetMismatch();
-
+    collateralUpdate[0] = IEngine.CollateralUpdate({
+      asset: underlyingAddress,
+      ltv: update.ltv,
+      liqThreshold: update.liquidationThreshold,
+      liqBonus: update.liquidationBonus,
+      debtCeiling: EngineFlags.KEEP_CURRENT,
+      liqProtocolFee: EngineFlags.KEEP_CURRENT
+    });
     IRiskSteward(RISK_STEWARD).updateCollateralSide(collateralUpdate);
   }
 }

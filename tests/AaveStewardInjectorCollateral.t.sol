@@ -78,8 +78,8 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
   function test_multipleMarketInjection() public {
     _addMarket(_aWBTC);
 
-    _addUpdateToRiskOracle(_aWETH, 'CollateralUpdate', _encodeCollateralUpdate(address(weth), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
-    _addUpdateToRiskOracle(_aWBTC, 'CollateralUpdate', _encodeCollateralUpdate(address(wbtc), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aWETH, 'CollateralUpdate', _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aWBTC, 'CollateralUpdate', _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(1);
@@ -94,9 +94,9 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
     _addMarket(_aWBTC);
     _addMarket(_aUSDX);
 
-    _addUpdateToRiskOracle(_aWETH, 'CollateralUpdate', _encodeCollateralUpdate(address(weth), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
-    _addUpdateToRiskOracle(_aUSDX, 'CollateralUpdate', _encodeCollateralUpdate(address(usdx), 82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
-    _addUpdateToRiskOracle(_aWBTC, 'CollateralUpdate', _encodeCollateralUpdate(address(wbtc), 82_70, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aWETH, 'CollateralUpdate', _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aUSDX, 'CollateralUpdate', _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
+    _addUpdateToRiskOracle(_aWBTC, 'CollateralUpdate', _encodeCollateralUpdate(82_70, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT));
 
     uint256 snapshot = vm.snapshotState();
 
@@ -168,7 +168,7 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encodeCollateralUpdate(address(weth), 82_75, 86_25, 5_25),
+      _encodeCollateralUpdate(82_75, 86_25, 5_25),
       updateType,
       market,
       'additionalData'
@@ -179,13 +179,10 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
   function _addUpdateToRiskOracle(address market) internal override returns (string memory, address) {
     vm.startPrank(_riskOracleOwner);
     string memory updateType = 'CollateralUpdate';
-    address underlying;
-    (bool success, bytes memory data) = market.call(abi.encodeWithSignature("UNDERLYING_ASSET_ADDRESS()"));
-    if (success && data.length >= 20) underlying = abi.decode(data, (address));
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encodeCollateralUpdate(underlying, 82_75, 86_25, 5_25),
+      _encodeCollateralUpdate(82_75, 86_25, 5_25),
       updateType,
       market,
       'additionalData'
@@ -200,7 +197,7 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encodeCollateralUpdate(address(weth), 82_50, 86_00, 5_00),
+      _encodeCollateralUpdate(82_50, 86_00, 5_00),
       updateType,
       market,
       'additionalData'
@@ -222,10 +219,9 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
       vm.startPrank(_riskOracleOwner);
 
       address market = address(i);
-      address underlying = address(i+100);
       _riskOracle.publishRiskParameterUpdate(
         'referenceId',
-        _encodeCollateralUpdate(underlying, 82_50, 86_00, 5_00),
+        _encodeCollateralUpdate(82_50, 86_00, 5_00),
         'CollateralUpdate',
         market,
         'additionalData'
@@ -236,14 +232,11 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
     }
   }
 
-  function _encodeCollateralUpdate(address asset, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) internal pure returns (bytes memory) {
-    IEngine.CollateralUpdate memory update = IEngine.CollateralUpdate({
-      asset: asset,
+  function _encodeCollateralUpdate(uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) internal pure returns (bytes memory) {
+    AaveStewardInjectorCollateral.CollateralUpdate memory update = AaveStewardInjectorCollateral.CollateralUpdate({
       ltv: ltv,
-      liqThreshold: liquidationThreshold,
-      liqBonus: liquidationBonus,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
-      liqProtocolFee: EngineFlags.KEEP_CURRENT
+      liquidationThreshold: liquidationThreshold,
+      liquidationBonus: liquidationBonus
     });
     return abi.encode(update);
   }
