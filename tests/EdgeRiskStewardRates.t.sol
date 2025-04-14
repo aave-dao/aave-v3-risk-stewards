@@ -119,4 +119,15 @@ contract EdgeRiskStewardRates_Test is RiskSteward_Test {
     vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
     steward.updateStablePriceCaps(priceCapUpdates);
   }
+
+  /* ----------------------------- Pendle Discount Rate Test ----------------------------- */
+
+  function test_updatePendlePriceCap() public {
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    vm.startPrank(riskCouncil);
+    vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+  }
 }

@@ -10,8 +10,6 @@ import {EdgeRiskStewardRates, IRiskSteward} from '../../src/contracts/EdgeRiskSt
 import {AaveStewardInjectorRates} from '../../src/contracts/AaveStewardInjectorRates.sol';
 
 library DeployStewardContracts {
-  address constant EDGE_RISK_ORACLE = 0x7ABB46C690C52E919687D19ebF89C81A6136C1F2;
-
   function _deployRiskStewards(
     address pool,
     address configEngine,
@@ -31,17 +29,22 @@ library DeployStewardContracts {
   }
 
   function _deployRatesStewardInjector(
+    address create3Factory,
     bytes32 salt,
     address riskSteward,
+    address edgeRiskOracle,
     address owner,
     address guardian,
     address whitelistedAsset
   ) internal returns (address) {
-    address stewardInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY).create(
+    address[] memory markets = new address[](1);
+    markets[0] = whitelistedAsset;
+
+    address stewardInjector = ICreate3Factory(create3Factory).create(
       salt,
       abi.encodePacked(
         type(AaveStewardInjectorRates).creationCode,
-        abi.encode(EDGE_RISK_ORACLE, riskSteward, owner, guardian, whitelistedAsset)
+        abi.encode(edgeRiskOracle, riskSteward, markets, owner, guardian)
       )
     );
     return stewardInjector;
@@ -83,6 +86,7 @@ library DeployStewardContracts {
 // make deploy-ledger contract=scripts/deploy/DeployRateInjector.s.sol:DeployEthereumLido chain=mainnet
 contract DeployEthereumLido is EthereumScript {
   address constant GUARDIAN = 0xff37939808EcF199A2D599ef91D699Fb13dab7F7;
+  address constant EDGE_RISK_ORACLE = 0x7ABB46C690C52E919687D19ebF89C81A6136C1F2;
 
   function run() external {
     vm.startBroadcast();
@@ -98,8 +102,10 @@ contract DeployEthereumLido is EthereumScript {
     );
 
     DeployStewardContracts._deployRatesStewardInjector(
+      MiscEthereum.CREATE_3_FACTORY,
       salt,
       riskSteward,
+      EDGE_RISK_ORACLE,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
       GUARDIAN,
       AaveV3EthereumLidoAssets.WETH_UNDERLYING

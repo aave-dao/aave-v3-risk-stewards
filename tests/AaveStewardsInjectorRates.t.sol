@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {AaveStewardInjectorRates} from '../src/contracts/AaveStewardInjectorRates.sol';
+import {EdgeRiskStewardRates} from '../src/contracts/EdgeRiskStewardRates.sol';
 import './AaveStewardsInjectorBase.t.sol';
 
 contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
@@ -22,8 +23,9 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
     vm.startPrank(_riskOracleOwner);
     address[] memory initialSenders = new address[](1);
     initialSenders[0] = _riskOracleOwner;
-    string[] memory initialUpdateTypes = new string[](1);
+    string[] memory initialUpdateTypes = new string[](2);
     initialUpdateTypes[0] = 'RateStrategyUpdate';
+    initialUpdateTypes[1] = 'wrongUpdateType';
 
     _riskOracle = new RiskOracle('RiskOracle', initialSenders, initialUpdateTypes);
     vm.stopPrank();
@@ -35,16 +37,19 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
       _stewardsInjectorOwner,
       vm.getNonce(_stewardsInjectorOwner) + 1
     );
+    address[] memory validMarkets = new address[](1);
+    validMarkets[0] = address(weth);
+
     _stewardInjector = new AaveStewardInjectorRates(
       address(_riskOracle),
       address(computedRiskStewardAddress),
+      validMarkets,
       _stewardsInjectorOwner,
-      _stewardsInjectorGuardian,
-      address(weth)
+      _stewardsInjectorGuardian
     );
 
     // setup risk steward
-    _riskSteward = new RiskSteward(
+    _riskSteward = new EdgeRiskStewardRates(
       address(contracts.poolProxy),
       report.configEngine,
       address(_stewardInjector),
@@ -60,30 +65,58 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
   }
 
-  function test_reverts_ifUpdateDoesNotExist() public {
-    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
-    (, bytes memory performData) = _stewardInjector.checkUpkeep('');
+  function _addUpdateToRiskOracle() internal override returns (string memory updateType, address market) {
+    vm.startPrank(_riskOracleOwner);
+    updateType = 'RateStrategyUpdate';
+    market = address(weth);
 
-    vm.expectRevert(bytes('No update found for the specified parameter and market.'));
-    _stewardInjector.performUpkeep(performData);
+    _riskOracle.publishRiskParameterUpdate(
+      'referenceId',
+      _getDefaultEncodedRate(),
+      updateType,
+      market,
+      'additionalData'
+    );
+    vm.stopPrank();
   }
 
-  function _addUpdateToRiskOracle() internal override {
+  function _addUpdateToRiskOracle(address market) internal override returns (string memory, address) {
     vm.startPrank(_riskOracleOwner);
+    string memory updateType = 'RateStrategyUpdate';
 
+    _riskOracle.publishRiskParameterUpdate(
+      'referenceId',
+      _getDefaultEncodedRate(),
+      updateType,
+      market,
+      'additionalData'
+    );
+    vm.stopPrank();
+    return (updateType, market);
+  }
+
+  function _addUpdateToRiskOracle(string memory updateType) internal override returns (string memory, address) {
+    vm.startPrank(_riskOracleOwner);
+    address market = address(weth);
+
+    _riskOracle.publishRiskParameterUpdate(
+      'referenceId',
+      _getDefaultEncodedRate(),
+      updateType,
+      market,
+      'additionalData'
+    );
+    vm.stopPrank();
+    return (updateType, market);
+  }
+
+  function _getDefaultEncodedRate() internal pure returns (bytes memory) {
     IEngine.InterestRateInputData memory rate = IEngine.InterestRateInputData({
       optimalUsageRatio: EngineFlags.KEEP_CURRENT,
       baseVariableBorrowRate: 5_00,
       variableRateSlope1: EngineFlags.KEEP_CURRENT,
       variableRateSlope2: EngineFlags.KEEP_CURRENT
     });
-    _riskOracle.publishRiskParameterUpdate(
-      'referenceId',
-      abi.encode(rate),
-      'RateStrategyUpdate',
-      address(weth),
-      'additionalData'
-    );
-    vm.stopPrank();
+    return abi.encode(rate);
   }
 }

@@ -41,11 +41,9 @@ library DeployStewardContracts {
       salt,
       abi.encodePacked(
         type(AaveStewardInjectorCaps).creationCode,
-        abi.encode(EDGE_RISK_ORACLE, riskSteward, msg.sender, guardian)
+        abi.encode(EDGE_RISK_ORACLE, riskSteward, whitelistedMarkets, owner, guardian)
       )
     );
-    AaveStewardInjectorCaps(stewardInjector).addMarkets(whitelistedMarkets);
-    AaveStewardInjectorCaps(stewardInjector).transferOwnership(owner);
     return stewardInjector;
   }
 

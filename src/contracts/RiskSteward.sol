@@ -274,7 +274,7 @@ contract RiskSteward is Ownable, IRiskSteward {
    */
   function _validateCollateralsUpdate(
     IEngine.CollateralUpdate[] calldata collateralUpdates
-  ) internal view {
+  ) internal view virtual {
     if (collateralUpdates.length == 0) revert NoZeroUpdates();
 
     for (uint256 i = 0; i < collateralUpdates.length; i++) {
@@ -296,6 +296,7 @@ contract RiskSteward is Ownable, IRiskSteward {
         uint256 currentLiquidationThreshold,
         uint256 currentLiquidationBonus,
         ,
+
       ) = configuration.getParams();
       uint256 currentDebtCeiling = configuration.getDebtCeiling();
 
