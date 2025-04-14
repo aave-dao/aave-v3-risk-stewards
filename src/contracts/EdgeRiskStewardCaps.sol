@@ -11,17 +11,19 @@ import './RiskSteward.sol';
  */
 contract EdgeRiskStewardCaps is RiskSteward {
   /**
-   * @param poolDataProvider The pool data provider of the pool to be controlled by the steward
+   * @param pool the aave pool to be controlled by the steward
    * @param engine the config engine to be used by the steward
    * @param riskCouncil the safe address of the council being able to interact with the steward
+   * @param owner the owner of the risk steward being able to set configs and mark items as restricted
    * @param riskConfig the risk configuration to setup for each individual risk param
    */
   constructor(
-    IPoolDataProvider poolDataProvider,
-    IEngine engine,
+    address pool,
+    address engine,
     address riskCouncil,
+    address owner,
     Config memory riskConfig
-  ) RiskSteward(poolDataProvider, engine, riskCouncil, riskConfig) {}
+  ) RiskSteward(pool, engine, riskCouncil, owner, riskConfig) {}
 
   /// @inheritdoc IRiskSteward
   function updateRates(
@@ -38,6 +40,13 @@ contract EdgeRiskStewardCaps is RiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
+  function updateEModeCategories(
+    IEngine.EModeCategoryUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
+    revert UpdateNotAllowed();
+  }
+
+  /// @inheritdoc IRiskSteward
   function updateLstPriceCaps(
     PriceCapLstUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
@@ -47,6 +56,13 @@ contract EdgeRiskStewardCaps is RiskSteward {
   /// @inheritdoc IRiskSteward
   function updateStablePriceCaps(
     PriceCapStableUpdate[] calldata
+  ) external virtual override onlyRiskCouncil {
+    revert UpdateNotAllowed();
+  }
+
+  /// @inheritdoc IRiskSteward
+  function updatePendleDiscountRates(
+    DiscountRatePendleUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }

@@ -21,6 +21,15 @@ export interface CollateralUpdatePartial {
 
 export interface CollateralUpdate extends CollateralUpdatePartial, AssetSelector {}
 
+export interface EModeCategoryUpdate {
+  // library accessor or new id
+  eModeCategory: string | number;
+  ltv: NumberInputValues;
+  liqThreshold: NumberInputValues;
+  liqBonus: NumberInputValues;
+  label: string;
+}
+
 export interface RateStrategyParams {
   optimalUtilizationRate: string;
   baseVariableBorrowRate: string;
