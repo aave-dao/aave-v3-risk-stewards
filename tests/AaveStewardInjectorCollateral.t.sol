@@ -233,12 +233,7 @@ contract AaveStewardsInjectorCollateral_Test is AaveStewardsInjectorBaseTest {
   }
 
   function _encodeCollateralUpdate(uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) internal pure returns (bytes memory) {
-    AaveStewardInjectorCollateral.CollateralUpdate memory update = AaveStewardInjectorCollateral.CollateralUpdate({
-      ltv: ltv,
-      liquidationThreshold: liquidationThreshold,
-      liquidationBonus: liquidationBonus
-    });
-    return abi.encode(update);
+    return abi.encode(ltv, liquidationThreshold, liquidationBonus);
   }
 
   function _getAToken(address underlying) internal view returns (address aToken) {

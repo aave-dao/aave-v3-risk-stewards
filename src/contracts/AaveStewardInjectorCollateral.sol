@@ -16,15 +16,6 @@ import {IAToken} from 'aave-v3-origin/src/contracts/interfaces/IAToken.sol';
  */
 contract AaveStewardInjectorCollateral is AaveStewardInjectorBase {
   /**
-   * @notice Struct containing the collateral params encoded in BPS, received from the risk oracle
-   */
-  struct CollateralUpdate {
-    uint256 ltv;
-    uint256 liquidationThreshold;
-    uint256 liquidationBonus;
-  }
-
-  /**
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
    * @param markets list of market addresses to allow.
@@ -50,14 +41,14 @@ contract AaveStewardInjectorCollateral is AaveStewardInjectorBase {
     IRiskOracle.RiskParameterUpdate memory riskParams
   ) internal override {
     address underlyingAddress = IAToken(riskParams.market).UNDERLYING_ASSET_ADDRESS();
-    CollateralUpdate memory update = abi.decode(riskParams.newValue, (CollateralUpdate));
+    (uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) = abi.decode(riskParams.newValue, (uint256, uint256, uint256));
 
     IEngine.CollateralUpdate[] memory collateralUpdate = new IEngine.CollateralUpdate[](1);
     collateralUpdate[0] = IEngine.CollateralUpdate({
       asset: underlyingAddress,
-      ltv: update.ltv,
-      liqThreshold: update.liquidationThreshold,
-      liqBonus: update.liquidationBonus,
+      ltv: ltv,
+      liqThreshold: liquidationThreshold,
+      liqBonus: liquidationBonus,
       debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });

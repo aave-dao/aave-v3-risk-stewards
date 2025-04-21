@@ -147,7 +147,7 @@ abstract contract AaveStewardInjectorBase is
   }
 
   /// @inheritdoc IAaveStewardInjectorBase
-  function addMarkets(address[] memory markets) external onlyOwner {
+  function addMarkets(address[] calldata markets) external onlyOwner {
     _addMarkets(markets);
   }
 
