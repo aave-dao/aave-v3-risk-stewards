@@ -6,8 +6,8 @@ import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
 import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
-import {EdgeRiskStewardCollateral, IRiskSteward} from '../../src/contracts/EdgeRiskStewardCollateral.sol';
-import {AaveStewardInjectorCollateral} from '../../src/contracts/AaveStewardInjectorCollateral.sol';
+import {EdgeRiskStewardEMode, IRiskSteward} from '../../src/contracts/EdgeRiskStewardEMode.sol';
+import {AaveStewardInjectorEMode} from '../../src/contracts/AaveStewardInjectorEMode.sol';
 
 library DeployStewardContracts {
   function _deployRiskStewards(
@@ -17,12 +17,12 @@ library DeployStewardContracts {
     address governance
   ) internal returns (address) {
     address riskSteward = address(
-      new EdgeRiskStewardCollateral(pool, configEngine, riskCouncil, governance, _getRiskConfig())
+      new EdgeRiskStewardEMode(pool, configEngine, riskCouncil, governance, _getRiskConfig())
     );
     return riskSteward;
   }
 
-  function _deployCollateralStewardInjector(
+  function _deployEModeStewardInjector(
     address create3Factory,
     bytes32 salt,
     address riskSteward,
@@ -34,7 +34,7 @@ library DeployStewardContracts {
     address stewardInjector = ICreate3Factory(create3Factory).create(
       salt,
       abi.encodePacked(
-        type(AaveStewardInjectorCollateral).creationCode,
+        type(AaveStewardInjectorEMode).creationCode,
         abi.encode(edgeRiskOracle, riskSteward, whitelistedMarkets, owner, guardian)
       )
     );
@@ -95,14 +95,14 @@ library DeployStewardContracts {
   }
 }
 
-// make deploy-ledger contract=scripts/deploy/DeployCollateralInjector.s.sol:DeployEthereum chain=mainnet
+// make deploy-ledger contract=scripts/deploy/DeployEModeInjector.s.sol:DeployEthereum chain=mainnet
 contract DeployEthereum is EthereumScript {
   address constant GUARDIAN = 0xff37939808EcF199A2D599ef91D699Fb13dab7F7;
   address constant EDGE_RISK_ORACLE = address(0); // TODO
 
   function run() external {
     vm.startBroadcast();
-    bytes32 salt = 'CollateralStewardInjector';
+    bytes32 salt = 'EModeStewardInjector';
     address predictedStewardsInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY)
       .predictAddress(msg.sender, salt);
 
@@ -114,9 +114,9 @@ contract DeployEthereum is EthereumScript {
     );
 
     address[] memory whitelistedMarkets = new address[](1);
-    whitelistedMarkets[0] = address(0); // TODO: add listed pendle PT asset
+    whitelistedMarkets[0] = address(0); // TODO: add eModeId
 
-    DeployStewardContracts._deployCollateralStewardInjector(
+    DeployStewardContracts._deployEModeStewardInjector(
       MiscEthereum.CREATE_3_FACTORY,
       salt,
       riskSteward,

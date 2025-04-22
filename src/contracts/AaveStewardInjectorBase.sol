@@ -154,8 +154,8 @@ abstract contract AaveStewardInjectorBase is
   /// @inheritdoc IAaveStewardInjectorBase
   function removeMarkets(address[] calldata markets) external onlyOwner {
     for (uint256 i = 0; i < markets.length; i++) {
-      _markets.remove(markets[i]);
-      emit MarketRemoved(markets[i]);
+      bool success = _markets.remove(markets[i]);
+      if (success) emit MarketRemoved(markets[i]);
     }
   }
 
@@ -211,8 +211,8 @@ abstract contract AaveStewardInjectorBase is
    */
   function _addMarkets(address[] memory markets) internal {
     for (uint256 i = 0; i < markets.length; i++) {
-      _markets.add(markets[i]);
-      emit MarketAdded(markets[i]);
+      bool success = _markets.add(markets[i]);
+      if (success) emit MarketAdded(markets[i]);
     }
   }
 
