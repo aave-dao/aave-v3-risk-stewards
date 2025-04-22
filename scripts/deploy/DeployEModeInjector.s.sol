@@ -29,8 +29,13 @@ library DeployStewardContracts {
     address edgeRiskOracle,
     address owner,
     address guardian,
-    address[] memory whitelistedMarkets
+    uint8[] memory whitelistedEModes
   ) internal returns (address) {
+    address[] memory whitelistedMarkets = new address[](whitelistedEModes.length);
+    for (uint256 i = 0; i < whitelistedEModes.length; i++) {
+      whitelistedMarkets[i] = address(uint160(whitelistedEModes[i]));
+    }
+
     address stewardInjector = ICreate3Factory(create3Factory).create(
       salt,
       abi.encodePacked(
@@ -113,8 +118,8 @@ contract DeployEthereum is EthereumScript {
       GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
 
-    address[] memory whitelistedMarkets = new address[](1);
-    whitelistedMarkets[0] = address(0); // TODO: add eModeId
+    uint8[] memory whitelistedEModes = new uint8[](1);
+    whitelistedEModes[0] = 8;
 
     DeployStewardContracts._deployEModeStewardInjector(
       MiscEthereum.CREATE_3_FACTORY,
@@ -123,7 +128,7 @@ contract DeployEthereum is EthereumScript {
       EDGE_RISK_ORACLE,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
       GUARDIAN,
-      whitelistedMarkets
+      whitelistedEModes
     );
     vm.stopBroadcast();
   }
