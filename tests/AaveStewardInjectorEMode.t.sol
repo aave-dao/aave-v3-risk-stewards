@@ -84,8 +84,8 @@ contract AaveStewardsInjectorEMode_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
   }
 
-  function test_multipleMarketInjection() public {
-    _addMarket(_encodeUintToAddress(_eModeIdTwo));
+  function test_multipleEModeInjection() public {
+    _addEMode(_encodeUintToAddress(_eModeIdTwo));
 
     _addUpdateToRiskOracle(
       _encodeUintToAddress(_eModeIdOne),
@@ -107,9 +107,9 @@ contract AaveStewardsInjectorEMode_Test is AaveStewardsInjectorBaseTest {
     assertTrue(_checkAndPerformAutomation());
   }
 
-  function test_randomized_multipleMarketInjection() public {
-    _addMarket(_encodeUintToAddress(_eModeIdTwo));
-    _addMarket(_encodeUintToAddress(_eModeIdThree));
+  function test_randomized_multipleEModeInjection() public {
+    _addEMode(_encodeUintToAddress(_eModeIdTwo));
+    _addEMode(_encodeUintToAddress(_eModeIdThree));
 
     _addUpdateToRiskOracle(
       _encodeUintToAddress(_eModeIdOne),
@@ -243,7 +243,7 @@ contract AaveStewardsInjectorEMode_Test is AaveStewardsInjectorBaseTest {
     return (updateType, market);
   }
 
-  function _addMarket(address market) internal {
+  function _addEMode(address market) internal {
     address[] memory markets = new address[](1);
     markets[0] = market;
 
@@ -265,7 +265,7 @@ contract AaveStewardsInjectorEMode_Test is AaveStewardsInjectorBaseTest {
       );
       vm.stopPrank();
 
-      _addMarket(market);
+      _addEMode(market);
     }
   }
 
