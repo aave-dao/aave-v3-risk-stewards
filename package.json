@@ -26,7 +26,7 @@
     "prettier": "2.8.7",
     "prettier-plugin-solidity": "1.1.3",
     "vitest": "^2.0.4",
-    "@bgd-labs/aave-address-book": "^4.16.1",
+    "@bgd-labs/aave-address-book": "^4.18.1",
     "@bgd-labs/aave-cli": "^1.1.12",
     "@bgd-labs/js-utils": "^1.4.7",
     "@inquirer/prompts": "^3.3.0",
