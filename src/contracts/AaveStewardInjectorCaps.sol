@@ -42,11 +42,9 @@ contract AaveStewardInjectorCaps is AaveStewardInjectorBase {
   }
 
   /// @inheritdoc AaveStewardInjectorBase
-  function _injectUpdate(
-    IRiskOracle.RiskParameterUpdate memory riskParams
-  ) internal override {
+  function _injectUpdate(IRiskOracle.RiskParameterUpdate memory riskParams) internal override {
     address underlyingAddress = IAToken(riskParams.market).UNDERLYING_ASSET_ADDRESS();
-    uint256 capValue =  abi.decode(
+    uint256 capValue = abi.decode(
       abi.encodePacked(new bytes(32 - riskParams.newValue.length), riskParams.newValue),
       (uint256)
     ) / (10 ** IERC20Metadata(riskParams.market).decimals());

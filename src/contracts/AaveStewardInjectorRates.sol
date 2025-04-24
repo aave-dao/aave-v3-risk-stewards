@@ -34,9 +34,7 @@ contract AaveStewardInjectorRates is AaveStewardInjectorBase {
   }
 
   /// @inheritdoc AaveStewardInjectorBase
-  function _injectUpdate(
-    IRiskOracle.RiskParameterUpdate memory riskParams
-  ) internal override {
+  function _injectUpdate(IRiskOracle.RiskParameterUpdate memory riskParams) internal override {
     IEngine.RateStrategyUpdate[] memory rateUpdate = new IEngine.RateStrategyUpdate[](1);
     rateUpdate[0].asset = riskParams.market;
     rateUpdate[0].params = abi.decode(riskParams.newValue, (IEngine.InterestRateInputData));

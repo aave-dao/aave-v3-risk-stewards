@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import './RiskSteward.sol';
 
 /**
- * @title EdgeRiskStewardCollateral
+ * @title EdgeRiskStewardEMode
  * @author BGD labs
- * @notice Contract to manage the collateral params updates within configured bound on aave v3 pool.
+ * @notice Contract to manage the EMode category updates within configured bound on aave v3 pool.
  *         To be triggered by the Aave Steward Injector Contract in a automated way via the Edge Risk Oracle.
  */
-contract EdgeRiskStewardCollateral is RiskSteward {
+contract EdgeRiskStewardEMode is RiskSteward {
   /**
    * @param pool the aave pool to be controlled by the steward
    * @param engine the config engine to be used by the steward
@@ -38,8 +38,8 @@ contract EdgeRiskStewardCollateral is RiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateEModeCategories(
-    IEngine.EModeCategoryUpdate[] calldata
+  function updateCollateralSide(
+    IEngine.CollateralUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
@@ -63,20 +63,5 @@ contract EdgeRiskStewardCollateral is RiskSteward {
     DiscountRatePendleUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
-  }
-
-  /**
-   * @notice method to validate the collaterals update
-   * @param collateralUpdates list containing the new collateral updates of the assets
-   * @dev custom overload to forbid debtCeiling change
-   */
-  function _validateCollateralsUpdate(
-    IEngine.CollateralUpdate[] calldata collateralUpdates
-  ) internal view override {
-    for (uint256 i = 0; i < collateralUpdates.length; i++) {
-      if (collateralUpdates[i].debtCeiling != EngineFlags.KEEP_CURRENT)
-        revert ParamChangeNotAllowed();
-    }
-    super._validateCollateralsUpdate(collateralUpdates);
   }
 }

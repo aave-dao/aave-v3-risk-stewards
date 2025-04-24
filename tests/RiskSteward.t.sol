@@ -859,7 +859,7 @@ contract RiskSteward_Test is Test {
     eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
       eModeCategory: eModeId,
       ltv: currentEmodeConfig.ltv + 50, // 0.5% absolute increase
-      liqThreshold: currentEmodeConfig.liquidationThreshold + 50, // 0.5% absolute increase
+      liqThreshold: currentEmodeConfig.liquidationThreshold + 10, // 0.1% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) + 50, // 0.5% absolute increase
       label: EngineFlags.KEEP_CURRENT_STRING
     });
@@ -889,7 +889,7 @@ contract RiskSteward_Test is Test {
     eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
       eModeCategory: eModeId,
       ltv: currentEmodeConfig.ltv - 50, // 0.5% absolute increase
-      liqThreshold: currentEmodeConfig.liquidationThreshold - 50, // 0.5% absolute increase
+      liqThreshold: currentEmodeConfig.liquidationThreshold - 10, // 0.1% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) - 50, // 0.5% absolute increase
       label: EngineFlags.KEEP_CURRENT_STRING
     });
@@ -918,7 +918,7 @@ contract RiskSteward_Test is Test {
     eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
       eModeCategory: eModeId,
       ltv: currentEmodeConfig.ltv + 51, // 0.5% absolute increase
-      liqThreshold: currentEmodeConfig.liquidationThreshold + 51, // 0.51% absolute increase
+      liqThreshold: currentEmodeConfig.liquidationThreshold + 11, // 0.11% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) + 51, // 0.51% absolute increase
       label: EngineFlags.KEEP_CURRENT_STRING
     });
@@ -933,7 +933,7 @@ contract RiskSteward_Test is Test {
     eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
       eModeCategory: eModeId,
       ltv: currentEmodeConfig.ltv - 51, // 0.51% absolute increase
-      liqThreshold: currentEmodeConfig.liquidationThreshold - 51, // 0.51% absolute increase
+      liqThreshold: currentEmodeConfig.liquidationThreshold - 11, // 0.11% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) - 51, // 0.51% absolute increase
       label: EngineFlags.KEEP_CURRENT_STRING
     });
@@ -949,7 +949,7 @@ contract RiskSteward_Test is Test {
     eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
       eModeCategory: eModeId,
       ltv: currentEmodeConfig.ltv + 50, // 0.5% absolute increase
-      liqThreshold: currentEmodeConfig.liquidationThreshold + 50, // 0.5% absolute increase
+      liqThreshold: currentEmodeConfig.liquidationThreshold + 10, // 0.1% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) + 50, // 0.5% absolute increase
       label: EngineFlags.KEEP_CURRENT_STRING
     });
