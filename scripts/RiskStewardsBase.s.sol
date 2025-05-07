@@ -12,7 +12,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
   IPool immutable POOL;
   IRiskSteward immutable STEWARD;
 
-  uint8 public constant MAX_TX = 5;
+  uint8 public constant MAX_TX = 6;
 
   constructor(address pool, address steward) {
     POOL = IPool(pool);
@@ -28,6 +28,13 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     pure
     virtual
     returns (IEngine.RateStrategyUpdate[] memory)
+  {}
+
+  function eModeCategoriesUpdates()
+    public
+    pure
+    virtual
+    returns (IEngine.EModeCategoryUpdate[] memory)
   {}
 
   function lstPriceCapsUpdates()
@@ -83,6 +90,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
 
     IEngine.CapsUpdate[] memory capUpdates = capsUpdates();
     IEngine.CollateralUpdate[] memory collateralUpdates = collateralsUpdates();
+    IEngine.EModeCategoryUpdate[] memory eModeUpdates = eModeCategoriesUpdates();
     IEngine.RateStrategyUpdate[] memory rateUpdates = rateStrategiesUpdates();
     IRiskSteward.PriceCapLstUpdate[] memory lstPriceCapUpdates = lstPriceCapsUpdates();
     IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
@@ -90,31 +98,36 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     if (skipTimelock) {
       // warp to the max timelock
 
-      uint40[] memory timelocks = new uint40[](12);
+      uint40[] memory timelocks = new uint40[](15);
       uint256 index = 0; // Track the current index for adding elements
 
       IRiskSteward.Config memory riskConfig = STEWARD.getRiskConfig();
       if (capUpdates.length != 0) {
-        timelocks[index++] = riskConfig.supplyCap.minDelay;
-        timelocks[index++] = riskConfig.borrowCap.minDelay;
+        timelocks[index++] = riskConfig.capConfig.supplyCap.minDelay;
+        timelocks[index++] = riskConfig.capConfig.borrowCap.minDelay;
       }
       if (collateralUpdates.length != 0) {
-        timelocks[index++] = riskConfig.ltv.minDelay;
-        timelocks[index++] = riskConfig.liquidationThreshold.minDelay;
-        timelocks[index++] = riskConfig.liquidationBonus.minDelay;
-        timelocks[index++] = riskConfig.debtCeiling.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.ltv.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.liquidationThreshold.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.liquidationBonus.minDelay;
+        timelocks[index++] = riskConfig.collateralConfig.debtCeiling.minDelay;
+      }
+      if (eModeUpdates.length != 0) {
+        timelocks[index++] = riskConfig.eModeConfig.ltv.minDelay;
+        timelocks[index++] = riskConfig.eModeConfig.liquidationThreshold.minDelay;
+        timelocks[index++] = riskConfig.eModeConfig.liquidationBonus.minDelay;
       }
       if (rateUpdates.length != 0) {
-        timelocks[index++] = riskConfig.baseVariableBorrowRate.minDelay;
-        timelocks[index++] = riskConfig.optimalUsageRatio.minDelay;
-        timelocks[index++] = riskConfig.variableRateSlope1.minDelay;
-        timelocks[index++] = riskConfig.variableRateSlope2.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.baseVariableBorrowRate.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.optimalUsageRatio.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.variableRateSlope1.minDelay;
+        timelocks[index++] = riskConfig.rateConfig.variableRateSlope2.minDelay;
       }
       if (lstPriceCapUpdates.length != 0) {
-        timelocks[index++] = riskConfig.priceCapLst.minDelay;
+        timelocks[index++] = riskConfig.priceCapConfig.priceCapLst.minDelay;
       }
       if (stablePriceCapUpdates.length != 0) {
-        timelocks[index++] = riskConfig.priceCapStable.minDelay;
+        timelocks[index++] = riskConfig.priceCapConfig.priceCapStable.minDelay;
       }
       uint40 maxTimelock = 0;
       for (uint256 i = 0; i < timelocks.length; i++) {
@@ -139,6 +152,16 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
       callDatas[txCount] = abi.encodeWithSelector(
         IRiskSteward.updateCollateralSide.selector,
         collateralUpdates
+      );
+      (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
+      _verifyCallResult(success, resultData);
+      txCount++;
+    }
+
+    if (eModeUpdates.length != 0) {
+      callDatas[txCount] = abi.encodeWithSelector(
+        IRiskSteward.updateEModeCategories.selector,
+        eModeUpdates
       );
       (bool success, bytes memory resultData) = address(STEWARD).call(callDatas[txCount]);
       _verifyCallResult(success, resultData);

@@ -33,6 +33,8 @@ The following risk params could be changed by the RiskStewards:
 
 - Cap parameters for [PriceCapAdapters (CAPO)](https://github.com/bgd-labs/aave-capo/)
 
+- EMode Collateral params (LTV, Liquidation Threshold, Liquidation Bonus)
+
 #### Min Delay:
 
 For each risk param, `minDelay` can be configured, which is the minimum amount of delay (denominated in seconds) required before pushing another update for the risk param. Please note that this is specific for a risk param and includes both in upwards and downwards direction. Ex. after increasing LTV by 5%, we must wait by `minDelay` before either increasing it again or decreasing it.
@@ -44,7 +46,7 @@ For each risk param, `maxPercentChange` is the maximum percent change allowed (b
 - Supply cap, Borrow cap, and Debt ceiling: The `maxPercentChange` is relative and is denominated in BPS. (Ex. `50_00` for +-50% relative change).
   For example, with an asset's current supply cap at 1_000_000 and `maxPercentChange` configured for supply cap at `50_00`, the max supply cap that can be configured is 1_500_000, and the minimum is 500_000 via the steward.
 
-- LTV, LT, LB: The `maxPercentChange` is in absolute values and is also denominated in BPS. (Ex. `5_00` for +-5% change in LTV).
+- LTV, LT, LB (for both normal and EMode): The `maxPercentChange` is in absolute values and is also denominated in BPS. (Ex. `5_00` for +-5% change in LTV).
   For example, for a current LTV of an asset configured at 70_00 (70%) and `maxPercentChange` configured for ltv at `10_00`, the max ltv that can be configured is 77_00 (77%) and the minimum 63_00 (63%) via the steward.
 
 - Interest rates params: For Base Variable Borrow Rate, Slope 1, Slope 2, uOptimal the `maxPercentChange` is in absolute values and is denominated in BPS.
@@ -60,9 +62,9 @@ After the activation proposal, these params could only be changed by the governa
 
 _Note: The Risk Stewards will not allow setting the values to 0 for supply cap, borrow cap, debt ceiling, LTV, Liquidation Threshold, Liquidation Bonus no matter if the maxPercentChange has been configured to 100%. The Risk Stewards will however allow setting the value to 0 for interest rate param updates._
 
-#### Restricted Assets and Oracles:
+#### Restricted Assets, Oracles and EMode:
 
-Some assets/oracles can also be restricted on the RiskStewards by calling the `setAddressRestricted()` method. This prevents the RiskStewards to make any updates on the specific asset. One example of the restricted asset could be GHO.
+Some assets/oracles can also be restricted on the RiskStewards by calling the `setAddressRestricted()` method. This prevents the RiskStewards to make any updates on the specific asset. One example of the restricted asset could be GHO. Similarly if we don't want RiskSteward to update EMode collateral params (LTV, LT, LB) for a specific EMode category, we can mark that EModeId as restricted via `setEModeCategoryRestricted()` method.
 
 <br>
 
@@ -70,7 +72,7 @@ Some assets/oracles can also be restricted on the RiskStewards by calling the `s
 
 With the introduction of Edge Risk Oracles by Chaos Labs, which leverages advanced off-chain infrastructure to deliver real-time risk updates to the Aave protocol via the Risk Oracle, the risk updates for the Aave protocol can be automated in a constrained manner. This can be done by combining the Edge Risk Oracle with the Aave Risk Steward, using a middleware contract `AaveStewardsInjector`.
 
-The Aave Risk Steward contract used for automated updates (called now [EdgeRiskStewardRates](./src/contracts/EdgeRiskStewardRates.sol)), has been slightly modified to only allow Interest Rates Updates on the protocol initially as a matter of extra security considerations.
+The Aave Risk Steward contract used for automated updates (called now [EdgeRiskStewardRates](./src/contracts/EdgeRiskStewardRates.sol)) for rateUpdates, has been slightly modified to only allow Interest Rates Updates on the protocol initially as a matter of extra security considerations.
 
 The following is a simple diagram of how the system works as a whole:
 
@@ -78,21 +80,21 @@ The following is a simple diagram of how the system works as a whole:
 
 ### AaveStewardsInjector
 
-The [AaveStewardsInjector](./src/contracts//AaveStewardInjector.sol) is a Chainlink automation compatible contract which checks if the latest update from the Edge Risk Oracle could be pushed to the Risk Steward, and if so, injects it to the Aave Risk Stewards. The `AaveStewardsInjector` should be set as the `riskCouncil` on the Aave Risk Steward contract so it can inject updates.
+The [AaveStewardsInjector](./src/contracts//AaveStewardInjectorBase.sol) is a Chainlink automation compatible contract which checks if the latest update from the Edge Risk Oracle could be pushed to the Risk Steward, and if so, injects it to the Aave Risk Stewards. The `AaveStewardsInjector` should be set as the `riskCouncil` on the Aave Risk Steward contract so it can inject updates.
 
 The `AaveStewardsInjector` has the following major functions:
 
-- `checkUpkeep()`: This method is called off-chain by Chainlink nodes every block to check if the latest update could be injected, and if so, calls `performUpKeep()`. It fetches the latest interest rate update for the whitelisted asset (initially WETH) using the `getLatestUpdateByParameterAndMarket()` method on the Risk Oracle, and checks if the update can be injected into the Risk Steward if not already executed before. If the latest update is not executed or disabled the method returns true.
+- `checkUpkeep()`: This method is called off-chain by Chainlink nodes every block to check if the latest update could be injected, and if so, calls `performUpKeep()`. It fetches the latest risk update for asset using the `getLatestUpdateByParameterAndMarket()` method on the Risk Oracle, and checks if the update can be injected into the Risk Steward if not already executed before. If the latest update is not executed or disabled, the method returns true.
 
 - `performUpkeep()`: The `performUpkeep()` method is called by the Chainlink automation nodes when the `checkUpkeep()` method returns true. The `performUpkeep()` call injects the latest update on the Risk Steward, unless that update has been disabled by the steward injector guardian or previously executed. After an update has been injected on the Risk Steward using the params from the Risk Oracle, we mark the updateId as executed on storage mapping `_isUpdateIdExecuted[id]`. The `performUpkeep()` method is permissionless on purpose, so as to allow injections from the Risk Oracle to the Risk Steward even in case of some downtime on the automation infra via a manual trigger.
 
-The Stewards Injector Guardian is an entity, which is the owner of the `AaveStewardsInjector` contract and has access to disable updates for the specific `updateId` using the `disableUpdateById()` method in case of any emergencies. The guardian can also change / add update types using the `addUpdateType()` method, to whitelist the type of updates that can be injected via the Stewards Injector.
+The Stewards Injector Guardian is an entity, which is the owner of the `AaveStewardsInjector` contract and has access to disable updates for the specific `updateId` using the `disableUpdateById()` method in case of any emergencies or pause the injector via `pauseInjector()`.
 
 The `AaveStewardsInjector` contract also introduces an `EXPIRATION_PERIOD` to disallow outdated risk param updates to be injected. The `EXPIRATION_PERIOD` is set to 6 hours, which means after an update is pushed on the Edge Risk Oracle, the `AaveStewardsInjector` has a maximum of 6 hours to inject the update onto the Risk Steward otherwise the update expires.
 
 ## Security
 
-- Certora security review: [2024-07-10](./audits/10-07-2024_Certora_AaveV3-Risk-Steward.pdf)
+- Certora security review: [2024-07-10](./audits/10-07-2024_Certora_AaveV3-Risk-Steward.pdf), [2025-04-20](audits/20-04-2025-Certora_AaveV3-Risk-Steward.pdf)
 
 <br>
 

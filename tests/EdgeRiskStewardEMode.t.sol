@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {EdgeRiskStewardCaps} from 'src/contracts/EdgeRiskStewardCaps.sol';
+import {EdgeRiskStewardEMode} from 'src/contracts/EdgeRiskStewardEMode.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import './RiskSteward.t.sol';
 
-contract EdgeRiskStewardCaps_Test is RiskSteward_Test {
+contract EdgeRiskStewardEMode_Test is RiskSteward_Test {
   function setUp() public override {
     super.setUp();
 
-    steward = new EdgeRiskStewardCaps(
+    steward = new EdgeRiskStewardEMode(
       address(AaveV3Ethereum.POOL),
       AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
@@ -20,28 +20,6 @@ contract EdgeRiskStewardCaps_Test is RiskSteward_Test {
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
   }
-
-  /* ----------------------------- Rates Tests ----------------------------- */
-
-  function test_updateRates() public override {
-    IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
-
-    vm.startPrank(riskCouncil);
-    vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
-    steward.updateRates(rateUpdates);
-  }
-
-  function test_updateRates_outOfRange() public override {}
-
-  function test_updateRates_debounceNotRespected() public override {}
-
-  function test_updateRates_assetUnlisted() public override {}
-
-  function test_updateRates_assetRestricted() public override {}
-
-  function test_updateRates_allKeepCurrent() public override {}
-
-  function test_updateRate_sameUpdate() public override {}
 
   /* ----------------------------- Collateral Tests ----------------------------- */
 
@@ -69,31 +47,51 @@ contract EdgeRiskStewardCaps_Test is RiskSteward_Test {
 
   function test_updateCollaterals_sameUpdate() public override {}
 
-  /* ----------------------------- EMode Category Update Tests ----------------------------- */
+  /* ----------------------------- Caps Tests ----------------------------- */
 
-  function test_updateEModeCategories() public override {
-    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
+  function test_updateCaps() public override {
+    IEngine.CapsUpdate[] memory capUpdates = new IEngine.CapsUpdate[](1);
 
     vm.startPrank(riskCouncil);
     vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
-    steward.updateEModeCategories(eModeCategoryUpdates);
+    steward.updateCaps(capUpdates);
   }
 
-  function test_updateEModeCategories_outOfRange() public override {}
+  function test_updateCaps_outOfRange() public override {}
 
-  function test_updateEModeCategories_debounceNotRespected() public override {}
+  function test_updateCaps_debounceNotRespected() public override {}
 
-  function test_updateEModeCategories_eModeDoesNotExist() public override {}
+  function test_updateCaps_allKeepCurrent() public override {}
 
-  function test_updateEModeCategories_eModeRestricted() public override {}
+  function test_updateCaps_sameUpdate() public override {}
 
-  function test_updateEModeCategories_toValueZeroNotAllowed() public override {}
+  function test_updateCaps_assetUnlisted() public override {}
 
-  function test_updateEModeCategories_allKeepCurrent() public override {}
+  function test_updateCaps_assetRestricted() public override {}
 
-  function test_updateEModeCategories_sameUpdate() public override {}
+  function test_updateCaps_toValueZeroNotAllowed() public override {}
 
-  function test_updateEModeCategories_labelChangeNotAllowed() public override {}
+  /* ----------------------------- Rates Tests ----------------------------- */
+
+  function test_updateRates() public override {
+    IEngine.RateStrategyUpdate[] memory rateUpdates = new IEngine.RateStrategyUpdate[](1);
+
+    vm.startPrank(riskCouncil);
+    vm.expectRevert(IRiskSteward.UpdateNotAllowed.selector);
+    steward.updateRates(rateUpdates);
+  }
+
+  function test_updateRates_outOfRange() public override {}
+
+  function test_updateRates_debounceNotRespected() public override {}
+
+  function test_updateRates_assetUnlisted() public override {}
+
+  function test_updateRates_assetRestricted() public override {}
+
+  function test_updateRates_allKeepCurrent() public override {}
+
+  function test_updateRate_sameUpdate() public override {}
 
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
 

@@ -12,6 +12,7 @@ import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable, IChainlinkAggregator} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 import {PriceCapAdapterStable} from 'aave-capo/contracts/PriceCapAdapterStable.sol';
+import {PendlePriceCapAdapter, IPendlePriceCapAdapter} from 'aave-capo/contracts/PendlePriceCapAdapter.sol';
 import {SafeCast} from 'openzeppelin-contracts/contracts/utils/math/SafeCast.sol';
 
 contract RiskSteward_Capo_Test is Test {
@@ -19,6 +20,7 @@ contract RiskSteward_Capo_Test is Test {
   using SafeCast for int256;
 
   address public constant riskCouncil = address(42);
+  PendlePriceCapAdapter public pendleAdapter;
   RiskSteward public steward;
   uint104 currentRatio;
   uint48 delay;
@@ -26,37 +28,27 @@ contract RiskSteward_Capo_Test is Test {
   event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
 
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 20934847);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 22144636);
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
       minDelay: 5 days,
       maxPercentChange: 10_00 // 10%
     });
+    IRiskSteward.Config memory riskConfig;
+    riskConfig.priceCapConfig.priceCapLst = defaultRiskParamConfig;
+    riskConfig.priceCapConfig.priceCapStable = defaultRiskParamConfig;
+    riskConfig.priceCapConfig.discountRatePendle = defaultRiskParamConfig;
 
-    IRiskSteward.Config memory riskConfig = IRiskSteward.Config({
-      ltv: defaultRiskParamConfig,
-      liquidationThreshold: defaultRiskParamConfig,
-      liquidationBonus: defaultRiskParamConfig,
-      supplyCap: defaultRiskParamConfig,
-      borrowCap: defaultRiskParamConfig,
-      debtCeiling: defaultRiskParamConfig,
-      baseVariableBorrowRate: defaultRiskParamConfig,
-      variableRateSlope1: defaultRiskParamConfig,
-      variableRateSlope2: defaultRiskParamConfig,
-      optimalUsageRatio: defaultRiskParamConfig,
-      priceCapLst: defaultRiskParamConfig,
-      priceCapStable: defaultRiskParamConfig
-    });
-
-    vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward = new RiskSteward(
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER,
-      IEngine(AaveV3Ethereum.CONFIG_ENGINE),
+      address(AaveV3Ethereum.POOL),
+      AaveV3Ethereum.CONFIG_ENGINE,
       riskCouncil,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1,
       riskConfig
     );
+
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     AaveV3Ethereum.ACL_MANAGER.addRiskAdmin(address(steward));
-    vm.stopPrank();
 
     currentRatio = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getRatio()
@@ -73,6 +65,15 @@ contract RiskSteward_Capo_Test is Test {
       })
     );
     vm.etch(AaveV3EthereumAssets.USDT_ORACLE, address(mockAdapter).code);
+
+    pendleAdapter = new PendlePriceCapAdapter(IPendlePriceCapAdapter.PendlePriceCapAdapterParams({
+      assetToUsdAggregator: 0x42bc86f2f08419280a99d8fbEa4672e7c30a86ec, // sUSDe capo
+      pendlePrincipalToken: 0xb7de5dFCb74d25c2f21841fbd6230355C50d9308, // sUSDe PT token
+      maxDiscountRatePerYear: 1e18, // 100%
+      discountRatePerYear: 0.1e18, // 10%
+      aclManager: address(AaveV3Ethereum.ACL_MANAGER),
+      description: 'sUSDe PT Adapter'
+    }));
   }
 
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
@@ -550,5 +551,159 @@ contract RiskSteward_Capo_Test is Test {
       .toUint256();
 
     assertEq(priceCapBefore, priceCapAfter);
+  }
+
+  /* ----------------------------- Pendle PT Price Cap Tests ----------------------------- */
+
+  function test_updatePendlePriceCap() public {
+    uint256 currentDiscount = pendleAdapter.discountRatePerYear();
+
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: ((currentDiscount * 110) / 100) // +10% relative change
+    });
+
+    vm.startPrank(riskCouncil);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+
+    RiskSteward.Debounce memory lastUpdated = steward.getTimelock(address(pendleAdapter));
+
+    uint256 discountAfter = pendleAdapter.discountRatePerYear();
+
+    assertEq(discountAfter, priceCapUpdates[0].discountRate);
+    assertEq(lastUpdated.priceCapLastUpdated, block.timestamp);
+
+    // after min time passed test collateral update decrease
+    vm.warp(block.timestamp + 5 days + 1);
+    currentDiscount = pendleAdapter.discountRatePerYear();
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: ((currentDiscount * 90) / 100) // -10% relative change
+    });
+
+    steward.updatePendleDiscountRates(priceCapUpdates);
+
+    lastUpdated = steward.getTimelock(address(pendleAdapter));
+
+    discountAfter = pendleAdapter.discountRatePerYear();
+
+    assertEq(discountAfter, priceCapUpdates[0].discountRate);
+    assertEq(lastUpdated.priceCapLastUpdated, block.timestamp);
+  }
+
+  function test_updatePendlePriceCap_debounceNotRespected() public {
+    uint256 currentDiscount = pendleAdapter.discountRatePerYear();
+
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: ((currentDiscount * 110) / 100) // +10% relative change
+    });
+
+    vm.startPrank(riskCouncil);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: ((currentDiscount * 105) / 100) // +10% relative change
+    });
+
+    // expect revert as minimum time has not passed for next update
+    vm.expectRevert(IRiskSteward.DebounceNotRespected.selector);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+  }
+
+  function test_updatePendlePriceCap_outOfRange() public {
+    uint256 currentDiscount = pendleAdapter.discountRatePerYear();
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: ((currentDiscount * 111) / 100) // +11% relative increase
+    });
+    vm.startPrank(riskCouncil);
+
+    // expect revert as price cap (discountRate) is out of range
+    vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: ((currentDiscount * 89) / 100) // -11% relative decrease
+    });
+    vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+  }
+
+  function test_updatePendlePriceCap_keepCurrent_revert() public {
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: EngineFlags.KEEP_CURRENT
+    });
+    vm.prank(riskCouncil);
+
+    // expect revert as price cap is out of range
+    vm.expectRevert();
+    steward.updatePendleDiscountRates(priceCapUpdates);
+  }
+
+  function test_updatePendlePriceCap_toValueZeroNotAllowed() public {
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: 0
+    });
+    vm.prank(riskCouncil);
+
+    // expect revert as price cap is out of range
+    vm.expectRevert(IRiskSteward.InvalidUpdateToZero.selector);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+  }
+
+  function test_updatePendlePriceCap_oracleRestricted() public {
+    vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
+    steward.setAddressRestricted(address(pendleAdapter), true);
+
+    uint256 currentDiscount = pendleAdapter.discountRatePerYear();
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: ((currentDiscount * 110) / 100) // +10% relative change
+    });
+    vm.prank(riskCouncil);
+    // expect revert as oracle is restricted
+
+    vm.expectRevert(IRiskSteward.OracleIsRestricted.selector);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+  }
+
+  function test_updatePendlePriceCap_sameUpdates() public {
+    uint256 initialDiscount = pendleAdapter.discountRatePerYear();
+    IRiskSteward.DiscountRatePendleUpdate[]
+      memory priceCapUpdates = new IRiskSteward.DiscountRatePendleUpdate[](1);
+
+    priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
+      oracle: address(pendleAdapter),
+      discountRate: initialDiscount
+    });
+    vm.prank(riskCouncil);
+    steward.updatePendleDiscountRates(priceCapUpdates);
+
+    uint256 afterDiscount = pendleAdapter.discountRatePerYear();
+    assertEq(initialDiscount, afterDiscount);
   }
 }

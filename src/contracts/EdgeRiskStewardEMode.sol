@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import './RiskSteward.sol';
 
 /**
- * @title EdgeRiskStewardCaps
+ * @title EdgeRiskStewardEMode
  * @author BGD labs
- * @notice Contract to manage the supply / borrow caps within configured bound on aave v3 pool.
+ * @notice Contract to manage the EMode category updates within configured bound on aave v3 pool.
  *         To be triggered by the Aave Steward Injector Contract in a automated way via the Edge Risk Oracle.
  */
-contract EdgeRiskStewardCaps is RiskSteward {
+contract EdgeRiskStewardEMode is RiskSteward {
   /**
    * @param pool the aave pool to be controlled by the steward
    * @param engine the config engine to be used by the steward
@@ -33,15 +33,13 @@ contract EdgeRiskStewardCaps is RiskSteward {
   }
 
   /// @inheritdoc IRiskSteward
-  function updateCollateralSide(
-    IEngine.CollateralUpdate[] calldata
-  ) external virtual override onlyRiskCouncil {
+  function updateCaps(IEngine.CapsUpdate[] calldata) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
 
   /// @inheritdoc IRiskSteward
-  function updateEModeCategories(
-    IEngine.EModeCategoryUpdate[] calldata
+  function updateCollateralSide(
+    IEngine.CollateralUpdate[] calldata
   ) external virtual override onlyRiskCouncil {
     revert UpdateNotAllowed();
   }
