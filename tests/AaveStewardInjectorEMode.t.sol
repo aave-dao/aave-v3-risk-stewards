@@ -1,43 +1,44 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {AaveStewardInjectorCaps} from '../src/contracts/AaveStewardInjectorCaps.sol';
+import {AaveStewardInjectorEMode} from '../src/contracts/AaveStewardInjectorEMode.sol';
 import {IAaveStewardInjectorBase} from '../src/interfaces/IAaveStewardInjectorBase.sol';
-import {EdgeRiskStewardCaps} from '../src/contracts/EdgeRiskStewardCaps.sol';
+import {EdgeRiskStewardEMode} from '../src/contracts/EdgeRiskStewardEMode.sol';
+import {SafeCast} from 'openzeppelin-contracts/contracts/utils/math/SafeCast.sol';
+import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import './AaveStewardsInjectorBase.t.sol';
 
-contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
-  event MarketAdded(address indexed market);
-  event MarketRemoved(address indexed market);
+contract AaveStewardsInjectorEMode_Test is AaveStewardsInjectorBaseTest {
+  using SafeCast for uint256;
 
-  address internal _aWETH;
-  address internal _aWBTC;
+  uint8 internal _eModeIdOne = 1;
+  uint8 internal _eModeIdTwo = 2;
+  uint8 internal _eModeIdThree = 3;
+  string internal _updateType = 'EModeCategoryUpdate_Core';
 
   function setUp() public override {
     super.setUp();
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
-      minDelay: 3 days,
-      maxPercentChange: 100_00
+      minDelay: 1 days,
+      maxPercentChange: 25 // 0.25% change allowed
     });
     IRiskSteward.Config memory riskConfig;
-    riskConfig.capConfig.supplyCap = defaultRiskParamConfig;
-    riskConfig.capConfig.borrowCap = defaultRiskParamConfig;
+    riskConfig.eModeConfig.ltv = defaultRiskParamConfig;
+    riskConfig.eModeConfig.liquidationThreshold = defaultRiskParamConfig;
+    riskConfig.eModeConfig.liquidationBonus = defaultRiskParamConfig;
 
     // setup risk oracle
     vm.startPrank(_riskOracleOwner);
-    address[] memory initialSenders = new address[](1);
+    address[] memory initialSenders = new address[](2);
     initialSenders[0] = _riskOracleOwner;
-    string[] memory initialUpdateTypes = new string[](3);
-    initialUpdateTypes[0] = 'supplyCap';
-    initialUpdateTypes[1] = 'borrowCap';
-    initialUpdateTypes[2] = 'wrongUpdateType';
+
+    string[] memory initialUpdateTypes = new string[](2);
+    initialUpdateTypes[0] = _updateType;
+    initialUpdateTypes[1] = 'wrongUpdateType';
 
     _riskOracle = new RiskOracle('RiskOracle', initialSenders, initialUpdateTypes);
     vm.stopPrank();
-
-    _aWETH = _getAToken(address(weth));
-    _aWBTC = _getAToken(address(wbtc));
 
     // setup steward injector
     vm.startPrank(_stewardsInjectorOwner);
@@ -46,10 +47,11 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
       _stewardsInjectorOwner,
       vm.getNonce(_stewardsInjectorOwner) + 1
     );
-    address[] memory markets = new address[](1);
-    markets[0] = _aWETH;
 
-    _stewardInjector = new AaveStewardInjectorCaps(
+    address[] memory markets = new address[](1);
+    markets[0] = _encodeUintToAddress(_eModeIdOne);
+
+    _stewardInjector = new AaveStewardInjectorEMode(
       address(_riskOracle),
       address(computedRiskStewardAddress),
       markets,
@@ -58,7 +60,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     );
 
     // setup risk steward
-    _riskSteward = new EdgeRiskStewardCaps(
+    _riskSteward = new EdgeRiskStewardEMode(
       address(contracts.poolProxy),
       report.configEngine,
       address(_stewardInjector),
@@ -69,20 +71,32 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
 
     vm.startPrank(poolAdmin);
+    contracts.poolConfiguratorProxy.setEModeCategory(_eModeIdOne, 82_50, 86_00, 105_00, 'EMode_1');
+    contracts.poolConfiguratorProxy.setEModeCategory(_eModeIdTwo, 82_50, 86_00, 105_00, 'EMode_2');
+    contracts.poolConfiguratorProxy.setEModeCategory(
+      _eModeIdThree,
+      82_50,
+      86_00,
+      105_00,
+      'EMode_3'
+    );
     contracts.aclManager.addRiskAdmin(address(_riskSteward));
-
-    // as initial caps are at 0, which the steward cannot update from
-    contracts.poolConfiguratorProxy.setSupplyCap(address(weth), 100);
-    contracts.poolConfiguratorProxy.setBorrowCap(address(weth), 50);
-    contracts.poolConfiguratorProxy.setSupplyCap(address(wbtc), 100);
-    contracts.poolConfiguratorProxy.setBorrowCap(address(wbtc), 50);
     vm.stopPrank();
   }
 
-  function test_multipleMarketInjection() public {
-    _addMarket(_aWBTC);
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
-    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105e8));
+  function test_multipleEModeInjection() public {
+    _addEMode(_encodeUintToAddress(_eModeIdTwo));
+
+    _addUpdateToRiskOracle(
+      _encodeUintToAddress(_eModeIdOne),
+      _updateType,
+      _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT)
+    );
+    _addUpdateToRiskOracle(
+      _encodeUintToAddress(_eModeIdTwo),
+      _updateType,
+      _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT)
+    );
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(1);
@@ -93,27 +107,31 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     assertTrue(_checkAndPerformAutomation());
   }
 
-  function test_multipleUpdateTypeInjection() public {
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
-    _addUpdateToRiskOracle(_aWETH, 'borrowCap', _encode(55e18));
+  function test_randomized_multipleEModeInjection() public {
+    _addEMode(_encodeUintToAddress(_eModeIdTwo));
+    _addEMode(_encodeUintToAddress(_eModeIdThree));
 
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(1);
-    assertTrue(_checkAndPerformAutomation());
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(2);
-    assertTrue(_checkAndPerformAutomation());
-  }
-
-  function test_randomized_multipleMarketInjection() public {
-    _addMarket(_aWBTC);
-    _addUpdateToRiskOracle(_aWETH, 'supplyCap', _encode(105e18));
-    _addUpdateToRiskOracle(_aWETH, 'borrowCap', _encode(55e18));
-    _addUpdateToRiskOracle(_aWBTC, 'supplyCap', _encode(105e8));
-    _addUpdateToRiskOracle(_aWBTC, 'borrowCap', _encode(55e8));
+    _addUpdateToRiskOracle(
+      _encodeUintToAddress(_eModeIdOne),
+      _updateType,
+      _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT)
+    );
+    _addUpdateToRiskOracle(
+      _encodeUintToAddress(_eModeIdTwo),
+      _updateType,
+      _encodeCollateralUpdate(82_75, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT)
+    );
+    _addUpdateToRiskOracle(
+      _encodeUintToAddress(_eModeIdThree),
+      _updateType,
+      _encodeCollateralUpdate(82_70, EngineFlags.KEEP_CURRENT, EngineFlags.KEEP_CURRENT)
+    );
 
     uint256 snapshot = vm.snapshotState();
+
+    vm.expectEmit(address(_stewardInjector));
+    emit IAaveStewardInjectorBase.ActionSucceeded(2);
+    assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(1);
@@ -123,24 +141,12 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     emit IAaveStewardInjectorBase.ActionSucceeded(3);
     assertTrue(_checkAndPerformAutomation());
 
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(2);
-    assertTrue(_checkAndPerformAutomation());
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(4);
-    assertTrue(_checkAndPerformAutomation());
-
     assertTrue(vm.revertToState(snapshot));
     vm.warp(block.timestamp + 3);
 
-    // previous updateId order of execution: 1, 3, 2, 4
-    // updateId order of execution:          4, 1, 3, 2
+    // previous updateId order of execution: 2, 1, 3
+    // updateId order of execution:          1, 3, 2
     // we can see with block.timestamp changing the order of execution of action changes as well
-
-    vm.expectEmit(address(_stewardInjector));
-    emit IAaveStewardInjectorBase.ActionSucceeded(4);
-    assertTrue(_checkAndPerformAutomation());
 
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(1);
@@ -184,14 +190,18 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
   }
 
-  function _addUpdateToRiskOracle() internal override returns (string memory updateType, address market) {
+  function _addUpdateToRiskOracle()
+    internal
+    override
+    returns (string memory updateType, address market)
+  {
     vm.startPrank(_riskOracleOwner);
-    updateType = 'supplyCap';
-    market = _aWETH;
+    updateType = _updateType;
+    market = _encodeUintToAddress(_eModeIdOne);
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(105e18),
+      _encodeCollateralUpdate(82_75, 86_25, 5_25),
       updateType,
       market,
       'additionalData'
@@ -199,28 +209,15 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
   }
 
-  function _addUpdateToRiskOracle(address market) internal override returns (string memory, address) {
+  function _addUpdateToRiskOracle(
+    address market
+  ) internal override returns (string memory, address) {
     vm.startPrank(_riskOracleOwner);
-    string memory updateType = 'supplyCap';
+    string memory updateType = _updateType;
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(105e18),
-      updateType,
-      market,
-      'additionalData'
-    );
-    vm.stopPrank();
-    return (updateType, market);
-  }
-
-  function _addUpdateToRiskOracle(string memory updateType) internal override returns (string memory, address) {
-    vm.startPrank(_riskOracleOwner);
-    address market = _aWETH;
-
-    _riskOracle.publishRiskParameterUpdate(
-      'referenceId',
-      _encode(105e18),
+      _encodeCollateralUpdate(82_75, 86_25, 5_25),
       updateType,
       market,
       'additionalData'
@@ -229,12 +226,29 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
     return (updateType, market);
   }
 
-  function _addMarket(address market) internal {
+  function _addUpdateToRiskOracle(
+    string memory updateType
+  ) internal override returns (string memory, address) {
+    vm.startPrank(_riskOracleOwner);
+    address market = _encodeUintToAddress(_eModeIdOne);
+
+    _riskOracle.publishRiskParameterUpdate(
+      'referenceId',
+      _encodeCollateralUpdate(82_50, 86_00, 5_00),
+      updateType,
+      market,
+      'additionalData'
+    );
+    vm.stopPrank();
+    return (updateType, market);
+  }
+
+  function _addEMode(address market) internal {
     address[] memory markets = new address[](1);
     markets[0] = market;
 
     vm.prank(_stewardsInjectorOwner);
-    AaveStewardInjectorCaps(address(_stewardInjector)).addMarkets(markets);
+    AaveStewardInjectorEMode(address(_stewardInjector)).addMarkets(markets);
   }
 
   function _addMultipleUpdatesToRiskOracleOfDifferentMarkets(uint160 count) internal {
@@ -244,29 +258,33 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
       address market = address(i);
       _riskOracle.publishRiskParameterUpdate(
         'referenceId',
-        _encode(105e18),
-        'supplyCap',
-        market,
-        'additionalData'
-      );
-      _riskOracle.publishRiskParameterUpdate(
-        'referenceId',
-        _encode(55e18),
-        'borrowCap',
+        _encodeCollateralUpdate(82_50, 86_00, 5_00),
+        _updateType,
         market,
         'additionalData'
       );
       vm.stopPrank();
 
-      _addMarket(market);
+      _addEMode(market);
     }
   }
 
-  function _encode(uint256 input) internal pure returns (bytes memory encodedData) {
-    encodedData = abi.encodePacked(uint256(input));
+  function _encodeCollateralUpdate(
+    uint256 ltv,
+    uint256 liqThreshold,
+    uint256 liqBonus
+  ) internal pure returns (bytes memory) {
+    return
+      abi.encode(
+        AaveStewardInjectorEMode.EModeCategoryUpdate({
+          ltv: ltv,
+          liqThreshold: liqThreshold,
+          liqBonus: liqBonus
+        })
+      );
   }
 
-  function _getAToken(address underlying) internal view returns (address aToken) {
-    (aToken, , ) = contracts.protocolDataProvider.getReserveTokensAddresses(underlying);
+  function _encodeUintToAddress(uint256 value) internal pure returns (address) {
+    return address(value.toUint160());
   }
 }
