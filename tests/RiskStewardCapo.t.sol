@@ -34,10 +34,14 @@ contract RiskSteward_Capo_Test is Test {
       minDelay: 5 days,
       maxPercentChange: 10_00 // 10%
     });
+    IRiskSteward.RiskParamConfig memory pendleRiskParamConfig = IRiskSteward.RiskParamConfig({
+      minDelay: 5 days,
+      maxPercentChange: 0.1e18 // 10%
+    });
     IRiskSteward.Config memory riskConfig;
     riskConfig.priceCapConfig.priceCapLst = defaultRiskParamConfig;
     riskConfig.priceCapConfig.priceCapStable = defaultRiskParamConfig;
-    riskConfig.priceCapConfig.discountRatePendle = defaultRiskParamConfig;
+    riskConfig.priceCapConfig.discountRatePendle = pendleRiskParamConfig;
 
     steward = new RiskSteward(
       address(AaveV3Ethereum.POOL),
@@ -70,7 +74,7 @@ contract RiskSteward_Capo_Test is Test {
       assetToUsdAggregator: 0x42bc86f2f08419280a99d8fbEa4672e7c30a86ec, // sUSDe capo
       pendlePrincipalToken: 0xb7de5dFCb74d25c2f21841fbd6230355C50d9308, // sUSDe PT token
       maxDiscountRatePerYear: 1e18, // 100%
-      discountRatePerYear: 0.1e18, // 10%
+      discountRatePerYear: 0.2e18, // 20%
       aclManager: address(AaveV3Ethereum.ACL_MANAGER),
       description: 'sUSDe PT Adapter'
     }));
@@ -563,7 +567,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
-      discountRate: ((currentDiscount * 110) / 100) // +10% relative change
+      discountRate: currentDiscount + 0.1e18 // +10% absolute change
     });
 
     vm.startPrank(riskCouncil);
@@ -582,7 +586,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
-      discountRate: ((currentDiscount * 90) / 100) // -10% relative change
+      discountRate: currentDiscount - 0.1e18 // -10% absolute change
     });
 
     steward.updatePendleDiscountRates(priceCapUpdates);
@@ -603,7 +607,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
-      discountRate: ((currentDiscount * 110) / 100) // +10% relative change
+      discountRate: currentDiscount + 0.1e18 // +10% absolute change
     });
 
     vm.startPrank(riskCouncil);
@@ -611,7 +615,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
-      discountRate: ((currentDiscount * 105) / 100) // +10% relative change
+      discountRate: currentDiscount + 0.1e18 // +10% absolute change
     });
 
     // expect revert as minimum time has not passed for next update
@@ -626,7 +630,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
-      discountRate: ((currentDiscount * 111) / 100) // +11% relative increase
+      discountRate: currentDiscount + 0.11e18 // +11% absolute change
     });
     vm.startPrank(riskCouncil);
 
@@ -636,7 +640,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
-      discountRate: ((currentDiscount * 89) / 100) // -11% relative decrease
+      discountRate: currentDiscount - 0.11e18 // -11% absolute change
     });
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updatePendleDiscountRates(priceCapUpdates);
@@ -682,7 +686,7 @@ contract RiskSteward_Capo_Test is Test {
 
     priceCapUpdates[0] = IRiskSteward.DiscountRatePendleUpdate({
       oracle: address(pendleAdapter),
-      discountRate: ((currentDiscount * 110) / 100) // +10% relative change
+      discountRate: currentDiscount + 0.1e18 // +10% absolute change
     });
     vm.prank(riskCouncil);
     // expect revert as oracle is restricted

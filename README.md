@@ -32,6 +32,7 @@ The following risk params could be changed by the RiskStewards:
 - Optimal point
 
 - Cap parameters for [PriceCapAdapters (CAPO)](https://github.com/bgd-labs/aave-capo/)
+- Discount Rate for Pendle PT CAPO
 
 - EMode Collateral params (LTV, Liquidation Threshold, Liquidation Bonus)
 
@@ -57,6 +58,9 @@ For each risk param, `maxPercentChange` is the maximum percent change allowed (b
 
 - Stable price cap: the `maxPercentChange` is in relative values.
   For example, for a current price cap of an oracle configured at 1_10_000000 and `maxPercentChange` configured at `1_00`, the max price cap that can be configured is 1_11_100000 and the minimum 1_08_900000 via the steward.
+
+- Pendle discount rate CAPO: the `maxPercentChange` is in absolute values.
+  For example, for a current discount rate of an oracle configured at `0.05e18` (5%) and `maxPercentChange` configured at `0.025e18` (2.5%), the max price cap that can be configured is `0.075e18` (7.5%)  and the minimum `0.025e18` (2.5%) via the steward.
 
 After the activation proposal, these params could only be changed by the governance by calling the `setRiskConfig()` method.
 

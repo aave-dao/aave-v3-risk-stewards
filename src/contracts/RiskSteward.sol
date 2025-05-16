@@ -484,7 +484,7 @@ contract RiskSteward is Ownable, IRiskSteward {
           newValue: discountRateUpdate[i].discountRate,
           lastUpdated: _timelocks[oracle].priceCapLastUpdated,
           riskConfig: _riskConfig.priceCapConfig.discountRatePendle,
-          isChangeRelative: true
+          isChangeRelative: false
         })
       );
     }
