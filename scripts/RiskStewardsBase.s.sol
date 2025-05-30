@@ -96,46 +96,7 @@ abstract contract RiskStewardsBase is ProtocolV3TestBase {
     IRiskSteward.PriceCapStableUpdate[] memory stablePriceCapUpdates = stablePriceCapsUpdates();
 
     if (skipTimelock) {
-      // warp to the max timelock
-
-      uint40[] memory timelocks = new uint40[](15);
-      uint256 index = 0; // Track the current index for adding elements
-
-      IRiskSteward.Config memory riskConfig = STEWARD.getRiskConfig();
-      if (capUpdates.length != 0) {
-        timelocks[index++] = riskConfig.capConfig.supplyCap.minDelay;
-        timelocks[index++] = riskConfig.capConfig.borrowCap.minDelay;
-      }
-      if (collateralUpdates.length != 0) {
-        timelocks[index++] = riskConfig.collateralConfig.ltv.minDelay;
-        timelocks[index++] = riskConfig.collateralConfig.liquidationThreshold.minDelay;
-        timelocks[index++] = riskConfig.collateralConfig.liquidationBonus.minDelay;
-        timelocks[index++] = riskConfig.collateralConfig.debtCeiling.minDelay;
-      }
-      if (eModeUpdates.length != 0) {
-        timelocks[index++] = riskConfig.eModeConfig.ltv.minDelay;
-        timelocks[index++] = riskConfig.eModeConfig.liquidationThreshold.minDelay;
-        timelocks[index++] = riskConfig.eModeConfig.liquidationBonus.minDelay;
-      }
-      if (rateUpdates.length != 0) {
-        timelocks[index++] = riskConfig.rateConfig.baseVariableBorrowRate.minDelay;
-        timelocks[index++] = riskConfig.rateConfig.optimalUsageRatio.minDelay;
-        timelocks[index++] = riskConfig.rateConfig.variableRateSlope1.minDelay;
-        timelocks[index++] = riskConfig.rateConfig.variableRateSlope2.minDelay;
-      }
-      if (lstPriceCapUpdates.length != 0) {
-        timelocks[index++] = riskConfig.priceCapConfig.priceCapLst.minDelay;
-      }
-      if (stablePriceCapUpdates.length != 0) {
-        timelocks[index++] = riskConfig.priceCapConfig.priceCapStable.minDelay;
-      }
-      uint40 maxTimelock = 0;
-      for (uint256 i = 0; i < timelocks.length; i++) {
-        if (timelocks[i] > maxTimelock) {
-          maxTimelock = timelocks[i];
-        }
-      }
-      vm.warp(block.timestamp + uint256(maxTimelock) + 1);
+      vm.warp(block.timestamp + 15 days);
     }
 
     if (generateDiffReport) createConfigurationSnapshot(pre, POOL, true, true, false, false);
