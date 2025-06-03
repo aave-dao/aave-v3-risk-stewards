@@ -161,17 +161,18 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.MarketAdded(marketToAdd);
 
+    address[] memory prevMarkets = _stewardInjector.getMarkets();
+
     vm.prank(_stewardsInjectorOwner);
     _stewardInjector.addMarkets(markets);
 
     address[] memory newMarkets = _stewardInjector.getMarkets();
-    assertEq(newMarkets.length, 2);
-    assertEq(marketToAdd, newMarkets[1]);
+    assertEq(newMarkets.length, prevMarkets.length + 1);
+    assertEq(marketToAdd, newMarkets[prevMarkets.length]);
   }
 
   function test_removeMarkets() public {
     address[] memory markets = _stewardInjector.getMarkets();
-    assertEq(markets.length, 1);
 
     vm.prank(address(1));
     vm.expectRevert(
