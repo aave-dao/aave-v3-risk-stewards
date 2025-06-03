@@ -22,12 +22,14 @@ contract RiskSteward_Capo_Test is Test {
   address public constant riskCouncil = address(42);
   PendlePriceCapAdapter public pendleAdapter;
   RiskSteward public steward;
+  IRiskSteward.Config public riskConfig;
+
   uint104 currentRatio;
   uint48 delay;
 
   event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
 
-  function setUp() public {
+  function setUp() public virtual {
     vm.createSelectFork(vm.rpcUrl('mainnet'), 22144636);
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
@@ -38,7 +40,7 @@ contract RiskSteward_Capo_Test is Test {
       minDelay: 5 days,
       maxPercentChange: 0.1e18 // 10%
     });
-    IRiskSteward.Config memory riskConfig;
+
     riskConfig.priceCapConfig.priceCapLst = defaultRiskParamConfig;
     riskConfig.priceCapConfig.priceCapStable = defaultRiskParamConfig;
     riskConfig.priceCapConfig.discountRatePendle = pendleRiskParamConfig;
@@ -82,7 +84,7 @@ contract RiskSteward_Capo_Test is Test {
 
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
 
-  function test_updateLstPriceCap() public {
+  function test_updateLstPriceCap() public virtual {
     uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getMaxYearlyGrowthRatePercent();
 
@@ -153,7 +155,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateLstPriceCaps_debounceNotRespected() public {
+  function test_updateLstPriceCaps_debounceNotRespected() public virtual {
     uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getMaxYearlyGrowthRatePercent();
 
@@ -188,7 +190,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateLstPriceCap_invalidRatio() public {
+  function test_updateLstPriceCap_invalidRatio() public virtual {
     uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getMaxYearlyGrowthRatePercent();
 
@@ -212,7 +214,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateLstPriceCap_outOfRange() public {
+  function test_updateLstPriceCap_outOfRange() public virtual {
     uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getMaxYearlyGrowthRatePercent();
 
@@ -236,7 +238,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateLstPriceCap_isCapped() public {
+  function test_updateLstPriceCap_isCapped() public virtual {
     uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getMaxYearlyGrowthRatePercent();
 
@@ -260,7 +262,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateLstPriceCap_toValueZeroNotAllowed() public {
+  function test_updateLstPriceCap_toValueZeroNotAllowed() public virtual {
     uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getMaxYearlyGrowthRatePercent();
 
@@ -310,7 +312,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateLstPriceCap_oracleRestricted() public {
+  function test_updateLstPriceCap_oracleRestricted() public virtual {
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward.setAddressRestricted(AaveV3EthereumAssets.wstETH_ORACLE, true);
     vm.stopPrank();
@@ -335,7 +337,7 @@ contract RiskSteward_Capo_Test is Test {
     steward.updateLstPriceCaps(priceCapUpdates);
   }
 
-  function test_updateLstPriceCap_noSameUpdate() public {
+  function test_updateLstPriceCap_noSameUpdate() public virtual {
     uint256 maxYearlyGrowthPercentBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
       .getMaxYearlyGrowthRatePercent();
     uint256 snapshotTsBefore = IPriceCapAdapter(AaveV3EthereumAssets.wstETH_ORACLE)
@@ -375,7 +377,7 @@ contract RiskSteward_Capo_Test is Test {
 
   /* ----------------------------- Stable Price Cap Tests ----------------------------- */
 
-  function test_updateStablePriceCap() public {
+  function test_updateStablePriceCap() public virtual {
     uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
       .getPriceCap()
       .toUint256();
@@ -422,7 +424,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateStablePriceCap_debounceNotRespected() public {
+  function test_updateStablePriceCap_debounceNotRespected() public virtual {
     uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
       .getPriceCap()
       .toUint256();
@@ -450,7 +452,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateStablePriceCap_outOfRange() public {
+  function test_updateStablePriceCap_outOfRange() public virtual {
     uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
       .getPriceCap()
       .toUint256();
@@ -472,7 +474,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateStablePriceCap_keepCurrent_revert() public {
+  function test_updateStablePriceCap_keepCurrent_revert() public virtual {
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
@@ -490,7 +492,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateStablePriceCap_toValueZeroNotAllowed() public {
+  function test_updateStablePriceCap_toValueZeroNotAllowed() public virtual {
     IRiskSteward.PriceCapStableUpdate[]
       memory priceCapUpdates = new IRiskSteward.PriceCapStableUpdate[](1);
 
@@ -508,7 +510,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateStablePriceCap_oracleRestricted() public {
+  function test_updateStablePriceCap_oracleRestricted() public virtual {
     vm.startPrank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward.setAddressRestricted(AaveV3EthereumAssets.USDT_ORACLE, true);
     vm.stopPrank();
@@ -534,7 +536,7 @@ contract RiskSteward_Capo_Test is Test {
     vm.stopPrank();
   }
 
-  function test_updateStablePriceCap_sameUpdates() public {
+  function test_updateStablePriceCap_sameUpdates() public virtual {
     uint256 priceCapBefore = IPriceCapAdapterStable(AaveV3EthereumAssets.USDT_ORACLE)
       .getPriceCap()
       .toUint256();
