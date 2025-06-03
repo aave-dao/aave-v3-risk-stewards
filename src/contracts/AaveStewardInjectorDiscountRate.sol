@@ -16,20 +16,20 @@ contract AaveStewardInjectorDiscountRate is AaveStewardInjectorBase {
   IAaveOracle public immutable AAVE_ORACLE;
 
   /**
+   * @param aaveOracle address of the aave oracle of the instance.
    * @param riskOracle address of the edge risk oracle contract.
    * @param riskSteward address of the risk steward contract.
    * @param markets list of market addresses to allow.
    * @param owner address of the owner of the stewards injector.
    * @param guardian address of the guardian of the stewards injector.
-   * @param aaveOracle address of the aave oracle of the instance.
    */
   constructor(
+    address aaveOracle,
     address riskOracle,
     address riskSteward,
     address[] memory markets,
     address owner,
-    address guardian,
-    address aaveOracle
+    address guardian
   ) AaveStewardInjectorBase(riskOracle, riskSteward, markets, owner, guardian) {
     AAVE_ORACLE = IAaveOracle(aaveOracle);
   }
