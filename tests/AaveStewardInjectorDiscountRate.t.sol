@@ -20,7 +20,7 @@ contract AaveStewardsInjectorDiscountRate_Test is AaveStewardsInjectorBaseTest {
     IRiskSteward.Config memory config;
     config.priceCapConfig.discountRatePendle = IRiskSteward.RiskParamConfig({
       minDelay: 2 days,
-      maxPercentChange: 1_00 * 1e14 // 1% change allowed
+      maxPercentChange: 0.01e18 // 1% change allowed
     });
 
     // setup risk oracle
