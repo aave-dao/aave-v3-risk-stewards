@@ -10,93 +10,57 @@ import {EdgeRiskStewardEMode, IRiskSteward} from '../../src/contracts/EdgeRiskSt
 import {AaveStewardInjectorEMode} from '../../src/contracts/AaveStewardInjectorEMode.sol';
 
 library DeployStewardContracts {
-  function _deployRiskStewards(
-    address pool,
-    address configEngine,
-    address riskCouncil,
-    address governance
-  ) internal returns (address) {
+  struct DeployStewardInput {
+    address pool;
+    address configEngine;
+    address riskCouncil;
+    address governance;
+  }
+
+  struct DeployInjectorInput {
+    address create3Factory;
+    bytes32 salt;
+    address riskSteward;
+    address edgeRiskOracle;
+    address owner;
+    address guardian;
+    uint8[] whitelistedEModes;
+  }
+
+  function _deployRiskStewards(DeployStewardInput memory input) internal returns (address) {
     address riskSteward = address(
-      new EdgeRiskStewardEMode(pool, configEngine, riskCouncil, governance, _getRiskConfig())
+      new EdgeRiskStewardEMode(input.pool, input.configEngine, input.riskCouncil, input.governance, _getRiskConfig())
     );
     return riskSteward;
   }
 
-  function _deployEModeStewardInjector(
-    address create3Factory,
-    bytes32 salt,
-    address riskSteward,
-    address edgeRiskOracle,
-    address owner,
-    address guardian,
-    uint8[] memory whitelistedEModes
-  ) internal returns (address) {
-    address[] memory whitelistedMarkets = new address[](whitelistedEModes.length);
-    for (uint256 i = 0; i < whitelistedEModes.length; i++) {
-      whitelistedMarkets[i] = address(uint160(whitelistedEModes[i]));
+  function _deployEModeStewardInjector(DeployInjectorInput memory input) internal returns (address) {
+    address[] memory whitelistedMarkets = new address[](input.whitelistedEModes.length);
+    for (uint256 i = 0; i < input.whitelistedEModes.length; i++) {
+      whitelistedMarkets[i] = address(uint160(input.whitelistedEModes[i]));
     }
 
-    address stewardInjector = ICreate3Factory(create3Factory).create(
-      salt,
+    address stewardInjector = ICreate3Factory(input.create3Factory).create(
+      input.salt,
       abi.encodePacked(
         type(AaveStewardInjectorEMode).creationCode,
-        abi.encode(edgeRiskOracle, riskSteward, whitelistedMarkets, owner, guardian)
+        abi.encode(input.edgeRiskOracle, input.riskSteward, whitelistedMarkets, input.owner, input.guardian)
       )
     );
     return stewardInjector;
   }
 
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
-    return
-      IRiskSteward.Config({
-        collateralConfig: IRiskSteward.CollateralConfig({
-          ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-          liquidationThreshold: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 50
-          }),
-          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-          debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00})
-        }),
-        eModeConfig: IRiskSteward.EmodeConfig({
-          ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-          liquidationThreshold: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 50
-          }),
-          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
-        }),
-        rateConfig: IRiskSteward.RateConfig({
-          baseVariableBorrowRate: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 1_00
-          }),
-          variableRateSlope1: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 1_00
-          }),
-          variableRateSlope2: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 20_00
-          }),
-          optimalUsageRatio: IRiskSteward.RiskParamConfig({
-            minDelay: 3 days,
-            maxPercentChange: 3_00
-          })
-        }),
-        capConfig: IRiskSteward.CapConfig({
-          supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00}),
-          borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00})
-        }),
-        priceCapConfig: IRiskSteward.PriceCapConfig({
-          priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
-          priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
-          discountRatePendle: IRiskSteward.RiskParamConfig({
-            minDelay: 2 days,
-            maxPercentChange: 5_00
-          })
-        })
-      });
+    IRiskSteward.Config memory config;
+    config.eModeConfig = IRiskSteward.EmodeConfig({
+      ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+      liquidationThreshold: IRiskSteward.RiskParamConfig({
+        minDelay: 3 days,
+        maxPercentChange: 50
+      }),
+      liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
+    });
+    return config;
   }
 }
 
@@ -112,23 +76,27 @@ contract DeployEthereum is EthereumScript {
       .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
-      address(AaveV3Ethereum.POOL),
-      AaveV3Ethereum.CONFIG_ENGINE,
-      predictedStewardsInjector,
-      GovernanceV3Ethereum.EXECUTOR_LVL_1
+      DeployStewardContracts.DeployStewardInput({
+        pool: address(AaveV3Ethereum.POOL),
+        configEngine: AaveV3Ethereum.CONFIG_ENGINE,
+        riskCouncil: predictedStewardsInjector,
+        governance: GovernanceV3Ethereum.EXECUTOR_LVL_1
+      })
     );
 
     uint8[] memory whitelistedEModes = new uint8[](1);
     whitelistedEModes[0] = 8;
 
     DeployStewardContracts._deployEModeStewardInjector(
-      MiscEthereum.CREATE_3_FACTORY,
-      salt,
-      riskSteward,
-      EDGE_RISK_ORACLE,
-      GovernanceV3Ethereum.EXECUTOR_LVL_1,
-      GUARDIAN,
-      whitelistedEModes
+      DeployStewardContracts.DeployInjectorInput({
+        create3Factory: MiscEthereum.CREATE_3_FACTORY,
+        salt: salt,
+        riskSteward: riskSteward,
+        edgeRiskOracle: EDGE_RISK_ORACLE,
+        owner: GovernanceV3Ethereum.EXECUTOR_LVL_1,
+        guardian: GUARDIAN,
+        whitelistedEModes: whitelistedEModes
+      })
     );
     vm.stopBroadcast();
   }
