@@ -10,33 +10,41 @@ import {EdgeRiskStewardDiscountRate, IRiskSteward} from '../../src/contracts/Edg
 import {AaveStewardInjectorDiscountRate} from '../../src/contracts/AaveStewardInjectorDiscountRate.sol';
 
 library DeployStewardContracts {
+  struct DeployStewardInput {
+    address pool;
+    address configEngine;
+    address riskCouncil;
+    address governance;
+  }
+
+  struct DeployInjectorInput {
+    address create3Factory;
+    bytes32 salt;
+    address riskSteward;
+    address aaveOracle;
+    address edgeRiskOracle;
+    address owner;
+    address guardian;
+    address[] whitelistedMarkets;
+  }
+
   function _deployRiskStewards(
-    address pool,
-    address configEngine,
-    address riskCouncil,
-    address governance
+    DeployStewardInput memory input
   ) internal returns (address) {
     address riskSteward = address(
-      new EdgeRiskStewardDiscountRate(pool, configEngine, riskCouncil, governance, _getRiskConfig())
+      new EdgeRiskStewardDiscountRate(input.pool, input.configEngine, input.riskCouncil, input.governance, _getRiskConfig())
     );
     return riskSteward;
   }
 
   function _deployDiscountRateStewardInjector(
-    address create3Factory,
-    bytes32 salt,
-    address riskSteward,
-    address aaveOracle,
-    address edgeRiskOracle,
-    address owner,
-    address guardian,
-    address[] memory whitelistedMarkets
+    DeployInjectorInput memory input
   ) internal returns (address) {
-    address stewardInjector = ICreate3Factory(create3Factory).create(
-      salt,
+    address stewardInjector = ICreate3Factory(input.create3Factory).create(
+      input.salt,
       abi.encodePacked(
         type(AaveStewardInjectorDiscountRate).creationCode,
-        abi.encode(aaveOracle, edgeRiskOracle, riskSteward, whitelistedMarkets, owner, guardian)
+        abi.encode(input.aaveOracle, input.edgeRiskOracle, input.riskSteward, input.whitelistedMarkets, input.owner, input.guardian)
       )
     );
     return stewardInjector;
@@ -65,10 +73,12 @@ contract DeployEthereum is EthereumScript {
       .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
-      address(AaveV3Ethereum.POOL),
-      AaveV3Ethereum.CONFIG_ENGINE,
-      predictedStewardsInjector,
-      GovernanceV3Ethereum.EXECUTOR_LVL_1
+      DeployStewardContracts.DeployStewardInput({
+        pool: address(AaveV3Ethereum.POOL),
+        configEngine: AaveV3Ethereum.CONFIG_ENGINE,
+        riskCouncil: predictedStewardsInjector,
+        governance: GovernanceV3Ethereum.EXECUTOR_LVL_1
+      })
     );
 
     address[] memory whitelistedPendleAssets = new address[](3);
@@ -77,14 +87,16 @@ contract DeployEthereum is EthereumScript {
     whitelistedPendleAssets[2] = AaveV3EthereumAssets.PT_eUSDE_14AUG2025_UNDERLYING;
 
     DeployStewardContracts._deployDiscountRateStewardInjector(
-      MiscEthereum.CREATE_3_FACTORY,
-      salt,
-      riskSteward,
-      address(AaveV3Ethereum.ORACLE),
-      EDGE_RISK_ORACLE,
-      GovernanceV3Ethereum.EXECUTOR_LVL_1,
-      GUARDIAN,
-      whitelistedPendleAssets
+      DeployStewardContracts.DeployInjectorInput({
+        create3Factory: MiscEthereum.CREATE_3_FACTORY,
+        salt: salt,
+        riskSteward: riskSteward,
+        aaveOracle: address(AaveV3Ethereum.ORACLE),
+        edgeRiskOracle: EDGE_RISK_ORACLE,
+        owner: GovernanceV3Ethereum.EXECUTOR_LVL_1,
+        guardian: GUARDIAN,
+        whitelistedMarkets: whitelistedPendleAssets
+      })
     );
     vm.stopBroadcast();
   }
