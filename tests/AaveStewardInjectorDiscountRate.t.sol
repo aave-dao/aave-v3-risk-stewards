@@ -19,7 +19,7 @@ contract AaveStewardsInjectorDiscountRate_Test is AaveStewardsInjectorBaseTest {
 
     IRiskSteward.Config memory config;
     config.priceCapConfig.discountRatePendle = IRiskSteward.RiskParamConfig({
-      minDelay: 1 days,
+      minDelay: 2 days,
       maxPercentChange: 1_00 * 1e14 // 1% change allowed
     });
 
@@ -179,7 +179,7 @@ contract AaveStewardsInjectorDiscountRate_Test is AaveStewardsInjectorBaseTest {
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(21_00), // 21% discountRate in BPS
+      _encode(0.21e18), // 21% discountRate
       updateType,
       market,
       'additionalData'
@@ -195,7 +195,7 @@ contract AaveStewardsInjectorDiscountRate_Test is AaveStewardsInjectorBaseTest {
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(21_00), // 21% discountRate in BPS
+      _encode(0.21e18), // 21% discountRate
       updateType,
       market,
       'additionalData'
@@ -212,7 +212,7 @@ contract AaveStewardsInjectorDiscountRate_Test is AaveStewardsInjectorBaseTest {
 
     _riskOracle.publishRiskParameterUpdate(
       'referenceId',
-      _encode(21_00), // 21% discountRate in BPS
+      _encode(0.21e18), // 21% discountRate
       updateType,
       market,
       'additionalData'
@@ -228,7 +228,7 @@ contract AaveStewardsInjectorDiscountRate_Test is AaveStewardsInjectorBaseTest {
       address market = address(i);
       _riskOracle.publishRiskParameterUpdate(
         'referenceId',
-        _encode(21_00),
+        _encode(0.21e18),
         _updateType,
         market,
         'additionalData'

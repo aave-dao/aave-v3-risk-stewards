@@ -42,12 +42,10 @@ contract AaveStewardInjectorDiscountRate is AaveStewardInjectorBase {
 
   /// @inheritdoc AaveStewardInjectorBase
   function _injectUpdate(IRiskOracle.RiskParameterUpdate memory riskParams) internal override {
-    // we get discountRate in BPS from RiskOracle, so we multiply by 1e14 to convert in the format of DiscountRateOracle
-    // as 100% discountRate on the DiscountRateOracle is 1e18
     uint256 discountRate = abi.decode(
       abi.encodePacked(new bytes(32 - riskParams.newValue.length), riskParams.newValue),
       (uint256)
-    ) * 1e14;
+    );
 
     IRiskSteward.DiscountRatePendleUpdate[] memory discountRateUpdate = new IRiskSteward.DiscountRatePendleUpdate[](1);
     discountRateUpdate[0] = IRiskSteward.DiscountRatePendleUpdate({
