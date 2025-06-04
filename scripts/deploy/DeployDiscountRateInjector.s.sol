@@ -14,7 +14,7 @@ library DeployStewardContracts {
     address pool;
     address configEngine;
     address riskCouncil;
-    address governance;
+    address owner;
   }
 
   struct DeployInjectorInput {
@@ -32,7 +32,7 @@ library DeployStewardContracts {
     DeployStewardInput memory input
   ) internal returns (address) {
     address riskSteward = address(
-      new EdgeRiskStewardDiscountRate(input.pool, input.configEngine, input.riskCouncil, input.governance, _getRiskConfig())
+      new EdgeRiskStewardDiscountRate(input.pool, input.configEngine, input.riskCouncil, input.owner, _getRiskConfig())
     );
     return riskSteward;
   }
@@ -77,7 +77,7 @@ contract DeployEthereum is EthereumScript {
         pool: address(AaveV3Ethereum.POOL),
         configEngine: AaveV3Ethereum.CONFIG_ENGINE,
         riskCouncil: predictedStewardsInjector,
-        governance: GovernanceV3Ethereum.EXECUTOR_LVL_1
+        owner: GovernanceV3Ethereum.EXECUTOR_LVL_1
       })
     );
 
