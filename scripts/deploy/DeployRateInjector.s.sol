@@ -10,56 +10,76 @@ import {EdgeRiskStewardRates, IRiskSteward} from '../../src/contracts/EdgeRiskSt
 import {AaveStewardInjectorRates} from '../../src/contracts/AaveStewardInjectorRates.sol';
 
 library DeployStewardContracts {
-  struct DeployStewardInput {
-    address pool;
-    address configEngine;
-    address riskCouncil;
-    address governance;
-  }
-
-  struct DeployInjectorInput {
-    address create3Factory;
-    bytes32 salt;
-    address riskSteward;
-    address edgeRiskOracle;
-    address owner;
-    address guardian;
-    address[] whitelistedMarkets;
-  }
-
-  function _deployRiskStewards(DeployStewardInput memory input) internal returns (address) {
+  function _deployRiskStewards(
+    address pool,
+    address configEngine,
+    address riskCouncil,
+    address governance
+  ) internal returns (address) {
     address riskSteward = address(
       new EdgeRiskStewardRates(
-        input.pool,
-        input.configEngine,
-        input.riskCouncil,
-        input.governance,
+        pool,
+        configEngine,
+        riskCouncil,
+        governance,
         _getRiskConfig()
       )
     );
     return riskSteward;
   }
 
-  function _deployRatesStewardInjector(DeployInjectorInput memory input) internal returns (address) {
-    address stewardInjector = ICreate3Factory(input.create3Factory).create(
-      input.salt,
+  function _deployRatesStewardInjector(
+    address create3Factory,
+    bytes32 salt,
+    address riskSteward,
+    address edgeRiskOracle,
+    address owner,
+    address guardian,
+    address whitelistedAsset
+  ) internal returns (address) {
+    address[] memory markets = new address[](1);
+    markets[0] = whitelistedAsset;
+
+    address stewardInjector = ICreate3Factory(create3Factory).create(
+      salt,
       abi.encodePacked(
         type(AaveStewardInjectorRates).creationCode,
-        abi.encode(input.edgeRiskOracle, input.riskSteward, input.whitelistedMarkets, input.owner, input.guardian)
+        abi.encode(edgeRiskOracle, riskSteward, markets, owner, guardian)
       )
     );
     return stewardInjector;
   }
 
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
-    IRiskSteward.Config memory config;
-    config.rateConfig = IRiskSteward.RateConfig({
-      baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
-      variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 1_00}),
-      variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00}),
-      optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 3_00})
-    });
-    return config;
+    return
+      IRiskSteward.Config({
+        collateralConfig: IRiskSteward.CollateralConfig({
+          ltv: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 20_00})
+        }),
+        eModeConfig: IRiskSteward.EmodeConfig({
+          ltv: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50})
+        }),
+        rateConfig: IRiskSteward.RateConfig({
+          baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 1_00}),
+          variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00}),
+          optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 3_00})
+        }),
+        capConfig: IRiskSteward.CapConfig({
+          supplyCap: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 100_00}),
+          borrowCap: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 100_00})
+        }),
+        priceCapConfig: IRiskSteward.PriceCapConfig({
+          priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00}),
+          priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
+          discountRatePendle: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 5_00})
+        })
+      });
   }
 }
 
@@ -75,27 +95,20 @@ contract DeployEthereumLido is EthereumScript {
       .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
-      DeployStewardContracts.DeployStewardInput({
-        pool: address(AaveV3EthereumLido.POOL),
-        configEngine: AaveV3EthereumLido.CONFIG_ENGINE,
-        riskCouncil: predictedStewardsInjector,
-        governance: GovernanceV3Ethereum.EXECUTOR_LVL_1
-      })
+      address(AaveV3EthereumLido.POOL),
+      AaveV3EthereumLido.CONFIG_ENGINE,
+      predictedStewardsInjector,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1
     );
 
-    address[] memory whitelistedAssets = new address[](1);
-    whitelistedAssets[0] = AaveV3EthereumLidoAssets.WETH_UNDERLYING;
-
     DeployStewardContracts._deployRatesStewardInjector(
-      DeployStewardContracts.DeployInjectorInput({
-        create3Factory: MiscEthereum.CREATE_3_FACTORY,
-        salt: salt,
-        riskSteward: riskSteward,
-        edgeRiskOracle: EDGE_RISK_ORACLE,
-        owner: GovernanceV3Ethereum.EXECUTOR_LVL_1,
-        guardian: GUARDIAN,
-        whitelistedMarkets: whitelistedAssets
-      })
+      MiscEthereum.CREATE_3_FACTORY,
+      salt,
+      riskSteward,
+      EDGE_RISK_ORACLE,
+      GovernanceV3Ethereum.EXECUTOR_LVL_1,
+      GUARDIAN,
+      AaveV3EthereumLidoAssets.WETH_UNDERLYING
     );
     vm.stopBroadcast();
   }

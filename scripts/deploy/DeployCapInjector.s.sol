@@ -10,60 +10,78 @@ import {EdgeRiskStewardCaps, IRiskSteward} from '../../src/contracts/EdgeRiskSte
 import {AaveStewardInjectorCaps} from '../../src/contracts/AaveStewardInjectorCaps.sol';
 
 library DeployStewardContracts {
-  struct DeployStewardInput {
-    address pool;
-    address configEngine;
-    address riskCouncil;
-    address governance;
-  }
+  address constant EDGE_RISK_ORACLE = 0x861eeAdB55E41f161F31Acb1BFD4c70E3a964Aed;
 
-  struct DeployInjectorInput {
-    address create3Factory;
-    bytes32 salt;
-    address riskSteward;
-    address edgeRiskOracle;
-    address owner;
-    address guardian;
-    address[] whitelistedMarkets;
-  }
-
-  function _deployRiskStewards(DeployStewardInput memory input) internal returns (address) {
+  function _deployRiskStewards(
+    address pool,
+    address configEngine,
+    address riskCouncil,
+    address governance
+  ) internal returns (address) {
     address riskSteward = address(
       new EdgeRiskStewardCaps(
-        input.pool,
-        input.configEngine,
-        input.riskCouncil,
-        input.governance,
+        pool,
+        configEngine,
+        riskCouncil,
+        governance,
         _getRiskConfig()
       )
     );
     return riskSteward;
   }
 
-  function _deployCapsStewardInjector(DeployInjectorInput memory input) internal returns (address) {
-    address stewardInjector = ICreate3Factory(input.create3Factory).create(
-      input.salt,
+  function _deployCapsStewardInjector(
+    bytes32 salt,
+    address riskSteward,
+    address owner,
+    address guardian,
+    address[] memory whitelistedMarkets
+  ) internal returns (address) {
+    address stewardInjector = ICreate3Factory(MiscArbitrum.CREATE_3_FACTORY).create(
+      salt,
       abi.encodePacked(
         type(AaveStewardInjectorCaps).creationCode,
-        abi.encode(input.edgeRiskOracle, input.riskSteward, input.whitelistedMarkets, input.owner, input.guardian)
+        abi.encode(EDGE_RISK_ORACLE, riskSteward, whitelistedMarkets, owner, guardian)
       )
     );
     return stewardInjector;
   }
 
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
-    IRiskSteward.Config memory config;
-    config.capConfig = IRiskSteward.CapConfig({
-      supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00}),
-      borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00})
-    });
-    return config;
+    return
+      IRiskSteward.Config({
+        collateralConfig: IRiskSteward.CollateralConfig({
+          ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00})
+        }),
+        eModeConfig: IRiskSteward.EmodeConfig({
+          ltv: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50})
+        }),
+        rateConfig: IRiskSteward.RateConfig({
+          baseVariableBorrowRate: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 1_00}),
+          variableRateSlope1: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 1_00}),
+          variableRateSlope2: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00}),
+          optimalUsageRatio: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 3_00})
+        }),
+        capConfig: IRiskSteward.CapConfig({
+          supplyCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00}),
+          borrowCap: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 30_00})
+        }),
+        priceCapConfig: IRiskSteward.PriceCapConfig({
+          priceCapLst: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00}),
+          priceCapStable: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 50}),
+          discountRatePendle: IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 5_00})
+        })
+      });
   }
 }
 
 // make deploy-ledger contract=scripts/deploy/DeployCapInjector.s.sol:DeployArbitrum chain=arbitrum
 contract DeployArbitrum is ArbitrumScript {
-  address constant EDGE_RISK_ORACLE = 0x861eeAdB55E41f161F31Acb1BFD4c70E3a964Aed;
   address constant GUARDIAN = 0x87dFb794364f2B117C8dbaE29EA622938b3Ce465;
 
   function run() external {
@@ -73,12 +91,10 @@ contract DeployArbitrum is ArbitrumScript {
       .predictAddress(msg.sender, salt);
 
     address riskSteward = DeployStewardContracts._deployRiskStewards(
-      DeployStewardContracts.DeployStewardInput({
-        pool: address(AaveV3Arbitrum.POOL),
-        configEngine: AaveV3Arbitrum.CONFIG_ENGINE,
-        riskCouncil: predictedStewardsInjector,
-        governance: GovernanceV3Arbitrum.EXECUTOR_LVL_1
-      })
+      address(AaveV3Arbitrum.POOL),
+      AaveV3Arbitrum.CONFIG_ENGINE,
+      predictedStewardsInjector,
+      GovernanceV3Arbitrum.EXECUTOR_LVL_1
     );
 
     address[] memory whitelistedMarkets = new address[](15);
@@ -99,15 +115,11 @@ contract DeployArbitrum is ArbitrumScript {
     whitelistedMarkets[14] = AaveV3ArbitrumAssets.AAVE_A_TOKEN;
 
     DeployStewardContracts._deployCapsStewardInjector(
-      DeployStewardContracts.DeployInjectorInput({
-        create3Factory: MiscArbitrum.CREATE_3_FACTORY,
-        salt: salt,
-        riskSteward: riskSteward,
-        edgeRiskOracle: EDGE_RISK_ORACLE,
-        owner: GovernanceV3Arbitrum.EXECUTOR_LVL_1,
-        guardian: GUARDIAN,
-        whitelistedMarkets: whitelistedMarkets
-      })
+      salt,
+      riskSteward,
+      GovernanceV3Arbitrum.EXECUTOR_LVL_1,
+      GUARDIAN,
+      whitelistedMarkets
     );
     vm.stopBroadcast();
   }
