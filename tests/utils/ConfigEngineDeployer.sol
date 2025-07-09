@@ -43,8 +43,8 @@ library ConfigEngineDeployer {
     return
       address(
         new AaveV3ConfigEngine(
-          AaveV3Ethereum.DEFAULT_A_TOKEN_IMPL_REV_1,
-          AaveV3Ethereum.DEFAULT_VARIABLE_DEBT_TOKEN_IMPL_REV_1,
+          AaveV3Ethereum.DEFAULT_A_TOKEN_IMPL,
+          AaveV3Ethereum.DEFAULT_VARIABLE_DEBT_TOKEN_IMPL,
           engineConstants,
           engineLibraries
         )
