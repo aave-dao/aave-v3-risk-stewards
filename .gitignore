@@ -1,6 +1,8 @@
 # build and cache
 cache/
 out/
+reports/
+zkout/
 
 # general
 .env
@@ -9,8 +11,6 @@ out/
 .idea
 .vscode
 
-# well, looks strange to ignore package-lock, but we have only pretter and it's temproray
-package-lock.json
 node_modules
 
 # ignore foundry deploy artifacts
