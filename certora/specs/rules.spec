@@ -81,7 +81,8 @@ rule updateCaps_validity(env e) {
   require capsUpdate.length <= 2; // The length of the array is either 1 or 2.
                                   // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
+  //  require i==1 || i==2; 
+  require i<capsUpdate.length;
 
   require capsUpdate[i].supplyCap != KEEP_CURRENT;
   require capsUpdate[i].borrowCap != KEEP_CURRENT;
@@ -112,7 +113,8 @@ rule updateRates_validity(env e) {
   require ratesUpdate.length <= 2; // The length of the array is either 1 or 2.
                                   // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
+  //  require i==1 || i==2; 
+  require i<ratesUpdate.length;
   
   require ratesUpdate[i].params.optimalUsageRatio != KEEP_CURRENT;
   require ratesUpdate[i].params.baseVariableBorrowRate != KEEP_CURRENT;
@@ -147,7 +149,8 @@ rule updateCollateralSide_validity(env e) {
   require collateralUpdate.length <= 2; // The length of the array is either 1 or 2.
                                         // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
+  //  require i==1 || i==2; 
+  require i<collateralUpdate.length;
   
   require collateralUpdate[i].ltv != KEEP_CURRENT;
   require collateralUpdate[i].liqThreshold != KEEP_CURRENT;
@@ -185,7 +188,8 @@ rule updateLstPriceCaps_validity(env e) {
   require priceCapUpdates.length <= 2; // The length of the array is either 1 or 2.
                                        // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
+  //  require i==1 || i==2; 
+  require i<priceCapUpdates.length;
   
   updateLstPriceCaps(e,priceCapUpdates);
 
@@ -214,7 +218,8 @@ rule updateStablePriceCaps_validity(env e) {
   require priceCapUpdates.length <= 2; // The length of the array is either 1 or 2.
                                        // Accordingly loop_iter==2
   uint i; // this is the entry of the array that we shall look at
-  require i==1 || i==2; 
+  //  require i==1 || i==2; 
+  require i<priceCapUpdates.length;
   
   
   updateStablePriceCaps(e,priceCapUpdates);
