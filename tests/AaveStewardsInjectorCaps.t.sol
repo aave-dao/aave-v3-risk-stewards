@@ -13,7 +13,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
   address internal _aWETH;
   address internal _aWBTC;
 
-  function setUp() public override {
+  function setUp() public virtual override {
     super.setUp();
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({

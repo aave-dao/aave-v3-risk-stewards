@@ -139,12 +139,12 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
     vm.expectEmit(address(_stewardInjector));
     emit IAaveStewardInjectorBase.ActionSucceeded(1);
 
-    (bool shouldRunKeeper, bytes memory performData) = _stewardInjector.checkUpkeep('');
-    _stewardInjector.performUpkeep(performData);
-    assertTrue(shouldRunKeeper);
+    (, bytes memory performData) = _stewardInjector.checkUpkeep('');
+    bool isAutomationPerformed = _checkAndPerformAutomation();
+    assertTrue(isAutomationPerformed);
 
     vm.expectRevert(IAaveStewardInjectorBase.UpdateCannotBeInjected.selector);
-    _stewardInjector.performUpkeep(performData);
+    _performAutomation(performData);
   }
 
   function test_addMarkets() public {
@@ -236,5 +236,9 @@ abstract contract AaveStewardsInjectorBaseTest is TestnetProcedures {
       _stewardInjector.performUpkeep(performData);
     }
     return shouldRunKeeper;
+  }
+
+  function _performAutomation(bytes memory performData) internal virtual {
+    _stewardInjector.performUpkeep(performData);
   }
 }
