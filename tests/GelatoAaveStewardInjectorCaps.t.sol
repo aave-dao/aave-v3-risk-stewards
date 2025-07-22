@@ -55,8 +55,7 @@ contract GelatoAaveStewardsInjectorCaps_Test is AaveStewardsInjectorCaps_Test {
   function _checkAndPerformAutomation() internal virtual override returns (bool) {
     (bool shouldRunKeeper, bytes memory encodedPerformData) = _stewardInjector.checkUpkeep('');
     if (shouldRunKeeper) {
-      (bool status, ) = address(_stewardInjector).call(encodedPerformData);
-      assertTrue(status, 'Perform Upkeep Failed');
+      address(_stewardInjector).functionCall(encodedPerformData);
     }
     return shouldRunKeeper;
   }
