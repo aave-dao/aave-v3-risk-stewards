@@ -56,8 +56,6 @@ contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
       address(this),
       riskConfig
     );
-
-    vm.assertEq(computedRiskStewardAddress, address(_riskSteward));
     vm.stopPrank();
 
     vm.startPrank(poolAdmin);

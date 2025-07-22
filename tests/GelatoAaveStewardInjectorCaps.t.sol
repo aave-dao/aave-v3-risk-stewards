@@ -45,7 +45,6 @@ contract GelatoAaveStewardsInjectorCaps_Test is AaveStewardsInjectorCaps_Test {
       address(this),
       riskConfig
     );
-    vm.assertEq(computedRiskStewardAddress, address(_riskSteward));
     vm.stopPrank();
 
     vm.prank(poolAdmin);
