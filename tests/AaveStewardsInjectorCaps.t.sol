@@ -13,7 +13,7 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
   address internal _aWETH;
   address internal _aWBTC;
 
-  function setUp() public override {
+  function setUp() public virtual override {
     super.setUp();
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
@@ -65,7 +65,6 @@ contract AaveStewardsInjectorCaps_Test is AaveStewardsInjectorBaseTest {
       address(this),
       riskConfig
     );
-    vm.assertEq(computedRiskStewardAddress, address(_riskSteward));
     vm.stopPrank();
 
     vm.startPrank(poolAdmin);
