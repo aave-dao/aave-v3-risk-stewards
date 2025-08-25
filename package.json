@@ -24,25 +24,25 @@
   "homepage": "https://github.com/bgd-labs/aave-risk-stewards-2#readme",
   "packageManager": "^npm@10.0.0",
   "devDependencies": {
-    "prettier": "2.8.7",
-    "prettier-plugin-solidity": "1.1.3",
-    "vitest": "^2.1.8",
-    "@bgd-labs/aave-address-book": "^4.25.3",
+    "@bgd-labs/aave-address-book": "^4.28.1",
     "@bgd-labs/aave-cli": "^1.3.4",
     "@bgd-labs/js-utils": "^1.4.7",
+    "@ethersproject/hardware-wallets": "^5.7.0",
     "@inquirer/prompts": "^3.3.0",
     "@inquirer/testing": "^2.1.13",
-    "commander": "^12.1.0",
-    "husky": "^8.0.3",
-    "@ethersproject/hardware-wallets": "^5.7.0",
     "@safe-global/safe-core-sdk": "^3.3.3",
     "@safe-global/safe-ethers-lib": "^1.9.3",
     "@safe-global/safe-service-client": "^2.0.1",
+    "commander": "^12.1.0",
     "dotenv": "^16.0.3",
     "ethers": "5.7.2",
+    "husky": "^8.0.3",
+    "prettier": "2.8.7",
+    "prettier-plugin-solidity": "1.1.3",
     "ts-node": "^10.9.1",
     "tsx": "^4.16.3",
+    "typescript": "^5.0.4",
     "viem": "^2.23.6",
-    "typescript": "^5.0.4"
+    "vitest": "^2.1.8"
   }
 }
