@@ -22,7 +22,7 @@ contract RiskSteward_Test is Test {
   IRiskSteward.Config public riskConfig;
 
   function setUp() public virtual {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 22881203);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 23324505);
 
     riskConfig = DeployRiskStewards._getRiskConfig();
 

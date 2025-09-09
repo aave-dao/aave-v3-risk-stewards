@@ -1,0 +1,11 @@
+{
+  "lib/aave-capo": {
+    "rev": "ba51d1a668035a90ff8b9e90f54d3bdddc0dbdfb"
+  },
+  "lib/aave-helpers": {
+    "branch": {
+      "name": "main",
+      "rev": "0e4b0ebef286cdd5bd85b99523cfa3e29245a2b2"
+    }
+  }
+}
