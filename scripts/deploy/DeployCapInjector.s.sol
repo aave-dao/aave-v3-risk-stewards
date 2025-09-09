@@ -208,7 +208,7 @@ contract DeployPolygon is PolygonScript {
     address[] memory whitelistedMarkets = new address[](10);
     whitelistedMarkets[0] = AaveV3PolygonAssets.WETH_A_TOKEN;
     whitelistedMarkets[1] = AaveV3PolygonAssets.USDC_A_TOKEN;
-    whitelistedMarkets[2] = AaveV3PolygonAssets.USDT_A_TOKEN;
+    whitelistedMarkets[2] = AaveV3PolygonAssets.USDT0_A_TOKEN;
     whitelistedMarkets[3] = AaveV3PolygonAssets.WBTC_A_TOKEN;
     whitelistedMarkets[4] = AaveV3PolygonAssets.DAI_A_TOKEN;
     whitelistedMarkets[5] = AaveV3PolygonAssets.USDCn_A_TOKEN;
