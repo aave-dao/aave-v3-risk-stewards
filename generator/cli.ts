@@ -3,14 +3,7 @@ import path from 'path';
 import {Command, Option} from 'commander';
 import {CHAIN_TO_CHAIN_ID, getDate, getPoolChain, pascalCase} from './common';
 import {input, checkbox} from '@inquirer/prompts';
-import {
-  ConfigFile,
-  Options,
-  POOLS,
-  PoolCache,
-  PoolConfigs,
-  PoolIdentifier,
-} from './types';
+import {ConfigFile, Options, POOLS, PoolCache, PoolConfigs, PoolIdentifier} from './types';
 import {capsUpdates} from './features/capsUpdates';
 import {rateUpdatesV3} from './features/rateUpdates';
 import {collateralsUpdates} from './features/collateralsUpdates';
@@ -18,7 +11,7 @@ import {eModeUpdates} from './features/eModeUpdates';
 import {lstPriceCapsUpdates} from './features/lstPriceCapsUpdates';
 import {stablePriceCapsUpdates} from './features/stablePriceCapsUpdates';
 import {generateFiles, writeFiles} from './generator';
-import {getClient} from '@bgd-labs/rpc-env';
+import {getClient} from '@bgd-labs/toolbox';
 import {getBlockNumber} from 'viem/actions';
 
 const program = new Command();
@@ -45,7 +38,7 @@ const FEATURE_MODULES_V3 = [
   collateralsUpdates,
   lstPriceCapsUpdates,
   stablePriceCapsUpdates,
-  eModeUpdates
+  eModeUpdates,
 ];
 
 async function generateDeterministicPoolCache(pool: PoolIdentifier): Promise<PoolCache> {
