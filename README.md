@@ -106,7 +106,7 @@ The `AaveStewardsInjector` contract also introduces an `EXPIRATION_PERIOD` to di
 
 ```sh
 cp .env.example .env
-npm install
+pnpm install
 forge install
 ```
 
@@ -124,12 +124,12 @@ forge test
 
 ### How to I use the generator tooling to bootstrap the update?
 
-Run `npm run generate` on your terminal in order to start the generator. The generator is a CLI tool which will generate the required helper contract which can be then run to submit updates to the risk steward. The generator will generate the helper contract in the `src/contracts/updates` directory.
+Run `pnpm run generate` on your terminal in order to start the generator. The generator is a CLI tool which will generate the required helper contract which can be then run to submit updates to the risk steward. The generator will generate the helper contract in the `src/contracts/updates` directory.
 
-To get a full list of available commands run `npm run generate --help`
+To get a full list of available commands run `pnpm run generate --help`
 
 ```sh
-npm run generate --help
+pnpm run generate --help
 $ tsx generator/cli --help
 Usage: proposal-generator [options]
 
@@ -148,10 +148,10 @@ Options:
   -h, --help                 display help for command
 ```
 
-Running `npm run generate` you should be able to do the risk updates:
+Running `pnpm run generate` you should be able to do the risk updates:
 
 ```bash
-npm run generate
+pnpm run generate
 
 $ tsx generator/cli
 ? Chains this proposal targets AaveV3Ethereum
