@@ -56,6 +56,8 @@ zksync = "${RPC_ZKSYNC}"
 linea = "${RPC_LINEA}"
 sonic = "${RPC_SONIC}"
 celo = "${RPC_CELO}"
+soneium = "${RPC_SONEIUM}"
+plasma = "${RPC_PLASMA}"
 
 [etherscan]
 mainnet = { key="${ETHERSCAN_API_KEY_MAINNET}", chainId=1 }
@@ -74,5 +76,7 @@ zksync = { key="${ETHERSCAN_API_KEY_ZKSYNC}", chainId= 324 }
 linea = { key="${ETHERSCAN_API_KEY_LINEA}", chain = 59144 }
 sonic = { key="${ETHERSCAN_API_KEY_SONIC}", chain = 146 }
 celo = { key="${ETHERSCAN_API_KEY_CELO}", chain = 42220 }
+soneium = { key="any", chainId=1868, url='https://soneium.blockscout.com/api' }
+plasma = { key="any", chainId=9745 }
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config

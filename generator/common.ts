@@ -15,6 +15,8 @@ import {
   linea,
   sonic,
   celo,
+  soneium,
+  plasma,
 } from 'viem/chains';
 
 export const AVAILABLE_CHAINS = [
@@ -34,6 +36,8 @@ export const AVAILABLE_CHAINS = [
   'Linea',
   'Sonic',
   'Celo',
+  'Soneium',
+  'Plasma',
 ] as const;
 
 export function getAssets(pool: PoolIdentifier): string[] {
@@ -123,6 +127,8 @@ export const CHAIN_TO_CHAIN_ID = {
   Linea: linea.id,
   Sonic: sonic.id,
   Celo: celo.id,
+  Soneium: soneium.id,
+  Plasma: plasma.id,
 };
 
 export function flagAsRequired(message: string, required?: boolean) {

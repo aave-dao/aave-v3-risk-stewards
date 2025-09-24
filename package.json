@@ -4,7 +4,7 @@
   "scripts": {
     "test": "vitest generator",
     "lint": "prettier ./",
-    "lint:fix": "npm run lint -- --write",
+    "lint:fix": "pnpm run lint -- --write",
     "generate": "tsx generator/cli"
   },
   "repository": {
@@ -14,6 +14,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "packageManager": "pnpm@10.5.2",
   "type": "module",
   "keywords": [],
   "author": "BGD labs",
@@ -22,27 +23,28 @@
     "url": "https://github.com/bgd-labs/aave-v3-risk-stewards/issues"
   },
   "homepage": "https://github.com/bgd-labs/aave-v3-risk-stewards#readme",
-  "packageManager": "^npm@10.0.0",
   "devDependencies": {
-    "prettier": "2.8.7",
-    "prettier-plugin-solidity": "1.1.3",
-    "vitest": "^2.1.8",
-    "@bgd-labs/aave-address-book": "^4.29.0",
-    "@bgd-labs/aave-cli": "^1.3.4",
+    "@bgd-labs/aave-address-book": "^4.30.3",
     "@bgd-labs/js-utils": "^1.4.7",
-    "@inquirer/prompts": "^3.3.0",
-    "@inquirer/testing": "^2.1.13",
-    "commander": "^12.1.0",
-    "husky": "^8.0.3",
+    "@bgd-labs/toolbox": "^0.0.45",
     "@ethersproject/hardware-wallets": "^5.7.0",
+    "@inquirer/core": "^10.2.2",
+    "@inquirer/prompts": "^7.8.6",
+    "@inquirer/testing": "^2.1.13",
     "@safe-global/safe-core-sdk": "^3.3.3",
-    "@safe-global/safe-ethers-lib": "^1.9.3",
+    "@safe-global/safe-ethers-lib": "^1.7.0",
     "@safe-global/safe-service-client": "^2.0.1",
+    "chalk": "^5.6.2",
+    "commander": "^12.1.0",
     "dotenv": "^16.0.3",
-    "ethers": "5.7.2",
+    "ethers": "^5.8.0",
+    "husky": "^8.0.3",
+    "prettier": "^3.5.2",
+    "prettier-plugin-solidity": "^1.1.3",
     "ts-node": "^10.9.1",
     "tsx": "^4.16.3",
-    "viem": "^2.23.6",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "viem": "^2.37.6",
+    "vitest": "^3.2.4"
   }
 }

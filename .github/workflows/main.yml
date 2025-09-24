@@ -10,6 +10,8 @@ on:
 jobs:
   test-solidity:
     uses: bgd-labs/github-workflows/.github/workflows/foundry-test.yml@main
+    with:
+      compareLcov: false
     secrets: inherit
   test-js:
     uses: bgd-labs/github-workflows/.github/workflows/test-node.yml@main
