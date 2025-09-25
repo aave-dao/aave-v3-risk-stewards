@@ -77,6 +77,6 @@ linea = { key="${ETHERSCAN_API_KEY_LINEA}", chain = 59144 }
 sonic = { key="${ETHERSCAN_API_KEY_SONIC}", chain = 146 }
 celo = { key="${ETHERSCAN_API_KEY_CELO}", chain = 42220 }
 soneium = { key="any", chainId=1868, url='https://soneium.blockscout.com/api' }
-plasma = { key="any", chainId=9745 }
+plasma = { key="any", chainId=9745, url='https://api.routescan.io/v2/network/mainnet/evm/9745/etherscan/api' }
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config
