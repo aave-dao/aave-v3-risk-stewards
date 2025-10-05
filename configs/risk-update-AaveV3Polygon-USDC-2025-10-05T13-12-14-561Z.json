@@ -1,0 +1,9 @@
+{
+  "pool": "AaveV3Polygon",
+  "riskUpdate": "CapsUpdates",
+  "asset": "USDC",
+  "parameters": {
+    "supplyCap": 1,
+    "borrowCap": 1
+  }
+}
