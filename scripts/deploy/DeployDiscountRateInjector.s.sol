@@ -5,6 +5,8 @@ import 'solidity-utils/contracts/utils/ScriptUtils.sol';
 import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
 import {AaveV3Ethereum, AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
+import {AaveV3Plasma} from 'aave-address-book/AaveV3Plasma.sol';
+import {GovernanceV3Plasma} from 'aave-address-book/GovernanceV3Plasma.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {EdgeRiskStewardDiscountRate, IRiskSteward} from '../../src/contracts/EdgeRiskStewardDiscountRate.sol';
 import {AaveStewardInjectorDiscountRate} from '../../src/contracts/AaveStewardInjectorDiscountRate.sol';
@@ -96,6 +98,43 @@ contract DeployEthereum is EthereumScript {
         owner: GovernanceV3Ethereum.EXECUTOR_LVL_1,
         guardian: GUARDIAN,
         whitelistedMarkets: whitelistedPendleAssets
+      })
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployDiscountRateInjector.s.sol:DeployPlasma chain=plasma
+contract DeployPlasma is PlasmaScript {
+  address constant GUARDIAN = 0x1cF16B4e76D4919bD939e12C650b8F6eb9e02916;
+  address constant EDGE_RISK_ORACLE = 0xAe48F22903d43f13f66Cc650F57Bd4654ac222cb;
+  address constant CREATE_3_FACTORY = 0xc4A82c968540B47032F3a51fA7e4f09f6FAE3308;
+
+  function run() external {
+    vm.startBroadcast();
+    bytes32 salt = 'DiscountRateStewardInjector';
+    address predictedStewardsInjector = ICreate3Factory(CREATE_3_FACTORY)
+      .predictAddress(msg.sender, salt);
+
+    address riskSteward = DeployStewardContracts._deployRiskStewards(
+      DeployStewardContracts.DeployStewardInput({
+        pool: address(AaveV3Plasma.POOL),
+        configEngine: AaveV3Plasma.CONFIG_ENGINE,
+        riskCouncil: predictedStewardsInjector,
+        owner: GovernanceV3Plasma.EXECUTOR_LVL_1
+      })
+    );
+
+    DeployStewardContracts._deployDiscountRateStewardInjector(
+      DeployStewardContracts.DeployInjectorInput({
+        create3Factory: CREATE_3_FACTORY,
+        salt: salt,
+        riskSteward: riskSteward,
+        aaveOracle: address(AaveV3Plasma.ORACLE),
+        edgeRiskOracle: EDGE_RISK_ORACLE,
+        owner: GovernanceV3Plasma.EXECUTOR_LVL_1,
+        guardian: GUARDIAN,
+        whitelistedMarkets: new address[](0)
       })
     );
     vm.stopBroadcast();
