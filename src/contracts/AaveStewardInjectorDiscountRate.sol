@@ -37,7 +37,7 @@ contract AaveStewardInjectorDiscountRate is AaveStewardInjectorBase {
   /// @inheritdoc AaveStewardInjectorBase
   function getUpdateTypes() public pure override returns (string[] memory updateTypes) {
     updateTypes = new string[](1);
-    updateTypes[0] = 'PendleDiscountRateUpdate_Core';
+    updateTypes[0] = 'PendleDiscountRateUpdate';
   }
 
   /// @inheritdoc AaveStewardInjectorBase

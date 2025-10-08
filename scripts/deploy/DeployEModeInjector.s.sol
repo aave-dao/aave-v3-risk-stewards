@@ -5,6 +5,9 @@ import 'solidity-utils/contracts/utils/ScriptUtils.sol';
 import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
 import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
+import {MiscPlasma} from 'aave-address-book/MiscPlasma.sol';
+import {AaveV3Plasma} from 'aave-address-book/AaveV3Plasma.sol';
+import {GovernanceV3Plasma} from 'aave-address-book/GovernanceV3Plasma.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {EdgeRiskStewardEMode, IRiskSteward} from '../../src/contracts/EdgeRiskStewardEMode.sol';
 import {AaveStewardInjectorEMode} from '../../src/contracts/AaveStewardInjectorEMode.sol';
@@ -127,6 +130,40 @@ contract DeployEthereum is EthereumScript {
       riskSteward,
       EDGE_RISK_ORACLE,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
+      GUARDIAN,
+      whitelistedEModes
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployEModeInjector.s.sol:DeployPlasma chain=plasma
+contract DeployPlasma is PlasmaScript {
+  address constant GUARDIAN = 0x1cF16B4e76D4919bD939e12C650b8F6eb9e02916;
+  address constant EDGE_RISK_ORACLE = 0xAe48F22903d43f13f66Cc650F57Bd4654ac222cb;
+  address constant CREATE_3_FACTORY = 0xc4A82c968540B47032F3a51fA7e4f09f6FAE3308;
+
+  function run() external {
+    vm.startBroadcast();
+    bytes32 salt = 'EModeStewardInjector';
+    address predictedStewardsInjector = ICreate3Factory(CREATE_3_FACTORY)
+      .predictAddress(msg.sender, salt);
+
+    address riskSteward = DeployStewardContracts._deployRiskStewards(
+      address(AaveV3Plasma.POOL),
+      AaveV3Plasma.CONFIG_ENGINE,
+      predictedStewardsInjector,
+      GovernanceV3Plasma.EXECUTOR_LVL_1
+    );
+
+    uint8[] memory whitelistedEModes = new uint8[](0);
+
+    DeployStewardContracts._deployEModeStewardInjector(
+      CREATE_3_FACTORY,
+      salt,
+      riskSteward,
+      EDGE_RISK_ORACLE,
+      GovernanceV3Plasma.EXECUTOR_LVL_1,
       GUARDIAN,
       whitelistedEModes
     );
