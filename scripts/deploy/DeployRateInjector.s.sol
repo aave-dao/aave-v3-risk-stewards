@@ -12,6 +12,7 @@ import {GovernanceV3Linea} from 'aave-address-book/GovernanceV3Linea.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {EdgeRiskStewardRates, IRiskSteward} from '../../src/contracts/EdgeRiskStewardRates.sol';
 import {AaveStewardInjectorRates} from '../../src/contracts/AaveStewardInjectorRates.sol';
+import {GelatoAaveStewardInjectorRates} from '../../src/contracts/gelato/GelatoAaveStewardInjectorRates.sol';
 
 library DeployStewardContracts {
   function _deployRiskStewards(
@@ -39,12 +40,16 @@ library DeployStewardContracts {
     address edgeRiskOracle,
     address owner,
     address guardian,
-    address[] memory markets
+    address[] memory markets,
+    bool isGelatoInjector
   ) internal returns (address) {
+    bytes memory injectorCode = isGelatoInjector ?
+      type(GelatoAaveStewardInjectorRates).creationCode : type(AaveStewardInjectorRates).creationCode;
+
     address stewardInjector = ICreate3Factory(create3Factory).create(
       salt,
       abi.encodePacked(
-        type(AaveStewardInjectorRates).creationCode,
+        injectorCode,
         abi.encode(edgeRiskOracle, riskSteward, markets, owner, guardian)
       )
     );
@@ -119,7 +124,8 @@ contract DeployEthereumLido is EthereumScript {
       EDGE_RISK_ORACLE,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
       GUARDIAN,
-      whitelistedAssets
+      whitelistedAssets,
+      false
     );
     vm.stopBroadcast();
   }
@@ -156,7 +162,8 @@ contract DeployEthereum is EthereumScript {
       EDGE_RISK_ORACLE,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
       GUARDIAN,
-      whitelistedAssets
+      whitelistedAssets,
+      false
     );
     vm.stopBroadcast();
   }
@@ -170,7 +177,7 @@ contract DeployLinea is LineaScript {
 
   function run() external {
     vm.startBroadcast();
-    bytes32 salt = 'StewardInjector';
+    bytes32 salt = 'StewardInjectorV2';
     address predictedStewardsInjector = ICreate3Factory(CREATE_3_FACTORY)
       .predictAddress(msg.sender, salt);
 
@@ -193,7 +200,8 @@ contract DeployLinea is LineaScript {
       EDGE_RISK_ORACLE,
       GovernanceV3Linea.EXECUTOR_LVL_1,
       GUARDIAN,
-      whitelistedAssets
+      whitelistedAssets,
+      true
     );
     vm.stopBroadcast();
   }

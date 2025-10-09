@@ -10,6 +10,7 @@ import {GovernanceV3Plasma} from 'aave-address-book/GovernanceV3Plasma.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {EdgeRiskStewardDiscountRate, IRiskSteward} from '../../src/contracts/EdgeRiskStewardDiscountRate.sol';
 import {AaveStewardInjectorDiscountRate} from '../../src/contracts/AaveStewardInjectorDiscountRate.sol';
+import {GelatoAaveStewardInjectorDiscountRate} from '../../src/contracts/gelato/GelatoAaveStewardInjectorDiscountRate.sol';
 
 library DeployStewardContracts {
   struct DeployStewardInput {
@@ -28,6 +29,7 @@ library DeployStewardContracts {
     address owner;
     address guardian;
     address[] whitelistedMarkets;
+    bool isGelatoInjector;
   }
 
   function _deployRiskStewards(
@@ -42,10 +44,13 @@ library DeployStewardContracts {
   function _deployDiscountRateStewardInjector(
     DeployInjectorInput memory input
   ) internal returns (address) {
+    bytes memory injectorCode = input.isGelatoInjector ?
+      type(GelatoAaveStewardInjectorDiscountRate).creationCode : type(AaveStewardInjectorDiscountRate).creationCode;
+
     address stewardInjector = ICreate3Factory(input.create3Factory).create(
       input.salt,
       abi.encodePacked(
-        type(AaveStewardInjectorDiscountRate).creationCode,
+        injectorCode,
         abi.encode(input.aaveOracle, input.edgeRiskOracle, input.riskSteward, input.whitelistedMarkets, input.owner, input.guardian)
       )
     );
@@ -97,7 +102,8 @@ contract DeployEthereum is EthereumScript {
         edgeRiskOracle: EDGE_RISK_ORACLE,
         owner: GovernanceV3Ethereum.EXECUTOR_LVL_1,
         guardian: GUARDIAN,
-        whitelistedMarkets: whitelistedPendleAssets
+        whitelistedMarkets: whitelistedPendleAssets,
+        isGelatoInjector: false
       })
     );
     vm.stopBroadcast();
@@ -112,7 +118,7 @@ contract DeployPlasma is PlasmaScript {
 
   function run() external {
     vm.startBroadcast();
-    bytes32 salt = 'DiscountRateStewardInjector';
+    bytes32 salt = 'DiscountRateStewardInjectorV2';
     address predictedStewardsInjector = ICreate3Factory(CREATE_3_FACTORY)
       .predictAddress(msg.sender, salt);
 
@@ -134,7 +140,8 @@ contract DeployPlasma is PlasmaScript {
         edgeRiskOracle: EDGE_RISK_ORACLE,
         owner: GovernanceV3Plasma.EXECUTOR_LVL_1,
         guardian: GUARDIAN,
-        whitelistedMarkets: new address[](0)
+        whitelistedMarkets: new address[](0),
+        isGelatoInjector: true
       })
     );
     vm.stopBroadcast();

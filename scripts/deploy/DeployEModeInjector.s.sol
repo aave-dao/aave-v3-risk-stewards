@@ -11,6 +11,7 @@ import {GovernanceV3Plasma} from 'aave-address-book/GovernanceV3Plasma.sol';
 import {ICreate3Factory} from 'solidity-utils/contracts/create3/interfaces/ICreate3Factory.sol';
 import {EdgeRiskStewardEMode, IRiskSteward} from '../../src/contracts/EdgeRiskStewardEMode.sol';
 import {AaveStewardInjectorEMode} from '../../src/contracts/AaveStewardInjectorEMode.sol';
+import {GelatoAaveStewardInjectorEMode} from '../../src/contracts/gelato/GelatoAaveStewardInjectorEMode.sol';
 
 library DeployStewardContracts {
   function _deployRiskStewards(
@@ -32,17 +33,21 @@ library DeployStewardContracts {
     address edgeRiskOracle,
     address owner,
     address guardian,
-    uint8[] memory whitelistedEModes
+    uint8[] memory whitelistedEModes,
+    bool isGelatoInjector
   ) internal returns (address) {
     address[] memory whitelistedMarkets = new address[](whitelistedEModes.length);
     for (uint256 i = 0; i < whitelistedEModes.length; i++) {
       whitelistedMarkets[i] = address(uint160(whitelistedEModes[i]));
     }
 
+    bytes memory injectorCode = isGelatoInjector ?
+      type(GelatoAaveStewardInjectorEMode).creationCode : type(AaveStewardInjectorEMode).creationCode;
+
     address stewardInjector = ICreate3Factory(create3Factory).create(
       salt,
       abi.encodePacked(
-        type(AaveStewardInjectorEMode).creationCode,
+        injectorCode,
         abi.encode(edgeRiskOracle, riskSteward, whitelistedMarkets, owner, guardian)
       )
     );
@@ -131,7 +136,8 @@ contract DeployEthereum is EthereumScript {
       EDGE_RISK_ORACLE,
       GovernanceV3Ethereum.EXECUTOR_LVL_1,
       GUARDIAN,
-      whitelistedEModes
+      whitelistedEModes,
+      false
     );
     vm.stopBroadcast();
   }
@@ -145,7 +151,7 @@ contract DeployPlasma is PlasmaScript {
 
   function run() external {
     vm.startBroadcast();
-    bytes32 salt = 'EModeStewardInjector';
+    bytes32 salt = 'EModeStewardInjectorV2';
     address predictedStewardsInjector = ICreate3Factory(CREATE_3_FACTORY)
       .predictAddress(msg.sender, salt);
 
@@ -165,7 +171,8 @@ contract DeployPlasma is PlasmaScript {
       EDGE_RISK_ORACLE,
       GovernanceV3Plasma.EXECUTOR_LVL_1,
       GUARDIAN,
-      whitelistedEModes
+      whitelistedEModes,
+      true
     );
     vm.stopBroadcast();
   }

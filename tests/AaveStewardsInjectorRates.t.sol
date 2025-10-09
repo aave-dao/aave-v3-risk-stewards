@@ -6,7 +6,7 @@ import {EdgeRiskStewardRates} from '../src/contracts/EdgeRiskStewardRates.sol';
 import './AaveStewardsInjectorBase.t.sol';
 
 contract AaveStewardsInjectorRates_Test is AaveStewardsInjectorBaseTest {
-  function setUp() public override {
+  function setUp() public virtual override {
     super.setUp();
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
