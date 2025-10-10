@@ -9,12 +9,12 @@ import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-eng
 import './AaveStewardsInjectorBase.t.sol';
 
 contract AaveStewardsInjectorDiscountRate_Test is AaveStewardsInjectorBaseTest {
-  string internal _updateType = 'PendleDiscountRateUpdate_Core';
+  string internal _updateType = 'PendleDiscountRateUpdate';
 
   address internal _pendlePTAssetOne;
   address internal _pendlePTAssetTwo;
 
-  function setUp() public override {
+  function setUp() public virtual override {
     super.setUp();
 
     IRiskSteward.Config memory config;

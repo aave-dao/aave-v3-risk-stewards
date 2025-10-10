@@ -14,9 +14,9 @@ contract AaveStewardsInjectorEMode_Test is AaveStewardsInjectorBaseTest {
   uint8 internal _eModeIdOne = 1;
   uint8 internal _eModeIdTwo = 2;
   uint8 internal _eModeIdThree = 3;
-  string internal _updateType = 'EModeCategoryUpdate_Core';
+  string internal _updateType = 'EModeCategoryUpdate';
 
-  function setUp() public override {
+  function setUp() public virtual override {
     super.setUp();
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
