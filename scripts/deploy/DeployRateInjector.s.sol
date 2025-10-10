@@ -138,7 +138,7 @@ contract DeployEthereum is EthereumScript {
 
   function run() external {
     vm.startBroadcast();
-    bytes32 salt = 'StewardInjectorCore';
+    bytes32 salt = 'StewardInjectorCoreV1';
     address predictedStewardsInjector = ICreate3Factory(MiscEthereum.CREATE_3_FACTORY)
       .predictAddress(msg.sender, salt);
 
@@ -177,7 +177,7 @@ contract DeployLinea is LineaScript {
 
   function run() external {
     vm.startBroadcast();
-    bytes32 salt = 'StewardInjectorV2';
+    bytes32 salt = 'StewardInjectorV3';
     address predictedStewardsInjector = ICreate3Factory(CREATE_3_FACTORY)
       .predictAddress(msg.sender, salt);
 
