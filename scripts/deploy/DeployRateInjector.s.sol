@@ -58,7 +58,7 @@ library DeployStewardContracts {
 
   function _getSlope2RiskConfig() internal pure returns (IRiskSteward.Config memory) {
     IRiskSteward.Config memory config;
-    config.rateConfig.variableRateSlope2 = IRiskSteward.RiskParamConfig({minDelay: 3 days, maxPercentChange: 20_00});
+    config.rateConfig.variableRateSlope2 = IRiskSteward.RiskParamConfig({minDelay: 8 hours, maxPercentChange: 4_00});
 
     return config;
   }
