@@ -18,7 +18,7 @@ src = 'zksync'
 test = 'zksync'
 script = 'scripts'
 libs = ['lib']
-solc = '0.8.22'
+solc = '0.8.27'
 fs_permissions = [{ access = "write", path = "./reports" }]
 ffi = true
 evm_version = 'shanghai'
@@ -37,6 +37,9 @@ evm_version = 'cancun'
 
 [profile.celo]
 evm_version = 'paris'
+
+[profile.test]
+evm_version = 'cancun'
 
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"
