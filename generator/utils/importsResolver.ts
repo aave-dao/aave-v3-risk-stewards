@@ -41,9 +41,8 @@ function generateRiskStewardImport(code: string) {
   const match = code.match(/RiskStewards(\w+)/);
 
   if (match) {
-    imports = `import {RiskStewards${match[1]}} from '${
-      match[1] == 'ZkSync' ? '../' : ''
-    }../../../../scripts/networks/RiskStewards${match[1]}.s.sol';\n`;
+    imports = `import {RiskStewards${match[1]}} from
+      '../../../../scripts/networks/RiskStewards${match[1]}.s.sol';\n`;
     if (findMatch(code, 'IRiskSteward')) {
       imports += `import {IRiskSteward${
         findMatch(code, 'IPriceCapAdapter') ? ', IPriceCapAdapter' : ''
