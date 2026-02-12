@@ -17,6 +17,9 @@ import {
   celo,
   soneium,
   plasma,
+  ink,
+  megaeth,
+  mantle,
 } from 'viem/chains';
 
 export const AVAILABLE_CHAINS = [
@@ -38,6 +41,9 @@ export const AVAILABLE_CHAINS = [
   'Celo',
   'Soneium',
   'Plasma',
+  'Ink',
+  'MegaEth',
+  'Mantle',
 ] as const;
 
 export function getAssets(pool: PoolIdentifier): string[] {
@@ -129,6 +135,9 @@ export const CHAIN_TO_CHAIN_ID = {
   Celo: celo.id,
   Soneium: soneium.id,
   Plasma: plasma.id,
+  Ink: ink.id,
+  MegaEth: megaeth.id,
+  Mantle: mantle.id,
 };
 
 export function flagAsRequired(message: string, required?: boolean) {
