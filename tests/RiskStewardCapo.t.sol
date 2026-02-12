@@ -31,7 +31,7 @@ contract RiskSteward_Capo_Test is Test {
   event AddressRestricted(address indexed contractAddress, bool indexed isRestricted);
 
   function setUp() public virtual {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 22144636);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 24440240);
 
     IRiskSteward.RiskParamConfig memory defaultRiskParamConfig = IRiskSteward.RiskParamConfig({
       minDelay: 5 days,
@@ -75,7 +75,7 @@ contract RiskSteward_Capo_Test is Test {
 
     pendleAdapter = new PendlePriceCapAdapter(IPendlePriceCapAdapter.PendlePriceCapAdapterParams({
       assetToUsdAggregator: 0x42bc86f2f08419280a99d8fbEa4672e7c30a86ec, // sUSDe capo
-      pendlePrincipalToken: 0xb7de5dFCb74d25c2f21841fbd6230355C50d9308, // sUSDe PT token
+      pendlePrincipalToken: 0x3de0ff76E8b528C092d47b9DaC775931cef80F49, // sUSDe PT token
       maxDiscountRatePerYear: 1e18, // 100%
       discountRatePerYear: 0.2e18, // 20%
       aclManager: address(AaveV3Ethereum.ACL_MANAGER),
