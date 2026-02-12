@@ -22,7 +22,7 @@ contract RiskSteward_Test is Test {
   IRiskSteward.Config public riskConfig;
 
   function setUp() public virtual {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 23324505);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 24440240);
 
     riskConfig = DeployRiskStewards._getRiskConfig();
 
@@ -525,16 +525,16 @@ contract RiskSteward_Test is Test {
   function test_updateCollateralSide() public virtual {
     (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
 
     // as the definition is with 2 decimals, and config engine does not take the decimals into account, so we divide by 100.
     uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
+      AaveV3EthereumAssets.XAUt_UNDERLYING
     ) / 100;
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.UNI_UNDERLYING,
+      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
       ltv: ltvBefore + 50, // 0.5% absolute increase
       liqThreshold: ltBefore + 50, // 0.5% absolute increase
       liqBonus: (lbBefore - 100_00) + 50, // 0.5% absolute increase
@@ -546,15 +546,15 @@ contract RiskSteward_Test is Test {
     steward.updateCollateralSide(collateralUpdates);
 
     RiskSteward.Debounce memory lastUpdated = steward.getTimelock(
-      AaveV3EthereumAssets.UNI_UNDERLYING
+      AaveV3EthereumAssets.XAUt_UNDERLYING
     );
 
     (, uint256 ltvAfter, uint256 ltAfter, uint256 lbAfter, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
 
     uint256 debtCeilingAfter = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
+      AaveV3EthereumAssets.XAUt_UNDERLYING
     ) / 100;
 
     assertEq(ltvAfter, collateralUpdates[0].ltv);
@@ -572,16 +572,16 @@ contract RiskSteward_Test is Test {
 
     (, ltvBefore, ltBefore, lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
 
     debtCeilingBefore =
       AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-        AaveV3EthereumAssets.UNI_UNDERLYING
+        AaveV3EthereumAssets.XAUt_UNDERLYING
       ) /
       100;
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.UNI_UNDERLYING,
+      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
       ltv: ltvBefore - 50, // 0.5% absolute decrease
       liqThreshold: ltBefore - 50, // 0.5% absolute decrease
       liqBonus: (lbBefore - 100_00) - 50, // 0.5% absolute decrease
@@ -593,10 +593,10 @@ contract RiskSteward_Test is Test {
 
     (, ltvAfter, ltAfter, lbAfter, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
     debtCeilingAfter =
       AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-        AaveV3EthereumAssets.UNI_UNDERLYING
+        AaveV3EthereumAssets.XAUt_UNDERLYING
       ) /
       100;
 
@@ -604,7 +604,7 @@ contract RiskSteward_Test is Test {
     assertEq(ltAfter, collateralUpdates[0].liqThreshold);
     assertEq(lbAfter - 100_00, collateralUpdates[0].liqBonus);
 
-    lastUpdated = steward.getTimelock(AaveV3EthereumAssets.UNI_UNDERLYING);
+    lastUpdated = steward.getTimelock(AaveV3EthereumAssets.XAUt_UNDERLYING);
 
     assertEq(lastUpdated.ltvLastUpdated, block.timestamp);
     assertEq(lastUpdated.liquidationThresholdLastUpdated, block.timestamp);
@@ -614,16 +614,16 @@ contract RiskSteward_Test is Test {
   function test_updateCollateralSide_outOfRange() public virtual {
     (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
 
     // as the definition is with 2 decimals, and config engine does not take the decimals into account, so we divide by 100.
     uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
+      AaveV3EthereumAssets.XAUt_UNDERLYING
     ) / 100;
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.UNI_UNDERLYING,
+      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
       ltv: ltvBefore + 12_00, // 12% absolute increase
       liqThreshold: ltBefore + 11_00, // 11% absolute increase
       liqBonus: (lbBefore - 100_00) + 3_00, // 3% absolute increase
@@ -639,7 +639,7 @@ contract RiskSteward_Test is Test {
     vm.warp(block.timestamp + 3 days + 1);
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.UNI_UNDERLYING,
+      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
       ltv: ltvBefore - 11_00, // 11% absolute decrease
       liqThreshold: ltBefore - 11_00, // 11% absolute decrease
       liqBonus: (lbBefore - 100_00) - 2_50, // 2.5% absolute decrease
@@ -813,16 +813,16 @@ contract RiskSteward_Test is Test {
   function test_updateCollaterals_sameUpdate() public virtual {
     (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
     lbBefore = lbBefore - 100_00;
 
     uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
+      AaveV3EthereumAssets.XAUt_UNDERLYING
     ) / 100;
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.UNI_UNDERLYING,
+      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
       ltv: ltvBefore,
       liqThreshold: ltBefore,
       liqBonus: lbBefore,
@@ -835,11 +835,11 @@ contract RiskSteward_Test is Test {
 
     (, uint256 ltvAfter, uint256 ltAfter, uint256 lbAfter, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
     lbAfter = lbAfter - 100_00;
 
     uint256 debtCeilingAfter = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
+      AaveV3EthereumAssets.XAUt_UNDERLYING
     ) / 100;
 
     assertEq(ltvBefore, ltvAfter);

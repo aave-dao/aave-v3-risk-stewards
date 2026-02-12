@@ -61,6 +61,9 @@ sonic = "${RPC_SONIC}"
 celo = "${RPC_CELO}"
 soneium = "${RPC_SONEIUM}"
 plasma = "${RPC_PLASMA}"
+ink = "${RPC_INK}"
+megaeth = "${RPC_MEGAETH}"
+mantle = "${RPC_MANTLE}"
 
 [etherscan]
 mainnet = { key="${ETHERSCAN_API_KEY_MAINNET}", chainId=1 }
