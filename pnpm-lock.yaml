@@ -8,9 +8,9 @@ importers:
 
   .:
     devDependencies:
-      '@bgd-labs/aave-address-book':
-        specifier: ^4.44.15
-        version: 4.44.15(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))
+      '@aave-dao/aave-address-book':
+        specifier: ^4.47.2
+        version: 4.47.2(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))
       '@bgd-labs/js-utils':
         specifier: ^1.4.7
         version: 1.4.8(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))
@@ -77,13 +77,13 @@ importers:
 
 packages:
 
-  '@adraffy/ens-normalize@1.11.1':
-    resolution: {integrity: sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ==}
-
-  '@bgd-labs/aave-address-book@4.44.15':
-    resolution: {integrity: sha512-R98mFI5tbwASYrJ6dhMq2SFI9Z0Cyx9wNsz8Rtc+LmQ+KmsHiXOLFvj/LOffjAImFHj2QZaXL2MunvwJGdXaSQ==}
+  '@aave-dao/aave-address-book@4.47.2':
+    resolution: {integrity: sha512-xF3tdcAXTQ5M/K7vMmEDZnGYJM/f6EptjZ7TAzbTNCSxM58F4WX+PcWVk4VkpOsozWXZAwnd4xZhvt3HsE0rAg==}
     peerDependencies:
       viem: ^2.23.5
+
+  '@adraffy/ens-normalize@1.11.1':
+    resolution: {integrity: sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ==}
 
   '@bgd-labs/js-utils@1.4.8':
     resolution: {integrity: sha512-fLvstulzmEpDHz+495JZUw/3d3xfwhAcvyYdug6xpsIRG4gkefmZT5Qxw/HaAj5vCD/XaOKiZ7eBm+7RFGAEBw==}
@@ -2097,11 +2097,11 @@ packages:
 
 snapshots:
 
-  '@adraffy/ens-normalize@1.11.1': {}
-
-  '@bgd-labs/aave-address-book@4.44.15(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))':
+  '@aave-dao/aave-address-book@4.47.2(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))':
     dependencies:
       viem: 2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)
+
+  '@adraffy/ens-normalize@1.11.1': {}
 
   '@bgd-labs/js-utils@1.4.8(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))':
     dependencies:
