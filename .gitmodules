@@ -1,7 +1,7 @@
 [submodule "lib/aave-capo"]
 	path = lib/aave-capo
-	url = https://github.com/bgd-labs/aave-capo
+	url = https://github.com/bgd-labs/aave-price-feeds
 [submodule "lib/aave-helpers"]
 	path = lib/aave-helpers
-	url = https://github.com/bgd-labs/aave-helpers
+	url = git@github.com:aave-dao/aave-helpers.git
   branch = main
