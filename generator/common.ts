@@ -1,4 +1,4 @@
-import * as addressBook from '@bgd-labs/aave-address-book';
+import * as addressBook from '@aave-dao/aave-address-book';
 import {Options, PoolIdentifier, PoolIdentifierV3} from './types';
 import {
   arbitrum,
