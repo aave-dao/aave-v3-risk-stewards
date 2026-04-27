@@ -21,7 +21,6 @@ export const config: ConfigFile = {
             ltv: '8500',
             liqThreshold: '8800',
             liqBonus: '600',
-            debtCeiling: '',
             liqProtocolFee: '1200',
           },
         ],
@@ -39,7 +38,6 @@ pragma solidity ^0.8.0;
 
 import {AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
 import {RiskStewardsEthereum} from '../../../../scripts/networks/RiskStewardsEthereum.s.sol';
-import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
 import {IAaveV3ConfigEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 /**
  * @title test
@@ -66,7 +64,6 @@ contract AaveV3Ethereum_Test_20231023 is RiskStewardsEthereum {
       ltv: 8_500_00,
       liqThreshold: 8_800_00,
       liqBonus: 600_00,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: 1_200_00
     });
 
@@ -92,7 +89,6 @@ exports[`feature: collateralUpdates > should return reasonable code 1`] = `
                ltv: 8_500_00,
                liqThreshold: 8_800_00,
                liqBonus: 600_00,
-               debtCeiling: EngineFlags.KEEP_CURRENT,
                liqProtocolFee: 1_200_00
              });
 

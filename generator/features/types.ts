@@ -15,7 +15,6 @@ export interface CollateralUpdatePartial {
   ltv: PercentInputValues;
   liqThreshold: PercentInputValues;
   liqBonus: PercentInputValues;
-  debtCeiling: NumberInputValues;
   liqProtocolFee: PercentInputValues;
 }
 
@@ -27,7 +26,6 @@ export interface EModeCategoryUpdate {
   ltv: NumberInputValues;
   liqThreshold: NumberInputValues;
   liqBonus: NumberInputValues;
-  label: string;
 }
 
 export interface RateStrategyParams {
