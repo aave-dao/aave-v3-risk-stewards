@@ -30,6 +30,18 @@ import {AaveV3Sonic} from 'aave-address-book/AaveV3Sonic.sol';
 import {GovernanceV3Sonic} from 'aave-address-book/GovernanceV3Sonic.sol';
 import {AaveV3Celo} from 'aave-address-book/AaveV3Celo.sol';
 import {GovernanceV3Celo} from 'aave-address-book/GovernanceV3Celo.sol';
+import {AaveV3Plasma} from 'aave-address-book/AaveV3Plasma.sol';
+import {GovernanceV3Plasma} from 'aave-address-book/GovernanceV3Plasma.sol';
+import {AaveV3Mantle} from 'aave-address-book/AaveV3Mantle.sol';
+import {GovernanceV3Mantle} from 'aave-address-book/GovernanceV3Mantle.sol';
+import {AaveV3InkWhitelabel} from 'aave-address-book/AaveV3InkWhitelabel.sol';
+import {GovernanceV3InkWhitelabel} from 'aave-address-book/GovernanceV3InkWhitelabel.sol';
+import {AaveV3XLayer} from 'aave-address-book/AaveV3XLayer.sol';
+import {GovernanceV3XLayer} from 'aave-address-book/GovernanceV3XLayer.sol';
+import {AaveV3MegaEth} from 'aave-address-book/AaveV3MegaEth.sol';
+import {GovernanceV3MegaEth} from 'aave-address-book/GovernanceV3MegaEth.sol';
+import {AaveV3Soneium} from 'aave-address-book/AaveV3Soneium.sol';
+import {GovernanceV3Soneium} from 'aave-address-book/GovernanceV3Soneium.sol';
 import {RiskSteward, IRiskSteward} from '../../src/contracts/RiskSteward.sol';
 
 library DeployRiskStewards {
@@ -288,6 +300,90 @@ contract DeployCelo is SonicScript {
       AaveV3Celo.CONFIG_ENGINE,
       0xd85786B5FC61E2A0c0a3144a33A0fC70646a99f6, // celo-risk-council
       GovernanceV3Celo.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployPlasma chain=plasma
+contract DeployPlasma is PlasmaScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3Plasma.POOL),
+      AaveV3Plasma.CONFIG_ENGINE,
+      0xE71C189C7D8862EfDa0D9E031157199D2F3B4893, // plasma-risk-council
+      GovernanceV3Plasma.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployMantle chain=mantle
+contract DeployMantle is MantleScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3Mantle.POOL),
+      AaveV3Mantle.CONFIG_ENGINE,
+      0xfF0ACe5060bd25f6900eb4bD91a868213C5346B5, // mantle-risk-council
+      GovernanceV3Mantle.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployInk chain=ink
+contract DeployInk is InkScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3InkWhitelabel.POOL),
+      AaveV3InkWhitelabel.CONFIG_ENGINE,
+      0xEcD37F855bB9814D75A83F0021815dc5cd6fd889, // ink-risk-council
+      GovernanceV3InkWhitelabel.PERMISSIONED_PAYLOADS_CONTROLLER_EXECUTOR
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployXLayer chain=xlayer
+contract DeployXLayer is XLayerScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3XLayer.POOL),
+      AaveV3XLayer.CONFIG_ENGINE,
+      0xa43F8eDf0a0aE07e951bca11162625e77e7609A1, // xlayer-risk-council
+      GovernanceV3XLayer.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployMegaEth chain=megaeth
+contract DeployMegaEth is MegaEthScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3MegaEth.POOL),
+      AaveV3MegaEth.CONFIG_ENGINE,
+      0x36CF7a4377aAf1988E01a4b38224FC8D583E50A9, // megaeth-risk-council
+      GovernanceV3MegaEth.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeploySoneium chain=soneium
+contract DeploySoneium is SoneiumScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3Soneium.POOL),
+      AaveV3Soneium.CONFIG_ENGINE,
+      0x45cCB319C57A6Ae0d53C4dB1a151dF75015103b1, // soneium-risk-council
+      GovernanceV3Soneium.EXECUTOR_LVL_1
     );
     vm.stopBroadcast();
   }
