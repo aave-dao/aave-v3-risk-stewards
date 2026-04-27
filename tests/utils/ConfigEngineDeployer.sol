@@ -19,17 +19,6 @@ import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
 
 library ConfigEngineDeployer {
   function deployEngine(address interestRateStrategy) internal returns (address) {
-    IAaveV3ConfigEngine.EngineLibraries memory engineLibraries = IAaveV3ConfigEngine
-      .EngineLibraries({
-        listingEngine: Create2Utils._create2Deploy('v1', type(ListingEngine).creationCode),
-        eModeEngine: Create2Utils._create2Deploy('v1', type(EModeEngine).creationCode),
-        borrowEngine: Create2Utils._create2Deploy('v1', type(BorrowEngine).creationCode),
-        collateralEngine: Create2Utils._create2Deploy('v1', type(CollateralEngine).creationCode),
-        priceFeedEngine: Create2Utils._create2Deploy('v1', type(PriceFeedEngine).creationCode),
-        rateEngine: Create2Utils._create2Deploy('v1', type(RateEngine).creationCode),
-        capsEngine: Create2Utils._create2Deploy('v1', type(CapsEngine).creationCode)
-      });
-
     IAaveV3ConfigEngine.EngineConstants memory engineConstants = IAaveV3ConfigEngine
       .EngineConstants({
         pool: IPool(address(AaveV3Ethereum.POOL)),
@@ -45,8 +34,7 @@ library ConfigEngineDeployer {
         new AaveV3ConfigEngine(
           AaveV3Ethereum.DEFAULT_A_TOKEN_IMPL,
           AaveV3Ethereum.DEFAULT_VARIABLE_DEBT_TOKEN_IMPL,
-          engineConstants,
-          engineLibraries
+          engineConstants
         )
       );
   }

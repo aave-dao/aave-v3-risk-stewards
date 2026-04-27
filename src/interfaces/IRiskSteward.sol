@@ -95,7 +95,6 @@ interface IRiskSteward {
     uint40 ltvLastUpdated;
     uint40 liquidationBonusLastUpdated;
     uint40 liquidationThresholdLastUpdated;
-    uint40 debtCeilingLastUpdated;
     uint40 baseVariableRateLastUpdated;
     uint40 variableRateSlope1LastUpdated;
     uint40 variableRateSlope2LastUpdated;
@@ -154,7 +153,6 @@ interface IRiskSteward {
     RiskParamConfig ltv;
     RiskParamConfig liquidationThreshold;
     RiskParamConfig liquidationBonus;
-    RiskParamConfig debtCeiling;
   }
 
   /**

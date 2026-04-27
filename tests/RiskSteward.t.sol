@@ -22,7 +22,8 @@ contract RiskSteward_Test is Test {
   IRiskSteward.Config public riskConfig;
 
   function setUp() public virtual {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 24440240);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 24970824);
+    GovV3Helpers.executePayload(vm, 0x225183208bdD562158b862f57f4536EcA231E724); // v3.7 upgrade payload on core
 
     riskConfig = DeployRiskStewards._getRiskConfig();
 
@@ -525,20 +526,14 @@ contract RiskSteward_Test is Test {
   function test_updateCollateralSide() public virtual {
     (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
-
-    // as the definition is with 2 decimals, and config engine does not take the decimals into account, so we divide by 100.
-    uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.XAUt_UNDERLYING
-    ) / 100;
+      .getReserveConfigurationData(AaveV3EthereumAssets.AAVE_UNDERLYING);
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
+      asset: AaveV3EthereumAssets.AAVE_UNDERLYING,
       ltv: ltvBefore + 50, // 0.5% absolute increase
       liqThreshold: ltBefore + 50, // 0.5% absolute increase
       liqBonus: (lbBefore - 100_00) + 50, // 0.5% absolute increase
-      debtCeiling: (debtCeilingBefore * 120) / 100, // 20% relative increase
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -546,46 +541,33 @@ contract RiskSteward_Test is Test {
     steward.updateCollateralSide(collateralUpdates);
 
     RiskSteward.Debounce memory lastUpdated = steward.getTimelock(
-      AaveV3EthereumAssets.XAUt_UNDERLYING
+      AaveV3EthereumAssets.AAVE_UNDERLYING
     );
 
     (, uint256 ltvAfter, uint256 ltAfter, uint256 lbAfter, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
-
-    uint256 debtCeilingAfter = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.XAUt_UNDERLYING
-    ) / 100;
+      .getReserveConfigurationData(AaveV3EthereumAssets.AAVE_UNDERLYING);
 
     assertEq(ltvAfter, collateralUpdates[0].ltv);
     assertEq(ltAfter, collateralUpdates[0].liqThreshold);
     assertEq(lbAfter - 100_00, collateralUpdates[0].liqBonus);
-    assertEq(debtCeilingAfter, collateralUpdates[0].debtCeiling);
 
     assertEq(lastUpdated.ltvLastUpdated, block.timestamp);
     assertEq(lastUpdated.liquidationThresholdLastUpdated, block.timestamp);
     assertEq(lastUpdated.liquidationBonusLastUpdated, block.timestamp);
-    assertEq(lastUpdated.debtCeilingLastUpdated, block.timestamp);
 
     // after min time passed test collateral update decrease
     vm.warp(block.timestamp + 3 days + 1);
 
     (, ltvBefore, ltBefore, lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
-
-    debtCeilingBefore =
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-        AaveV3EthereumAssets.XAUt_UNDERLYING
-      ) /
-      100;
+      .getReserveConfigurationData(AaveV3EthereumAssets.AAVE_UNDERLYING);
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
+      asset: AaveV3EthereumAssets.AAVE_UNDERLYING,
       ltv: ltvBefore - 50, // 0.5% absolute decrease
       liqThreshold: ltBefore - 50, // 0.5% absolute decrease
       liqBonus: (lbBefore - 100_00) - 50, // 0.5% absolute decrease
-      debtCeiling: (debtCeilingBefore * 80) / 100, // 20% relative decrease
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
     steward.updateCollateralSide(collateralUpdates);
@@ -593,18 +575,13 @@ contract RiskSteward_Test is Test {
 
     (, ltvAfter, ltAfter, lbAfter, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
-    debtCeilingAfter =
-      AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-        AaveV3EthereumAssets.XAUt_UNDERLYING
-      ) /
-      100;
+      .getReserveConfigurationData(AaveV3EthereumAssets.AAVE_UNDERLYING);
 
     assertEq(ltvAfter, collateralUpdates[0].ltv);
     assertEq(ltAfter, collateralUpdates[0].liqThreshold);
     assertEq(lbAfter - 100_00, collateralUpdates[0].liqBonus);
 
-    lastUpdated = steward.getTimelock(AaveV3EthereumAssets.XAUt_UNDERLYING);
+    lastUpdated = steward.getTimelock(AaveV3EthereumAssets.AAVE_UNDERLYING);
 
     assertEq(lastUpdated.ltvLastUpdated, block.timestamp);
     assertEq(lastUpdated.liquidationThresholdLastUpdated, block.timestamp);
@@ -614,20 +591,14 @@ contract RiskSteward_Test is Test {
   function test_updateCollateralSide_outOfRange() public virtual {
     (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
-
-    // as the definition is with 2 decimals, and config engine does not take the decimals into account, so we divide by 100.
-    uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.XAUt_UNDERLYING
-    ) / 100;
+      .getReserveConfigurationData(AaveV3EthereumAssets.AAVE_UNDERLYING);
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
+      asset: AaveV3EthereumAssets.AAVE_UNDERLYING,
       ltv: ltvBefore + 12_00, // 12% absolute increase
       liqThreshold: ltBefore + 11_00, // 11% absolute increase
       liqBonus: (lbBefore - 100_00) + 3_00, // 3% absolute increase
-      debtCeiling: (debtCeilingBefore * 112) / 100, // 12% relative increase
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -639,11 +610,10 @@ contract RiskSteward_Test is Test {
     vm.warp(block.timestamp + 3 days + 1);
 
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
+      asset: AaveV3EthereumAssets.AAVE_UNDERLYING,
       ltv: ltvBefore - 11_00, // 11% absolute decrease
       liqThreshold: ltBefore - 11_00, // 11% absolute decrease
       liqBonus: (lbBefore - 100_00) - 2_50, // 2.5% absolute decrease
-      debtCeiling: (debtCeilingBefore * 85) / 100, // 15% relative decrease
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -663,7 +633,6 @@ contract RiskSteward_Test is Test {
       ltv: ltvBefore + 25,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -681,7 +650,6 @@ contract RiskSteward_Test is Test {
       ltv: ltvBefore + 1,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -698,7 +666,6 @@ contract RiskSteward_Test is Test {
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: 10_00
     });
 
@@ -715,7 +682,6 @@ contract RiskSteward_Test is Test {
       ltv: 80_00,
       liqThreshold: 83_00,
       liqBonus: 5_00,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -735,7 +701,6 @@ contract RiskSteward_Test is Test {
       ltv: 90_00,
       liqThreshold: 83_00,
       liqBonus: 1_00,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -754,7 +719,6 @@ contract RiskSteward_Test is Test {
     riskConfig.collateralConfig.ltv = collateralParamConfig;
     riskConfig.collateralConfig.liquidationThreshold = collateralParamConfig;
     riskConfig.collateralConfig.liquidationBonus = collateralParamConfig;
-    riskConfig.collateralConfig.debtCeiling = collateralParamConfig;
 
     vm.prank(GovernanceV3Ethereum.EXECUTOR_LVL_1);
     steward.setRiskConfig(riskConfig);
@@ -765,7 +729,6 @@ contract RiskSteward_Test is Test {
       ltv: 0,
       liqThreshold: 0,
       liqBonus: 0,
-      debtCeiling: 0, // 100% relative decrease to value 0
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -779,17 +742,12 @@ contract RiskSteward_Test is Test {
       .AAVE_PROTOCOL_DATA_PROVIDER
       .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
 
-    uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
-    ) / 100;
-
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
       asset: AaveV3EthereumAssets.UNI_UNDERLYING,
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -800,33 +758,23 @@ contract RiskSteward_Test is Test {
       .AAVE_PROTOCOL_DATA_PROVIDER
       .getReserveConfigurationData(AaveV3EthereumAssets.UNI_UNDERLYING);
 
-    uint256 debtCeilingAfter = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.UNI_UNDERLYING
-    ) / 100;
-
     assertEq(ltvBefore, ltvAfter);
     assertEq(ltBefore, ltAfter);
     assertEq(lbBefore, lbAfter);
-    assertEq(debtCeilingBefore, debtCeilingAfter);
   }
 
   function test_updateCollaterals_sameUpdate() public virtual {
     (, uint256 ltvBefore, uint256 ltBefore, uint256 lbBefore, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.AAVE_UNDERLYING);
     lbBefore = lbBefore - 100_00;
-
-    uint256 debtCeilingBefore = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.XAUt_UNDERLYING
-    ) / 100;
 
     IEngine.CollateralUpdate[] memory collateralUpdates = new IEngine.CollateralUpdate[](1);
     collateralUpdates[0] = IEngine.CollateralUpdate({
-      asset: AaveV3EthereumAssets.XAUt_UNDERLYING,
+      asset: AaveV3EthereumAssets.AAVE_UNDERLYING,
       ltv: ltvBefore,
       liqThreshold: ltBefore,
       liqBonus: lbBefore,
-      debtCeiling: debtCeilingBefore,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -835,17 +783,12 @@ contract RiskSteward_Test is Test {
 
     (, uint256 ltvAfter, uint256 ltAfter, uint256 lbAfter, , , , , , ) = AaveV3Ethereum
       .AAVE_PROTOCOL_DATA_PROVIDER
-      .getReserveConfigurationData(AaveV3EthereumAssets.XAUt_UNDERLYING);
+      .getReserveConfigurationData(AaveV3EthereumAssets.AAVE_UNDERLYING);
     lbAfter = lbAfter - 100_00;
-
-    uint256 debtCeilingAfter = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getDebtCeiling(
-      AaveV3EthereumAssets.XAUt_UNDERLYING
-    ) / 100;
 
     assertEq(ltvBefore, ltvAfter);
     assertEq(ltBefore, ltAfter);
     assertEq(lbBefore, lbAfter);
-    assertEq(debtCeilingBefore, debtCeilingAfter);
   }
 
   /* ----------------------------- EMode Category Update Tests ----------------------------- */
@@ -861,7 +804,8 @@ contract RiskSteward_Test is Test {
       ltv: currentEmodeConfig.ltv + 50, // 0.5% absolute increase
       liqThreshold: currentEmodeConfig.liquidationThreshold + 10, // 0.1% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) + 50, // 0.5% absolute increase
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(riskCouncil);
@@ -891,7 +835,8 @@ contract RiskSteward_Test is Test {
       ltv: currentEmodeConfig.ltv - 50, // 0.5% absolute increase
       liqThreshold: currentEmodeConfig.liquidationThreshold - 10, // 0.1% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) - 50, // 0.5% absolute increase
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
     steward.updateEModeCategories(eModeCategoryUpdates);
 
@@ -920,7 +865,8 @@ contract RiskSteward_Test is Test {
       ltv: currentEmodeConfig.ltv + 51, // 0.5% absolute increase
       liqThreshold: currentEmodeConfig.liquidationThreshold + 11, // 0.11% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) + 51, // 0.51% absolute increase
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(riskCouncil);
@@ -935,7 +881,8 @@ contract RiskSteward_Test is Test {
       ltv: currentEmodeConfig.ltv - 51, // 0.51% absolute increase
       liqThreshold: currentEmodeConfig.liquidationThreshold - 11, // 0.11% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) - 51, // 0.51% absolute increase
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
     vm.expectRevert(IRiskSteward.UpdateNotInRange.selector);
     steward.updateEModeCategories(eModeCategoryUpdates);
@@ -951,7 +898,8 @@ contract RiskSteward_Test is Test {
       ltv: currentEmodeConfig.ltv + 50, // 0.5% absolute increase
       liqThreshold: currentEmodeConfig.liquidationThreshold + 10, // 0.1% absolute increase
       liqBonus: (currentEmodeConfig.liquidationBonus - 100_00) + 50, // 0.5% absolute increase
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(riskCouncil);
@@ -972,7 +920,8 @@ contract RiskSteward_Test is Test {
       ltv: 50,
       liqThreshold: 50,
       liqBonus: 100_00,
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(riskCouncil);
@@ -991,7 +940,8 @@ contract RiskSteward_Test is Test {
       ltv: 50,
       liqThreshold: 50,
       liqBonus: 100_00,
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.prank(riskCouncil);
@@ -1019,7 +969,8 @@ contract RiskSteward_Test is Test {
       ltv: 0,
       liqThreshold: 0,
       liqBonus: 0,
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(riskCouncil);
@@ -1039,7 +990,8 @@ contract RiskSteward_Test is Test {
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(riskCouncil);
@@ -1070,7 +1022,8 @@ contract RiskSteward_Test is Test {
       ltv: prevEmodeConfig.ltv,
       liqThreshold: prevEmodeConfig.liquidationThreshold,
       liqBonus: prevEmodeConfig.liquidationBonus - 100_00,
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(riskCouncil);
@@ -1100,7 +1053,24 @@ contract RiskSteward_Test is Test {
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      label: newLabel
+      label: newLabel,
+      isolated: EngineFlags.KEEP_CURRENT
+    });
+
+    vm.prank(riskCouncil);
+    vm.expectRevert(IRiskSteward.ParamChangeNotAllowed.selector);
+    steward.updateEModeCategories(eModeCategoryUpdates);
+  }
+
+  function test_updateEModeCategories_isolatedChangeNotAllowed() public virtual {
+    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
+    eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
+      eModeCategory: 1,
+      ltv: EngineFlags.KEEP_CURRENT,
+      liqThreshold: EngineFlags.KEEP_CURRENT,
+      liqBonus: EngineFlags.KEEP_CURRENT,
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.ENABLED
     });
 
     vm.prank(riskCouncil);
@@ -1126,7 +1096,6 @@ contract RiskSteward_Test is Test {
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 
@@ -1147,7 +1116,8 @@ contract RiskSteward_Test is Test {
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
 
     vm.startPrank(caller);
@@ -1223,8 +1193,7 @@ contract RiskSteward_Test is Test {
       collateralConfig: IRiskSteward.CollateralConfig({
         ltv: newRiskParamConfig,
         liquidationThreshold: newRiskParamConfig,
-        liquidationBonus: newRiskParamConfig,
-        debtCeiling: newRiskParamConfig
+        liquidationBonus: newRiskParamConfig
       }),
       eModeConfig: IRiskSteward.EmodeConfig({
         ltv: newRiskParamConfig,
@@ -1288,11 +1257,6 @@ contract RiskSteward_Test is Test {
     assertEq(
       initialRiskConfig.capConfig.borrowCap.maxPercentChange,
       updatedRiskConfig.capConfig.borrowCap.maxPercentChange
-    );
-    assertEq(initialRiskConfig.collateralConfig.debtCeiling.minDelay, updatedRiskConfig.collateralConfig.debtCeiling.minDelay);
-    assertEq(
-      initialRiskConfig.collateralConfig.debtCeiling.maxPercentChange,
-      updatedRiskConfig.collateralConfig.debtCeiling.maxPercentChange
     );
     assertEq(
       initialRiskConfig.rateConfig.baseVariableBorrowRate.minDelay,

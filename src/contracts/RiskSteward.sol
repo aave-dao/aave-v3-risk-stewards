@@ -19,7 +19,7 @@ import {IPendlePriceCapAdapter} from 'aave-capo/interfaces/IPendlePriceCapAdapte
  * @title RiskSteward
  * @author BGD labs
  * @notice Contract to manage the risk params within configured bound on aave v3 pool:
- *         This contract can update the following risk params: caps, ltv, liqThreshold, liqBonus, debtCeiling, interest rates params.
+ *         This contract can update the following risk params: caps, ltv, liqThreshold, liqBonus, interest rates params.
  */
 contract RiskSteward is Ownable, IRiskSteward {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -286,8 +286,7 @@ contract RiskSteward is Ownable, IRiskSteward {
       if (
         collateralUpdates[i].ltv == 0 ||
         collateralUpdates[i].liqThreshold == 0 ||
-        collateralUpdates[i].liqBonus == 0 ||
-        collateralUpdates[i].debtCeiling == 0
+        collateralUpdates[i].liqBonus == 0
       ) revert InvalidUpdateToZero();
 
       DataTypes.ReserveConfigurationMap memory configuration = POOL.getConfiguration(asset);
@@ -298,7 +297,6 @@ contract RiskSteward is Ownable, IRiskSteward {
         ,
 
       ) = configuration.getParams();
-      uint256 currentDebtCeiling = configuration.getDebtCeiling();
 
       _validateParamUpdate(
         ParamUpdateValidationInput({
@@ -327,15 +325,6 @@ contract RiskSteward is Ownable, IRiskSteward {
           isChangeRelative: false
         })
       );
-      _validateParamUpdate(
-        ParamUpdateValidationInput({
-          currentValue: currentDebtCeiling / 100, // as the definition is with 2 decimals, and config engine does not take the decimals into account.
-          newValue: collateralUpdates[i].debtCeiling,
-          lastUpdated: _timelocks[asset].debtCeilingLastUpdated,
-          riskConfig: _riskConfig.collateralConfig.debtCeiling,
-          isChangeRelative: true
-        })
-      );
     }
   }
 
@@ -351,8 +340,13 @@ contract RiskSteward is Ownable, IRiskSteward {
     for (uint256 i = 0; i < eModeCategoryUpdates.length; i++) {
       uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
       if (_restrictedEModes[eModeId]) revert EModeIsRestricted();
-      if (!eModeCategoryUpdates[i].label.equal(EngineFlags.KEEP_CURRENT_STRING))
+
+      if (
+        !eModeCategoryUpdates[i].label.equal(EngineFlags.KEEP_CURRENT_STRING) ||
+        eModeCategoryUpdates[i].isolated != EngineFlags.KEEP_CURRENT
+      ) {
         revert ParamChangeNotAllowed();
+      }
 
       if (
         eModeCategoryUpdates[i].ltv == 0 ||
@@ -579,10 +573,6 @@ contract RiskSteward is Ownable, IRiskSteward {
 
       if (collateralUpdates[i].liqBonus != EngineFlags.KEEP_CURRENT) {
         _timelocks[asset].liquidationBonusLastUpdated = uint40(block.timestamp);
-      }
-
-      if (collateralUpdates[i].debtCeiling != EngineFlags.KEEP_CURRENT) {
-        _timelocks[asset].debtCeilingLastUpdated = uint40(block.timestamp);
       }
     }
 
