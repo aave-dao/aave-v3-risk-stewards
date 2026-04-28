@@ -24,7 +24,6 @@ The following risk params could be changed by the RiskStewards:
 - LTV
 - Liquidation Threshold
 - Liquidation Bonus
-- Debt Ceiling
 
 - Base variable borrow rate
 - Slope 1
@@ -34,7 +33,7 @@ The following risk params could be changed by the RiskStewards:
 - Cap parameters for [PriceCapAdapters (CAPO)](https://github.com/bgd-labs/aave-capo/)
 - Discount Rate for Pendle PT CAPO
 
-- EMode Collateral params (LTV, Liquidation Threshold, Liquidation Bonus)
+- EMode Collateral params (LTV, Liquidation Threshold, Liquidation Bonus, Isolated flag)
 
 #### Min Delay:
 
@@ -44,7 +43,7 @@ For each risk param, `minDelay` can be configured, which is the minimum amount o
 
 For each risk param, `maxPercentChange` is the maximum percent change allowed (both upwards and downwards) for the risk param using the RiskStewards.
 
-- Supply cap, Borrow cap, and Debt ceiling: The `maxPercentChange` is relative and is denominated in BPS. (Ex. `50_00` for +-50% relative change).
+- Supply cap and Borrow cap: The `maxPercentChange` is relative and is denominated in BPS. (Ex. `50_00` for +-50% relative change).
   For example, with an asset's current supply cap at 1_000_000 and `maxPercentChange` configured for supply cap at `50_00`, the max supply cap that can be configured is 1_500_000, and the minimum is 500_000 via the steward.
 
 - LTV, LT, LB (for both normal and EMode): The `maxPercentChange` is in absolute values and is also denominated in BPS. (Ex. `5_00` for +-5% change in LTV).
@@ -64,7 +63,9 @@ For each risk param, `maxPercentChange` is the maximum percent change allowed (b
 
 After the activation proposal, these params could only be changed by the governance by calling the `setRiskConfig()` method.
 
-_Note: The Risk Stewards will not allow setting the values to 0 for supply cap, borrow cap, debt ceiling, LTV, Liquidation Threshold, Liquidation Bonus no matter if the maxPercentChange has been configured to 100%. The Risk Stewards will however allow setting the value to 0 for interest rate param updates._
+_Note: The Risk Stewards will not allow setting the values to 0 for supply cap, borrow cap, LTV, Liquidation Threshold, Liquidation Bonus no matter if the maxPercentChange has been configured to 100%. The Risk Stewards will however allow setting the value to 0 for interest rate param updates._
+
+_Note: For EMode updates, the steward only allows enabling the `isolated` flag (or keeping it unchanged); disabling it is not permitted, and the EMode `label` cannot be changed._
 
 #### Restricted Assets, Oracles and EMode:
 
@@ -162,7 +163,7 @@ $ tsx generator/cli
 ? What do you want to do on AaveV3Ethereum? (Press <space> to select, <a> to toggle all, <i> to invert selection, and <enter> to proceed)
 ❯◉ RateStrategiesUpdates
  ◯ CapsUpdates (supplyCap, borrowCap)
- ◯ CollateralsUpdates (ltv,lt,lb,debtCeiling,liqProtocolFee,eModeCategory)
+ ◯ CollateralsUpdates (ltv,lt,lb,liqProtocolFee,eModeCategory)
  ◯ LstPriceCapUpdates (snapshotTimestamp,snapshotRatio,maxYearlyRatioGrowthPercent)
  ◯ StablePriceCapUpdates (priceCap)
 

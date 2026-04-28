@@ -52,6 +52,11 @@ interface IRiskSteward {
   error EModeIsRestricted();
 
   /**
+   * @notice The steward does not allow disabling the isolated flag of an eMode category
+   */
+  error EModeIsolatedDisableNotAllowed();
+
+  /**
    * @notice The steward does not allow updates of cap param of a restricted oracle
    */
   error OracleIsRestricted();

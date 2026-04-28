@@ -1062,10 +1062,49 @@ contract RiskSteward_Test is Test {
     steward.updateEModeCategories(eModeCategoryUpdates);
   }
 
-  function test_updateEModeCategories_isolatedChangeNotAllowed() public virtual {
+  function test_updateEModeCategories_isolatedDisableNotAllowed() public virtual {
     IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
     eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
       eModeCategory: 1,
+      ltv: EngineFlags.KEEP_CURRENT,
+      liqThreshold: EngineFlags.KEEP_CURRENT,
+      liqBonus: EngineFlags.KEEP_CURRENT,
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.DISABLED
+    });
+
+    vm.prank(riskCouncil);
+    vm.expectRevert(IRiskSteward.EModeIsolatedDisableNotAllowed.selector);
+    steward.updateEModeCategories(eModeCategoryUpdates);
+  }
+
+  function test_updateEModeCategories_isolatedKeepCurrent() public virtual {
+    uint8 eModeId = 1;
+    bool isolatedBefore = AaveV3Ethereum.POOL.getIsEModeCategoryIsolated(eModeId);
+
+    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
+    eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
+      eModeCategory: eModeId,
+      ltv: EngineFlags.KEEP_CURRENT,
+      liqThreshold: EngineFlags.KEEP_CURRENT,
+      liqBonus: EngineFlags.KEEP_CURRENT,
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
+    });
+
+    vm.prank(riskCouncil);
+    steward.updateEModeCategories(eModeCategoryUpdates);
+
+    assertEq(AaveV3Ethereum.POOL.getIsEModeCategoryIsolated(eModeId), isolatedBefore);
+  }
+
+  function test_updateEModeCategories_isolatedEnable() public virtual {
+    uint8 eModeId = 1;
+    assertFalse(AaveV3Ethereum.POOL.getIsEModeCategoryIsolated(eModeId));
+
+    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
+    eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
+      eModeCategory: eModeId,
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: EngineFlags.KEEP_CURRENT,
       liqBonus: EngineFlags.KEEP_CURRENT,
@@ -1074,7 +1113,30 @@ contract RiskSteward_Test is Test {
     });
 
     vm.prank(riskCouncil);
-    vm.expectRevert(IRiskSteward.ParamChangeNotAllowed.selector);
+    steward.updateEModeCategories(eModeCategoryUpdates);
+
+    assertTrue(AaveV3Ethereum.POOL.getIsEModeCategoryIsolated(eModeId));
+  }
+
+  function test_updateEModeCategories_isolatedInvalidFlag(uint256 isolated) public virtual {
+    vm.assume(
+      isolated != EngineFlags.KEEP_CURRENT &&
+        isolated != EngineFlags.ENABLED &&
+        isolated != EngineFlags.DISABLED
+    );
+
+    IEngine.EModeCategoryUpdate[] memory eModeCategoryUpdates = new IEngine.EModeCategoryUpdate[](1);
+    eModeCategoryUpdates[0] = IEngine.EModeCategoryUpdate({
+      eModeCategory: 1,
+      ltv: EngineFlags.KEEP_CURRENT,
+      liqThreshold: EngineFlags.KEEP_CURRENT,
+      liqBonus: EngineFlags.KEEP_CURRENT,
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: isolated
+    });
+
+    vm.prank(riskCouncil);
+    vm.expectRevert(bytes('INVALID_CONVERSION_TO_BOOL'));
     steward.updateEModeCategories(eModeCategoryUpdates);
   }
 
