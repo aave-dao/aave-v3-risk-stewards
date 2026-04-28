@@ -20,6 +20,7 @@ import {
   ink,
   megaeth,
   mantle,
+  xLayer,
 } from 'viem/chains';
 
 export const AVAILABLE_CHAINS = [
@@ -44,6 +45,7 @@ export const AVAILABLE_CHAINS = [
   'Ink',
   'MegaEth',
   'Mantle',
+  'XLayer',
 ] as const;
 
 export function getAssets(pool: PoolIdentifier): string[] {
@@ -139,6 +141,7 @@ export const CHAIN_TO_CHAIN_ID = {
   Ink: ink.id,
   MegaEth: megaeth.id,
   Mantle: mantle.id,
+  XLayer: xLayer.id,
 };
 
 export function flagAsRequired(message: string, required?: boolean) {

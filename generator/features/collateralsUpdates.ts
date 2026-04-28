@@ -34,7 +34,7 @@ type CollateralUpdates = CollateralUpdate[];
 
 export const collateralsUpdates: FeatureModule<CollateralUpdates> = {
   value: FEATURE.COLLATERALS_UPDATE,
-  description: 'CollateralsUpdates (ltv,lt,lb,liqProtocolFee,eModeCategory)',
+  description: 'CollateralsUpdates (ltv,lt,lb,liqProtocolFee)',
   async cli({pool}) {
     console.log(`Fetching information for Collateral Updates on ${pool}`);
 

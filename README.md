@@ -2,7 +2,7 @@
 
 Expanding from the scope of CapsPlusRiskSteward, we now introduce the new RiskSteward, allowing hardly constrained risk parameter updates by risk service providers and reducing governance overhead.
 
-[![Coverage badge](./report/coverage.svg)](https://bgd-labs.github.io/aave-risk-stewards-2/)
+[![Coverage badge](./report/coverage.svg)](https://aave-dao.github.io/aave-v3-risk-stewards/)
 
 <br>
 
@@ -163,7 +163,7 @@ $ tsx generator/cli
 ? What do you want to do on AaveV3Ethereum? (Press <space> to select, <a> to toggle all, <i> to invert selection, and <enter> to proceed)
 ❯◉ RateStrategiesUpdates
  ◯ CapsUpdates (supplyCap, borrowCap)
- ◯ CollateralsUpdates (ltv,lt,lb,liqProtocolFee,eModeCategory)
+ ◯ CollateralsUpdates (ltv,lt,lb,liqProtocolFee)
  ◯ LstPriceCapUpdates (snapshotTimestamp,snapshotRatio,maxYearlyRatioGrowthPercent)
  ◯ StablePriceCapUpdates (priceCap)
 
