@@ -2,6 +2,7 @@ import {CodeArtifact, FEATURE, FeatureModule} from '../types';
 import {eModesSelect} from '../prompts';
 import {EModeCategoryUpdate} from './types';
 import {percentPrompt, translateJsPercentToSol} from '../prompts/percentPrompt';
+import {boolPrompt, translateJsBoolToSol} from '../prompts/boolPrompt';
 
 async function fetchEmodeCategoryUpdate<T extends boolean>(
   eModeCategory: string | number,
@@ -20,6 +21,11 @@ async function fetchEmodeCategoryUpdate<T extends boolean>(
     liqBonus: await percentPrompt({
       message: 'liqBonus',
       required,
+    }),
+    isolated: await boolPrompt({
+      message: 'isolated',
+      required,
+      excludeDisabled: true,
     }),
   };
 }
@@ -62,7 +68,7 @@ export const eModeUpdates: FeatureModule<EmodeUpdates> = {
                ltv: ${translateJsPercentToSol(cfg.ltv)},
                liqThreshold: ${translateJsPercentToSol(cfg.liqThreshold)},
                liqBonus: ${translateJsPercentToSol(cfg.liqBonus)},
-               isolated: EngineFlags.KEEP_CURRENT,
+               isolated: ${translateJsBoolToSol(cfg.isolated)},
                label: EngineFlags.KEEP_CURRENT_STRING
              });`,
             )

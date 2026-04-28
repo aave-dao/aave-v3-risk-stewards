@@ -1,4 +1,5 @@
 import {NumberInputValues, PercentInputValues} from '../prompts';
+import {BooleanSelectValues} from '../prompts/boolPrompt';
 
 export interface AssetSelector {
   asset: string;
@@ -26,6 +27,7 @@ export interface EModeCategoryUpdate {
   ltv: NumberInputValues;
   liqThreshold: NumberInputValues;
   liqBonus: NumberInputValues;
+  isolated: BooleanSelectValues;
 }
 
 export interface RateStrategyParams {

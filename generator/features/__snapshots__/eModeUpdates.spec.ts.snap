@@ -21,6 +21,7 @@ export const config: ConfigFile = {
             ltv: '',
             liqThreshold: '50',
             liqBonus: '',
+            isolated: 'KEEP_CURRENT',
           },
         ],
       },

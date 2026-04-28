@@ -34,6 +34,7 @@ export const eModeUpdate: EModeCategoryUpdate[] = [
     ltv: '',
     liqThreshold: '50',
     liqBonus: '',
+    isolated: 'KEEP_CURRENT',
   },
 ];
 
