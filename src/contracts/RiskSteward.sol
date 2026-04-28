@@ -341,8 +341,10 @@ contract RiskSteward is Ownable, IRiskSteward {
       uint8 eModeId = eModeCategoryUpdates[i].eModeCategory;
       if (_restrictedEModes[eModeId]) revert EModeIsRestricted();
 
-      if (!eModeCategoryUpdates[i].label.equal(EngineFlags.KEEP_CURRENT_STRING)) revert ParamChangeNotAllowed();
-      if (eModeCategoryUpdates[i].isolated == EngineFlags.DISABLED) revert EModeIsolatedDisableNotAllowed();
+      if (
+        !eModeCategoryUpdates[i].label.equal(EngineFlags.KEEP_CURRENT_STRING) ||
+        eModeCategoryUpdates[i].isolated != EngineFlags.KEEP_CURRENT
+      ) revert ParamChangeNotAllowed();
 
       if (
         eModeCategoryUpdates[i].ltv == 0 ||

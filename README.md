@@ -33,7 +33,7 @@ The following risk params could be changed by the RiskStewards:
 - Cap parameters for [PriceCapAdapters (CAPO)](https://github.com/bgd-labs/aave-capo/)
 - Discount Rate for Pendle PT CAPO
 
-- EMode Collateral params (LTV, Liquidation Threshold, Liquidation Bonus, Isolated flag)
+- EMode Collateral params (LTV, Liquidation Threshold, Liquidation Bonus)
 
 #### Min Delay:
 
@@ -65,7 +65,7 @@ After the activation proposal, these params could only be changed by the governa
 
 _Note: The Risk Stewards will not allow setting the values to 0 for supply cap, borrow cap, LTV, Liquidation Threshold, Liquidation Bonus no matter if the maxPercentChange has been configured to 100%. The Risk Stewards will however allow setting the value to 0 for interest rate param updates._
 
-_Note: For EMode updates, the steward only allows enabling the `isolated` flag (or keeping it unchanged); disabling it is not permitted, and the EMode `label` cannot be changed._
+_Note: For EMode updates, the steward does not allow changing the `isolated` flag or the `label` — both must be kept unchanged. Modifying these is reserved for governance._
 
 #### Restricted Assets, Oracles and EMode:
 

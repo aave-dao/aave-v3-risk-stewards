@@ -11,17 +11,15 @@ export async function boolPrompt<T extends boolean>({
   message,
   required,
   defaultValue,
-  excludeDisabled,
 }: GenericPrompt<T> & {
   defaultValue?: T extends true
     ? Exclude<BooleanSelectValues, 'KEEP_CURRENT'>
     : BooleanSelectValues;
-  excludeDisabled?: boolean;
 }): Promise<T extends true ? Exclude<BooleanSelectValues, 'KEEP_CURRENT'> : BooleanSelectValues> {
   const choices = [
     ...(required ? [] : [{value: ENGINE_FLAGS.KEEP_CURRENT}]),
     {value: ENGINE_FLAGS.ENABLED},
-    ...(excludeDisabled ? [] : [{value: ENGINE_FLAGS.DISABLED}]),
+    {value: ENGINE_FLAGS.DISABLED},
   ];
   return select<
     T extends true ? Exclude<BooleanSelectValues, 'KEEP_CURRENT'> : BooleanSelectValues
