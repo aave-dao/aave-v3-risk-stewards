@@ -63,6 +63,24 @@ library DeployRiskStewards {
     return riskSteward;
   }
 
+  function _deployRiskStewardsInk(
+    address pool,
+    address configEngine,
+    address riskCouncil,
+    address governance
+  ) internal returns (address) {
+    address riskSteward = address(
+      new RiskSteward(
+        pool,
+        configEngine,
+        riskCouncil,
+        governance,
+        _getRiskConfigInk()
+      )
+    );
+    return riskSteward;
+  }
+
   function _getRiskConfig() internal pure returns (IRiskSteward.Config memory) {
     return
       IRiskSteward.Config({
@@ -92,6 +110,33 @@ library DeployRiskStewards {
           discountRatePendle: IRiskSteward.RiskParamConfig({minDelay: 2 days, maxPercentChange: 0.025e18})
         })
       });
+  }
+
+  // as ink is a whitelabel instance and the minimum delay there has been reduced to 1 day while keeping the rest configs the same
+  function _getRiskConfigInk() internal pure returns (IRiskSteward.Config memory) {
+    IRiskSteward.Config memory inkConfig = _getRiskConfig();
+
+    inkConfig.collateralConfig.ltv.minDelay = 1 days;
+    inkConfig.collateralConfig.liquidationThreshold.minDelay = 1 days;
+    inkConfig.collateralConfig.liquidationBonus.minDelay = 1 days;
+
+    inkConfig.eModeConfig.ltv.minDelay = 1 days;
+    inkConfig.eModeConfig.liquidationThreshold.minDelay = 1 days;
+    inkConfig.eModeConfig.liquidationBonus.minDelay = 1 days;
+
+    inkConfig.rateConfig.baseVariableBorrowRate.minDelay = 1 days;
+    inkConfig.rateConfig.variableRateSlope1.minDelay = 1 days;
+    inkConfig.rateConfig.variableRateSlope2.minDelay = 1 days;
+    inkConfig.rateConfig.optimalUsageRatio.minDelay = 1 days;
+
+    inkConfig.capConfig.supplyCap.minDelay = 1 days;
+    inkConfig.capConfig.borrowCap.minDelay = 1 days;
+
+    inkConfig.priceCapConfig.priceCapLst.minDelay = 1 days;
+    inkConfig.priceCapConfig.priceCapStable.minDelay = 1 days;
+    // discountRatePendle keeps its 2-day delay
+
+    return inkConfig;
   }
 }
 
@@ -337,7 +382,7 @@ contract DeployMantle is MantleScript {
 contract DeployInk is InkScript {
   function run() external {
     vm.startBroadcast();
-    DeployRiskStewards._deployRiskStewards(
+    DeployRiskStewards._deployRiskStewardsInk(
       address(AaveV3InkWhitelabel.POOL),
       AaveV3InkWhitelabel.CONFIG_ENGINE,
       0xEcD37F855bB9814D75A83F0021815dc5cd6fd889, // ink-risk-council
