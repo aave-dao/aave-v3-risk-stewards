@@ -8,7 +8,6 @@ import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/Ris
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {GovV3Helpers} from 'aave-helpers/src/GovV3Helpers.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
-import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable, IChainlinkAggregator} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 import {PriceCapAdapterStable} from 'aave-capo/contracts/PriceCapAdapterStable.sol';
