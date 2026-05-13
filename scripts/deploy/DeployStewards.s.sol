@@ -337,7 +337,7 @@ contract DeploySonic is SonicScript {
 }
 
 // make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployCelo chain=celo
-contract DeployCelo is SonicScript {
+contract DeployCelo is CeloScript {
   function run() external {
     vm.startBroadcast();
     DeployRiskStewards._deployRiskStewards(
