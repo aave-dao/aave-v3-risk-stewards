@@ -138,7 +138,7 @@ rule updateRates_validity(env e) {
 
   Description: the rule checks that:
   1. After a successed call to updateCollateralSide, the fields ltvLastUpdated, liquidationThresholdLastUpdated
-     liquidationBonusLastUpdated, and debtCeilingLastUpdated get the value of current timestamp.
+     and liquidationBonusLastUpdated get the value of current timestamp.
   2. The function AaveV3ConfigEngine.updateCollateralSide is called.
 
   Status: PASS
@@ -155,8 +155,7 @@ rule updateCollateralSide_validity(env e) {
   require collateralUpdate[i].ltv != KEEP_CURRENT;
   require collateralUpdate[i].liqThreshold != KEEP_CURRENT;
   require collateralUpdate[i].liqBonus != KEEP_CURRENT;
-  require collateralUpdate[i].debtCeiling != KEEP_CURRENT;
-  
+
   updateCollateralSide(e,collateralUpdate);
 
   address asset = collateralUpdate[i].asset;
@@ -164,7 +163,6 @@ rule updateCollateralSide_validity(env e) {
   assert getTimelock(asset).ltvLastUpdated == require_uint40(e.block.timestamp);
   assert getTimelock(asset).liquidationThresholdLastUpdated == require_uint40(e.block.timestamp);
   assert getTimelock(asset).liquidationBonusLastUpdated == require_uint40(e.block.timestamp);
-  assert getTimelock(asset).debtCeilingLastUpdated == require_uint40(e.block.timestamp);
   assert CALLED_updateCollateral==true;
 }
 

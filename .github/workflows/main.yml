@@ -9,10 +9,56 @@ on:
 
 jobs:
   test-solidity:
-    uses: bgd-labs/github-workflows/.github/workflows/foundry-test.yml@main
-    with:
-      compareLcov: false
-    secrets: inherit
+    name: Foundry build n test
+    runs-on: ubuntu-latest
+    env:
+      RPC_MEGAETH: ${{ secrets.RPC_MEGAETH }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.READ_ONLY_PAT || github.token }}
+
+      - name: Increase swapfile
+        run: |
+          sudo swapoff -a
+          sudo fallocate -l 15G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
+
+      - uses: bgd-labs/action-rpc-env@5191193b0de7443bda94b6f42092c83e32464adc
+        with:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          QUICKNODE_TOKEN: ${{ secrets.QUICKNODE_TOKEN }}
+          QUICKNODE_ENDPOINT_NAME: ${{ secrets.QUICKNODE_ENDPOINT_NAME }}
+
+      - uses: bgd-labs/github-workflows/.github/actions/setup-node@main
+
+      - name: Run Foundry setup
+        uses: bgd-labs/github-workflows/.github/actions/foundry-setup@main
+
+      - name: Run Forge size
+        uses: bgd-labs/github-workflows/.github/actions/foundry-size@main
+        continue-on-error: true
+
+      - name: Run Gas report
+        uses: bgd-labs/github-workflows/.github/actions/foundry-gas-report@main
+        continue-on-error: true
+
+      - name: Run Forge tests
+        id: test
+        uses: bgd-labs/github-workflows/.github/actions/foundry-test@main
+        with:
+          MODE: ALL
+
+      - name: Upload & Trigger Comment artifact
+        if: always()
+        uses: bgd-labs/github-workflows/.github/actions/comment-artifact@main
+        with:
+          nameSuffix: "default"
+
   test-js:
     uses: bgd-labs/github-workflows/.github/workflows/test-node.yml@main
     if: github.event.pull_request.head.repo.full_name == github.repository

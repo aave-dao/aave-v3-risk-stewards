@@ -4,8 +4,8 @@
   },
   "lib/aave-helpers": {
     "branch": {
-      "name": "main",
-      "rev": "09b75cda99f0af687a94b7ee515569e7b93ed6d6"
+      "name": "v3.7-alt-fixes",
+      "rev": "ca4efdcd083a8d370620e3f03a627dab478ce5cc"
     }
   }
 }

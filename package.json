@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/bgd-labs/aave-v3-risk-stewards#readme",
   "devDependencies": {
-    "@aave-dao/aave-address-book": "^4.47.2",
+    "@aave-dao/aave-address-book": "^4.52.5",
     "@bgd-labs/js-utils": "^1.4.7",
     "@bgd-labs/toolbox": "^0.2.17",
     "@ethersproject/hardware-wallets": "^5.7.0",

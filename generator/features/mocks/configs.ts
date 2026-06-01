@@ -24,7 +24,6 @@ export const collateralUpdate: CollateralUpdate[] = [
     ltv: '8500',
     liqThreshold: '8800',
     liqBonus: '600',
-    debtCeiling: '',
     liqProtocolFee: '1200'
   },
 ];
@@ -35,7 +34,6 @@ export const eModeUpdate: EModeCategoryUpdate[] = [
     ltv: '',
     liqThreshold: '50',
     liqBonus: '',
-    label: '',
   },
 ];
 

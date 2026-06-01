@@ -20,6 +20,7 @@ import {
   ink,
   megaeth,
   mantle,
+  xLayer,
 } from 'viem/chains';
 
 export const AVAILABLE_CHAINS = [
@@ -44,6 +45,7 @@ export const AVAILABLE_CHAINS = [
   'Ink',
   'MegaEth',
   'Mantle',
+  'XLayer',
 ] as const;
 
 export function getAssets(pool: PoolIdentifier): string[] {
@@ -53,8 +55,9 @@ export function getAssets(pool: PoolIdentifier): string[] {
 
 export function getEModes(pool: PoolIdentifierV3): {value: string; id: number}[] {
   return Object.keys(addressBook[pool].E_MODES).map((key) => ({
-    // map the complex type to a string as used in the sol libs
-    value: addressBook[pool].E_MODES[key].label.toUpperCase().replace(/[^A-Z0-9]+/gi, '_'),
+    // map the label to the constant name used in the sol libs:
+    // ` / ` (collateral/borrow separator) -> `__`, `,` -> `_`, casing preserved
+    value: addressBook[pool].E_MODES[key].label.replace(/ \/ /g, '__').replace(/,/g, '_'),
     id: key as unknown as number,
   }));
 }
@@ -138,6 +141,7 @@ export const CHAIN_TO_CHAIN_ID = {
   Ink: ink.id,
   MegaEth: megaeth.id,
   Mantle: mantle.id,
+  XLayer: xLayer.id,
 };
 
 export function flagAsRequired(message: string, required?: boolean) {

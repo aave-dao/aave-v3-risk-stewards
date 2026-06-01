@@ -22,7 +22,6 @@ contract BaseExample is RiskStewardsBaseChain {
       ltv: 77_00,
       liqThreshold: 79_00,
       liqBonus: 6_00,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
     collateralUpdates[1] = IEngine.CollateralUpdate({
@@ -30,7 +29,6 @@ contract BaseExample is RiskStewardsBaseChain {
       ltv: EngineFlags.KEEP_CURRENT,
       liqThreshold: 84_00,
       liqBonus: EngineFlags.KEEP_CURRENT,
-      debtCeiling: EngineFlags.KEEP_CURRENT,
       liqProtocolFee: EngineFlags.KEEP_CURRENT
     });
 

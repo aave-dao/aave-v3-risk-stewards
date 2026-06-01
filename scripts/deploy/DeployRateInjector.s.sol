@@ -69,8 +69,7 @@ library DeployStewardContracts {
         collateralConfig: IRiskSteward.CollateralConfig({
           ltv: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
           liquidationThreshold: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
-          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),
-          debtCeiling: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 20_00})
+          liquidationBonus: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50})
         }),
         eModeConfig: IRiskSteward.EmodeConfig({
           ltv: IRiskSteward.RiskParamConfig({minDelay: 1 days, maxPercentChange: 50}),

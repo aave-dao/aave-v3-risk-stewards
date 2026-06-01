@@ -58,7 +58,8 @@ contract AaveStewardInjectorEMode is AaveStewardInjectorBase {
       ltv: update.ltv,
       liqThreshold: update.liqThreshold,
       liqBonus: update.liqBonus,
-      label: EngineFlags.KEEP_CURRENT_STRING
+      label: EngineFlags.KEEP_CURRENT_STRING,
+      isolated: EngineFlags.KEEP_CURRENT
     });
     IRiskSteward(RISK_STEWARD).updateEModeCategories(eModeUpdate);
   }

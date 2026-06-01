@@ -70,14 +70,15 @@ contract AaveStewardsInjectorEMode_Test is AaveStewardsInjectorBaseTest {
     vm.stopPrank();
 
     vm.startPrank(poolAdmin);
-    contracts.poolConfiguratorProxy.setEModeCategory(_eModeIdOne, 82_50, 86_00, 105_00, 'EMode_1');
-    contracts.poolConfiguratorProxy.setEModeCategory(_eModeIdTwo, 82_50, 86_00, 105_00, 'EMode_2');
+    contracts.poolConfiguratorProxy.setEModeCategory(_eModeIdOne, 82_50, 86_00, 105_00, 'EMode_1', false);
+    contracts.poolConfiguratorProxy.setEModeCategory(_eModeIdTwo, 82_50, 86_00, 105_00, 'EMode_2', false);
     contracts.poolConfiguratorProxy.setEModeCategory(
       _eModeIdThree,
       82_50,
       86_00,
       105_00,
-      'EMode_3'
+      'EMode_3',
+      false
     );
     contracts.aclManager.addRiskAdmin(address(_riskSteward));
     vm.stopPrank();

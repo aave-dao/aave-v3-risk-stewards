@@ -97,6 +97,10 @@ contract EdgeRiskStewardRates_Test is RiskSteward_Test {
 
   function test_updateEModeCategories_labelChangeNotAllowed() public override {}
 
+  function test_updateEModeCategories_isolatedKeepCurrent() public override {}
+
+  function test_updateEModeCategories_isolatedChangeNotAllowed(uint256) public override {}
+
   /* ----------------------------- LST Price Cap Tests ----------------------------- */
 
   function test_updateLstPriceCap() public {

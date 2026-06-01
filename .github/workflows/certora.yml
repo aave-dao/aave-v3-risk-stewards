@@ -18,13 +18,14 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    if:
-      github.event.pull_request.head.repo.full_name == github.repository || (github.event_name == 'push' &&
-      github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
+    #if:
+    #  github.event.pull_request.head.repo.full_name == github.repository || (github.event_name == 'push' &&
+    #  github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
     permissions:
       contents: read
       statuses: write
       pull-requests: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,9 +37,9 @@ jobs:
           touch applyHarness.patch
           make munged
 
-      - uses: Certora/certora-run-action@v1
+      - uses: Certora/certora-run-action@v2
         with:
-          cli-version: 7.31.0
+          cli-version: 8.3.1
           configurations: |-
             certora/confs/rules.conf
           solc-versions: 0.8.27

@@ -8,7 +8,6 @@ import {RiskSteward, IRiskSteward, IEngine, EngineFlags} from 'src/contracts/Ris
 import {IAaveV3ConfigEngine as IEngine} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {GovV3Helpers} from 'aave-helpers/src/GovV3Helpers.sol';
 import {EngineFlags} from 'aave-v3-origin/src/contracts/extensions/v3-config-engine/EngineFlags.sol';
-import {ConfigEngineDeployer} from './utils/ConfigEngineDeployer.sol';
 import {IPriceCapAdapter} from 'aave-capo/interfaces/IPriceCapAdapter.sol';
 import {IPriceCapAdapterStable, IChainlinkAggregator} from 'aave-capo/interfaces/IPriceCapAdapterStable.sol';
 import {PriceCapAdapterStable} from 'aave-capo/contracts/PriceCapAdapterStable.sol';
@@ -95,7 +94,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: (currentRatio - 2),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
@@ -130,7 +129,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - delay),
+        snapshotTimestamp: (block.timestamp - delay).toUint48(),
         snapshotRatio: (currentRatio - 1),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentAfter * 91) / 100).toUint16() // ~10% relative decrease
       })
@@ -166,7 +165,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: (currentRatio - 2),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
@@ -178,7 +177,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 1 * delay),
+        snapshotTimestamp: (block.timestamp - 1 * delay).toUint48(),
         snapshotRatio: (currentRatio - 1),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore)).toUint16()
       })
@@ -201,7 +200,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: (currentRatio + 1),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
@@ -225,7 +224,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: (currentRatio - 1),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 120) / 100).toUint16() // 20% relative increase
       })
@@ -249,7 +248,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: (currentRatio / 2),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
@@ -287,7 +286,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: 0,
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
@@ -300,7 +299,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: (currentRatio / 2),
         maxYearlyRatioGrowthPercent: 0
       })
@@ -327,7 +326,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(block.timestamp - 2 * delay),
+        snapshotTimestamp: (block.timestamp - 2 * delay).toUint48(),
         snapshotRatio: (currentRatio / 2),
         maxYearlyRatioGrowthPercent: ((maxYearlyGrowthPercentBefore * 110) / 100).toUint16() // 10% relative increase
       })
@@ -351,7 +350,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(snapshotTsBefore),
+        snapshotTimestamp: snapshotTsBefore.toUint48(),
         snapshotRatio: currentRatio,
         maxYearlyRatioGrowthPercent: maxYearlyGrowthPercentBefore.toUint16() + 1
       })
@@ -366,7 +365,7 @@ contract RiskSteward_Capo_Test is Test {
     priceCapUpdates[0] = IRiskSteward.PriceCapLstUpdate({
       oracle: wstETH_ORACLE,
       priceCapUpdateParams: IPriceCapAdapter.PriceCapUpdateParams({
-        snapshotTimestamp: uint48(snapshotTsBefore) + 1,
+        snapshotTimestamp: snapshotTsBefore.toUint48() + 1,
         snapshotRatio: currentRatio - 1,
         maxYearlyRatioGrowthPercent: maxYearlyGrowthPercentBefore.toUint16()
       })

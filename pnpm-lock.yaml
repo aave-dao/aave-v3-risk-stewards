@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@aave-dao/aave-address-book':
-        specifier: ^4.47.2
-        version: 4.47.2(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))
+        specifier: ^4.52.5
+        version: 4.52.5(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))
       '@bgd-labs/js-utils':
         specifier: ^1.4.7
         version: 1.4.8(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))
@@ -77,8 +77,8 @@ importers:
 
 packages:
 
-  '@aave-dao/aave-address-book@4.47.2':
-    resolution: {integrity: sha512-xF3tdcAXTQ5M/K7vMmEDZnGYJM/f6EptjZ7TAzbTNCSxM58F4WX+PcWVk4VkpOsozWXZAwnd4xZhvt3HsE0rAg==}
+  '@aave-dao/aave-address-book@4.52.5':
+    resolution: {integrity: sha512-vtNub94kgmLQuSoqhfUCsIFWMxAWqDo2/WfQf6bADvvmEEfFkFlr9jRtzIvZiHk7FlCWKJvxo01mJn4LAoS18Q==}
     peerDependencies:
       viem: ^2.23.5
 
@@ -2097,7 +2097,7 @@ packages:
 
 snapshots:
 
-  '@aave-dao/aave-address-book@4.47.2(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))':
+  '@aave-dao/aave-address-book@4.52.5(viem@2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10))':
     dependencies:
       viem: 2.45.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)
 
