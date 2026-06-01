@@ -13,7 +13,6 @@ import {AaveV3Scroll} from 'aave-address-book/AaveV3Scroll.sol';
 import {AaveV3Gnosis} from 'aave-address-book/AaveV3Gnosis.sol';
 import {AaveV3BNB} from 'aave-address-book/AaveV3BNB.sol';
 import {AaveV3Base} from 'aave-address-book/AaveV3Base.sol';
-import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
 import {AaveV3Linea} from 'aave-address-book/AaveV3Linea.sol';
 import {AaveV3Sonic} from 'aave-address-book/AaveV3Sonic.sol';
 import {AaveV3Celo} from 'aave-address-book/AaveV3Celo.sol';
@@ -22,10 +21,8 @@ import {AaveV3Mantle} from 'aave-address-book/AaveV3Mantle.sol';
 import {AaveV3InkWhitelabel} from 'aave-address-book/AaveV3InkWhitelabel.sol';
 import {AaveV3XLayer} from 'aave-address-book/AaveV3XLayer.sol';
 import {AaveV3MegaEth} from 'aave-address-book/AaveV3MegaEth.sol';
-import {AaveV3Soneium} from 'aave-address-book/AaveV3Soneium.sol';
 import {AaveV3ZkSync} from 'aave-address-book/AaveV3ZkSync.sol';
 import {IRiskSteward} from 'src/interfaces/IRiskSteward.sol';
-import {IRiskStewardOld} from 'src/contracts/dependencies/IRiskStewardOld.sol';
 import {DeployRiskStewards} from '../scripts/deploy/DeployStewards.s.sol';
 
 // forge test --match-path tests/RiskStewardConfigParity.t.sol -vv
@@ -39,14 +36,10 @@ abstract contract RiskStewardConfigParityTestBase is Test {
     address onChainSteward,
     IRiskSteward.Config memory toDeploy
   ) internal view {
-    IRiskStewardOld.Config memory onChain = IRiskStewardOld(onChainSteward).getRiskConfig();
+    IRiskSteward.Config memory onChain = IRiskSteward(onChainSteward).getRiskConfig();
 
-    // collateral (debtCeiling intentionally skipped — removed in v3.7)
-    _assertParamEq(
-      onChain.collateralConfig.ltv,
-      toDeploy.collateralConfig.ltv,
-      'collateral.ltv'
-    );
+    // collateral
+    _assertParamEq(onChain.collateralConfig.ltv, toDeploy.collateralConfig.ltv, 'collateral.ltv');
     _assertParamEq(
       onChain.collateralConfig.liquidationThreshold,
       toDeploy.collateralConfig.liquidationThreshold,
@@ -116,7 +109,7 @@ abstract contract RiskStewardConfigParityTestBase is Test {
   }
 
   function _assertParamEq(
-    IRiskStewardOld.RiskParamConfig memory a,
+    IRiskSteward.RiskParamConfig memory a,
     IRiskSteward.RiskParamConfig memory b,
     string memory label
   ) internal pure {
@@ -131,7 +124,7 @@ abstract contract RiskStewardConfigParityTestBase is Test {
 
 contract RiskStewardConfigParity_Ethereum is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 25050251);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 25223478);
   }
 
   function test_configParity() public view {
@@ -141,7 +134,7 @@ contract RiskStewardConfigParity_Ethereum is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_EthereumLido is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), 25050251);
+    vm.createSelectFork(vm.rpcUrl('mainnet'), 25223478);
   }
 
   function test_configParity() public view {
@@ -151,7 +144,7 @@ contract RiskStewardConfigParity_EthereumLido is RiskStewardConfigParityTestBase
 
 contract RiskStewardConfigParity_Polygon is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('polygon'), 86572862);
+    vm.createSelectFork(vm.rpcUrl('polygon'), 87764949);
   }
 
   function test_configParity() public view {
@@ -161,7 +154,7 @@ contract RiskStewardConfigParity_Polygon is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Arbitrum is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('arbitrum'), 460666005);
+    vm.createSelectFork(vm.rpcUrl('arbitrum'), 468973218);
   }
 
   function test_configParity() public view {
@@ -171,7 +164,7 @@ contract RiskStewardConfigParity_Arbitrum is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Optimism is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('optimism'), 151321719);
+    vm.createSelectFork(vm.rpcUrl('optimism'), 152364802);
   }
 
   function test_configParity() public view {
@@ -181,7 +174,7 @@ contract RiskStewardConfigParity_Optimism is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Avalanche is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('avalanche'), 84907128);
+    vm.createSelectFork(vm.rpcUrl('avalanche'), 86920959);
   }
 
   function test_configParity() public view {
@@ -191,7 +184,7 @@ contract RiskStewardConfigParity_Avalanche is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Scroll is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('scroll'), 33629153);
+    vm.createSelectFork(vm.rpcUrl('scroll'), 33913931);
   }
 
   function test_configParity() public view {
@@ -201,7 +194,7 @@ contract RiskStewardConfigParity_Scroll is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Gnosis is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('gnosis'), 46068873);
+    vm.createSelectFork(vm.rpcUrl('gnosis'), 46475668);
   }
 
   function test_configParity() public view {
@@ -211,7 +204,7 @@ contract RiskStewardConfigParity_Gnosis is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_BNB is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('bnb'), 97085675);
+    vm.createSelectFork(vm.rpcUrl('bnb'), 101715204);
   }
 
   function test_configParity() public view {
@@ -221,7 +214,7 @@ contract RiskStewardConfigParity_BNB is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Base is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('base'), 45726435);
+    vm.createSelectFork(vm.rpcUrl('base'), 46769518);
   }
 
   function test_configParity() public view {
@@ -229,19 +222,9 @@ contract RiskStewardConfigParity_Base is RiskStewardConfigParityTestBase {
   }
 }
 
-contract RiskStewardConfigParity_Metis is RiskStewardConfigParityTestBase {
-  function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('metis'), 22644020);
-  }
-
-  function test_configParity() public view {
-    _verifyConfigParity(AaveV3Metis.RISK_STEWARD);
-  }
-}
-
 contract RiskStewardConfigParity_Linea is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('linea'), 30558597);
+    vm.createSelectFork(vm.rpcUrl('linea'), 30862157);
   }
 
   function test_configParity() public view {
@@ -251,7 +234,7 @@ contract RiskStewardConfigParity_Linea is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Sonic is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('sonic'), 69924685);
+    vm.createSelectFork(vm.rpcUrl('sonic'), 72064422);
   }
 
   function test_configParity() public view {
@@ -261,7 +244,7 @@ contract RiskStewardConfigParity_Sonic is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Celo is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('celo'), 66341463);
+    vm.createSelectFork(vm.rpcUrl('celo'), 68427627);
   }
 
   function test_configParity() public view {
@@ -271,7 +254,7 @@ contract RiskStewardConfigParity_Celo is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Plasma is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('plasma'), 21310362);
+    vm.createSelectFork(vm.rpcUrl('plasma'), 23388493);
   }
 
   function test_configParity() public view {
@@ -281,7 +264,7 @@ contract RiskStewardConfigParity_Plasma is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Mantle is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('mantle'), 95055955);
+    vm.createSelectFork(vm.rpcUrl('mantle'), 96099037);
   }
 
   function test_configParity() public view {
@@ -291,7 +274,7 @@ contract RiskStewardConfigParity_Mantle is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_Ink is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('ink'), 44743810);
+    vm.createSelectFork(vm.rpcUrl('ink'), 46829976);
   }
 
   function test_configParity() public view {
@@ -301,7 +284,7 @@ contract RiskStewardConfigParity_Ink is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_XLayer is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('xlayer'), 59473190);
+    vm.createSelectFork(vm.rpcUrl('xlayer'), 61559351);
   }
 
   function test_configParity() public view {
@@ -311,20 +294,10 @@ contract RiskStewardConfigParity_XLayer is RiskStewardConfigParityTestBase {
 
 contract RiskStewardConfigParity_MegaEth is RiskStewardConfigParityTestBase {
   function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('megaeth'), 15445601);
+    vm.createSelectFork(vm.rpcUrl('megaeth'), 17531376);
   }
 
   function test_configParity() public view {
     _verifyConfigParity(AaveV3MegaEth.RISK_STEWARD);
-  }
-}
-
-contract RiskStewardConfigParity_Soneium is RiskStewardConfigParityTestBase {
-  function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('soneium'), 22553736);
-  }
-
-  function test_configParity() public view {
-    _verifyConfigParity(AaveV3Soneium.RISK_STEWARD);
   }
 }
