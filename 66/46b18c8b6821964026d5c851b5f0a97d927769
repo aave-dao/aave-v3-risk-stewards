@@ -1,0 +1,18 @@
+scripts/networks/RiskStewardsMonad.s.sol
+  h_739c25e72c37fb 9
+generator/types.ts
+  h_739c25e72c37fb 33
+README.md
+  h_739c25e72c37fb 134-135,144-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "6646b18c8b6821964026d5c851b5f0a97d927769",
+  "prompts": {},
+  "humans": {
+    "h_739c25e72c37fb": {
+      "author": "DhairyaSethi <55102840+DhairyaSethi@users.noreply.github.com>"
+    }
+  }
+}
