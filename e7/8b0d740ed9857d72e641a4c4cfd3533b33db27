@@ -1,0 +1,24 @@
+scripts/deploy/DeployStewards.s.sol
+  h_739c25e72c37fb 45-47,439-452
+scripts/networks/RiskStewardsMonad.s.sol
+  h_739c25e72c37fb 1-11
+generator/common.ts
+  h_739c25e72c37fb 24,50,147
+foundry.toml
+  h_739c25e72c37fb 59,80
+Makefile
+  h_739c25e72c37fb 32-33
+.env.example
+  h_739c25e72c37fb 8-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "e78b0d740ed9857d72e641a4c4cfd3533b33db27",
+  "prompts": {},
+  "humans": {
+    "h_739c25e72c37fb": {
+      "author": "DhairyaSethi <55102840+DhairyaSethi@users.noreply.github.com>"
+    }
+  }
+}
