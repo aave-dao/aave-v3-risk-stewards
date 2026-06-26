@@ -59,7 +59,7 @@ For each risk param, `maxPercentChange` is the maximum percent change allowed (b
   For example, for a current price cap of an oracle configured at 1_10_000000 and `maxPercentChange` configured at `1_00`, the max price cap that can be configured is 1_11_100000 and the minimum 1_08_900000 via the steward.
 
 - Pendle discount rate CAPO: the `maxPercentChange` is in absolute values.
-  For example, for a current discount rate of an oracle configured at `0.05e18` (5%) and `maxPercentChange` configured at `0.025e18` (2.5%), the max price cap that can be configured is `0.075e18` (7.5%)  and the minimum `0.025e18` (2.5%) via the steward.
+  For example, for a current discount rate of an oracle configured at `0.05e18` (5%) and `maxPercentChange` configured at `0.025e18` (2.5%), the max price cap that can be configured is `0.075e18` (7.5%) and the minimum `0.025e18` (2.5%) via the steward.
 
 After the activation proposal, these params could only be changed by the governance by calling the `setRiskConfig()` method.
 
@@ -131,7 +131,8 @@ To get a full list of available commands run `pnpm run generate --help`
 
 ```sh
 pnpm run generate --help
-$ tsx generator/cli --help
+> tsx generator/cli --help
+
 Usage: proposal-generator [options]
 
 CLI to generate aave proposals
@@ -139,9 +140,9 @@ CLI to generate aave proposals
 Options:
   -V, --version              output the version number
   -f, --force                force creation (might overwrite existing files)
-  -p, --pools <pools...>      (choices: "AaveV3Ethereum", "AaveV3EthereumLido", "AaveV3EthereumEtherFi", "AaveV3Polygon",
-                             "AaveV3Avalanche", "AaveV3Optimism", "AaveV3Arbitrum", "AaveV3Metis", "AaveV3Base", "AaveV3Gnosis",
-                             "AaveV3Scroll", "AaveV3BNB")
+  -p, --pools <pools...>      (choices: "AaveV3Ethereum", "AaveV3EthereumLido", "AaveV3EthereumEtherFi", "AaveV3Polygon", "AaveV3Avalanche", "AaveV3Optimism", "AaveV3Arbitrum", "AaveV3Metis", "AaveV3Base",
+                             "AaveV3Gnosis", "AaveV3Scroll", "AaveV3BNB", "AaveV3ZkSync", "AaveV3Linea", "AaveV3Sonic", "AaveV3Celo", "AaveV3Soneium", "AaveV3Plasma", "AaveV3InkWhitelabel", "AaveV3MegaEth",
+                             "AaveV3Mantle", "AaveV3XLayer", "AaveV3Monad")
   -t, --title <string>       aip title
   -a, --author <string>      author
   -d, --discussion <string>  forum link
