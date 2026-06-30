@@ -29,6 +29,7 @@ git-diff :
 
 # Deploy
 deploy-ledger :; forge script $(if $(filter zksync,${chain}),--zksync) ${contract} --rpc-url ${chain} $(if ${dry},--sender 0x25F2226B597E8F9514B3F68F00f494cF4f286491 -vvvv, --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify --verifier etherscan -vvvv --slow --broadcast)
-deploy-pk :; forge script $(if $(filter zksync,${chain}),--zksync) ${contract} --rpc-url ${chain} $(if ${dry},--sender 0x25F2226B597E8F9514B3F68F00f494cF4f286491 -vvvv, --private-key ${PRIVATE_KEY} --verify --verifier etherscan -vvvv --slow --broadcast --verifier etherscan)
+deploy-pk :; forge script $(if $(filter zksync,${chain}),--zksync) ${contract} --rpc-url ${chain} $(if ${dry},--sender 0x25F2226B597E8F9514B3F68F00f494cF4f286491 -vvvv, --private-key ${PRIVATE_KEY} --verify --verifier etherscan -vvvv --slow --broadcast)
+deploy-account :; forge script $(if $(filter zksync,${chain}),--zksync) ${contract} --rpc-url ${chain} $(if ${dry},--sender 0x25F2226B597E8F9514B3F68F00f494cF4f286491 -vvvv, --account ${ACCOUNT} --verify --verifier etherscan -vvvv --slow --broadcast)
 
 run-script:; FOUNDRY_PROFILE=$(if $(filter zksync,${network}),zksync,test) forge script $(if $(filter zksync,${network}),--zksync) ${contract} --rpc-url ${network} --sig "run(bool, bool, bool)" ${broadcast} ${generate_diff} ${skip_timelock} -vv

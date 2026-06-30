@@ -42,6 +42,9 @@ import {AaveV3MegaEth} from 'aave-address-book/AaveV3MegaEth.sol';
 import {GovernanceV3MegaEth} from 'aave-address-book/GovernanceV3MegaEth.sol';
 import {AaveV3Soneium} from 'aave-address-book/AaveV3Soneium.sol';
 import {GovernanceV3Soneium} from 'aave-address-book/GovernanceV3Soneium.sol';
+import {AaveV3Monad} from 'aave-address-book/AaveV3Monad.sol';
+import {GovernanceV3Monad} from 'aave-address-book/GovernanceV3Monad.sol';
+
 import {RiskSteward, IRiskSteward} from '../../src/contracts/RiskSteward.sol';
 
 library DeployRiskStewards {
@@ -429,6 +432,20 @@ contract DeploySoneium is SoneiumScript {
       AaveV3Soneium.CONFIG_ENGINE,
       0x45cCB319C57A6Ae0d53C4dB1a151dF75015103b1, // soneium-risk-council
       GovernanceV3Soneium.EXECUTOR_LVL_1
+    );
+    vm.stopBroadcast();
+  }
+}
+
+// make deploy-ledger contract=scripts/deploy/DeployStewards.s.sol:DeployMonad chain=monad
+contract DeployMonad is MonadScript {
+  function run() external {
+    vm.startBroadcast();
+    DeployRiskStewards._deployRiskStewards(
+      address(AaveV3Monad.POOL),
+      AaveV3Monad.CONFIG_ENGINE,
+      0x1c930A46f01542882Fb43031DeD31f06C8cF278d, // monad-risk-council
+      GovernanceV3Monad.EXECUTOR_LVL_1
     );
     vm.stopBroadcast();
   }

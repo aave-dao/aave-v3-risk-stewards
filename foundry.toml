@@ -56,6 +56,7 @@ ink = "${RPC_INK}"
 megaeth = "${RPC_MEGAETH}"
 mantle = "${RPC_MANTLE}"
 xlayer = "${RPC_XLAYER}"
+monad = "${RPC_MONAD}"
 
 [etherscan]
 mainnet = { key="${ETHERSCAN_API_KEY_MAINNET}", chainId=1 }
@@ -76,5 +77,6 @@ sonic = { key="${ETHERSCAN_API_KEY_SONIC}", chain = 146 }
 celo = { key="${ETHERSCAN_API_KEY_CELO}", chain = 42220 }
 soneium = { key="any", chainId=1868, url='https://soneium.blockscout.com/api' }
 plasma = { key="any", chainId=9745, url='https://api.routescan.io/v2/network/mainnet/evm/9745/etherscan/api' }
+monad = { key="${ETHERSCAN_API_KEY}", chainId=143 }
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config
