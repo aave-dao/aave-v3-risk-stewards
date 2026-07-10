@@ -1,0 +1,23 @@
+scripts/networks/RiskStewardsMonad.s.sol
+  s_b9f74f4ae8fb17::t_a431f65f1f849a 9
+foundry.lock
+  s_b9f74f4ae8fb17::t_536c5b1b1c4482 8
+lib/aave-helpers
+  s_b9f74f4ae8fb17::t_c5e297b48ddf7d 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "498b3ddac0f5845b2ee26ba8ba7a78d2392acf63",
+  "prompts": {},
+  "sessions": {
+    "s_b9f74f4ae8fb17": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4bb6-9c97-7390-b850-f5b13af24f39",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "AlbertoCentonze <11707683+AlbertoCentonze@users.noreply.github.com>"
+    }
+  }
+}
